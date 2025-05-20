@@ -2,7 +2,7 @@ import type { Row } from '@tanstack/react-table';
 import { useMemo } from 'react';
 import { UseFieldArrayReturn, UseFormReturn } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
-import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router';
 
 import useFetchData from './hooks/useFetchData';
 import {

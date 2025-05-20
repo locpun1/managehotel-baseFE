@@ -1,6 +1,6 @@
 import { uniq } from 'lodash';
 import { useTranslation } from 'react-i18next';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router';
 
 import { ROUTE_PATH } from '@/constants/routes';
 import useNotification from '@/hooks/useNotification';

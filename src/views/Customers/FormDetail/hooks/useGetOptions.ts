@@ -6,7 +6,7 @@ import { useAppSelector } from '@/store';
 import { ContactType, IdentityType } from '@/types/customer-types';
 
 const useGetOptions = () => {
-  const { data: customerGroups } = useAppSelector(selectCustomerGroups);
+  const customerGroups = useAppSelector(selectCustomerGroups);
   const { t } = useTranslation('customer');
 
   const contactTypeOptions = useMemo(
