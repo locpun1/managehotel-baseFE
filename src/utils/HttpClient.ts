@@ -9,9 +9,8 @@ import { __BASEURL__ } from '@/config';
 import { ACCESS_TOKEN } from '@/constants/auth';
 
 const accessToken = parsedToken(ACCESS_TOKEN);
-console.log('Base URL:', __BASEURL__);
+
 const config: AxiosRequestConfig = {
-  
   baseURL: __BASEURL__,
   headers: {
     'Content-Type': 'application/json',

@@ -2,11 +2,11 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
-import { Email, Lock, Person, Visibility, VisibilityOff,  } from '@mui/icons-material';
+import { Email, Lock } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
-import { Alert, Box, Button, IconButton, InputAdornment, Typography } from '@mui/material';
+import { Alert, Box, Button, Typography } from '@mui/material';
 import ControllerTextField from '@/components/ControllerField/ControllerTextField';
 import Page from '@/components/Page';
 
@@ -17,8 +17,7 @@ import { registrationSchema } from '@/schemas/auth-schema';
 import { signUp } from '@/services/auth-service';
 
 interface RegistrationFormInputs {
-  fullName: string;
-  phone_number: string;
+  email: string;
   password: string;
   confirmPassword: string;
 }
@@ -41,11 +40,9 @@ export default function Registration() {
   const notify = useNotification();
   const { t } = useTranslation('auth');
   const [_error, setError] = useState('');
-  const [showPassword, setShowPassword] = useBoolean(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useBoolean(false);
 
   useEffect(() => {
-    setFocus('phone_number');
+    setFocus('email');
   }, [setFocus]);
 
   useEffect(() => {
@@ -57,13 +54,11 @@ export default function Registration() {
   const onSubmit = async (values: RegistrationFormInputs) => {
     setLoading.on();
     try {
-      const { confirmPassword, ...payload} = values;
-      await signUp(payload);
+      await signUp(values);
       notify({
         message: t('registration_success'),
         severity: 'success',
       });
-      
       navigate(ROUTE_PATH.TO_LOGIN);
     } catch (error: any) {
       setError(error.message);
@@ -75,14 +70,8 @@ export default function Registration() {
   return (
     <Page title='Registration'>
       <Box component='form' onSubmit={handleSubmit(onSubmit)}>
-        <Typography 
-          variant='h4' 
-          component='h1' 
-          gutterBottom
-          fontWeight={500}
-          sx={{ width: '100%', fontSize: 'clamp(2rem, 10vw, 2.15rem)', textAlign:"center" }}
-        >
-          Đăng ký
+        <Typography variant='h4' component='h1' gutterBottom>
+          Register
         </Typography>
         {_error && (
           <Alert variant='filled' severity='warning'>
@@ -91,27 +80,14 @@ export default function Registration() {
         )}
         <ControllerTextField<RegistrationFormInputs>
           controllerProps={{
-            name: 'fullName',
+            name: 'email',
             defaultValue: '',
             control: control,
           }}
           textFieldProps={{
-            label: 'ID người dùng',
-            error: !!errors.fullName,
-            helperText: errors.fullName?.message,
-          }}
-          prefixIcon={Person}
-        />
-        <ControllerTextField<RegistrationFormInputs>
-          controllerProps={{
-            name: 'phone_number',
-            defaultValue: '',
-            control: control,
-          }}
-          textFieldProps={{
-            label: 'Tài khoản',
-            error: !!errors.phone_number,
-            helperText: errors.phone_number?.message,
+            label: 'Email',
+            error: !!errors.email,
+            helperText: errors.email?.message,
           }}
           prefixIcon={Email}
         />
@@ -122,25 +98,10 @@ export default function Registration() {
             control: control,
           }}
           textFieldProps={{
-            label: 'Mật khẩu',
-            type: showPassword ? 'text' : 'password',
+            label: 'Password',
+            type: 'password',
             error: !!errors.password,
             helperText: errors.password?.message,
-            slotProps: {
-              input: {
-                endAdornment:(
-                  <InputAdornment position='end'>
-                    <IconButton
-                      aria-label='toggle password visibility'
-                      onClick={() => setShowPassword.toggle()}
-                      edge='end'
-                    >
-                      {showPassword ? <VisibilityOff/> : <Visibility/>}
-                    </IconButton>
-                  </InputAdornment>
-                )
-              }
-            }
           }}
           prefixIcon={Lock}
         />
@@ -151,51 +112,30 @@ export default function Registration() {
             control: control,
           }}
           textFieldProps={{
-            label: 'Nhập lại mật khẩu',
-            type: showConfirmPassword ? 'text' : 'password',
+            label: 'Confirm Password',
+            type: 'password',
             error: !!errors.confirmPassword,
             helperText: errors.confirmPassword?.message,
-            slotProps:{
-              input: {
-                endAdornment: (
-                  <InputAdornment position='end'>
-                    <IconButton
-                      aria-label='toggle confirm password visibility'
-                      onClick={() =>  setShowConfirmPassword.toggle()}
-                      edge='end'
-                    > 
-                        {showConfirmPassword ? <VisibilityOff/> : <Visibility/>}
-                    </IconButton>
-                  </InputAdornment>
-                )
-              }
-            }
           }}
           prefixIcon={Lock}
         />
         <LoadingButton
           loading={_loading}
           type='submit'
+          variant='contained'
+          fullWidth
+          sx={{ mt: 2 }}
+        >
+          Register
+        </LoadingButton>
+        <Button
+          onClick={() => navigate(`/${ROUTE_PATH.AUTH}/${ROUTE_PATH.LOGIN}`)}
           variant='outlined'
           fullWidth
-          sx={{ 
-            my: 2,
-            color:"#00C7BE",
-            borderColor: "#00C7BE", 
-          }}
+          sx={{ mt: 2 }}
         >
-          Đăng ký
-        </LoadingButton>
-        <Box display='flex' justifyContent='center' alignItems='center' flexWrap='wrap' gap={2}>
-          <Typography> Bạn đã có tài khoản</Typography>
-          <Typography
-            color='primary'
-            component={Link}
-            to={`/${ROUTE_PATH.AUTH}/${ROUTE_PATH.LOGIN}`}
-          >
-            Đăng nhập tài khoản
-          </Typography>
-        </Box>
+          Back to login
+        </Button>
       </Box>
     </Page>
   );

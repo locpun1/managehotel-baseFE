@@ -32,7 +32,7 @@ import { setStorageToken } from '@/utils/AuthHelper';
 import Logger from '@/utils/Logger';
 
 interface LoginFormInputs {
-  phone_number: string;
+  username: string;
   password: string;
 }
 
@@ -56,38 +56,36 @@ export default function Login() {
   const [remember, setRemember] = useState(false);
 
   useEffect(() => {
-    setFocus('phone_number');
+    setFocus('username');
   }, [setFocus]);
 
   const onSubmit = async (values: LoginFormInputs) => {
     setLoading.on();
     try {
-      const identifier = values.phone_number
       const respAuth = await signIn({
-        identifier: identifier,
+        username: values.username,
         password: values.password,
       });
-      if(respAuth.success){
-        if (respAuth.data?.tokens) {
-                setStorageToken(remember)
-                  .accessToken(respAuth.data.tokens.access)
-                  .refreshToken(respAuth.data.tokens.refresh);
-                const respUser = await getCurrentUser();
-                dispatch(setProfile(respUser.data));
-                dispatch(setIsAuth(true));
-                setError('');
-                notify({
-                  message: t('login_success'),
-                  severity: 'success',
-                });
-                let route = ROUTE_PATH.HOME;
-                if (!_.isNull(location.state) && location.state !== ROUTE_PATH.LOGIN) {
-                  route = location.state;
-                }
-                navigate(route);
-              } 
-      }else {
-        setFocus('phone_number');
+
+      if (respAuth.data?.accessToken) {
+        setStorageToken(remember)
+          .accessToken(respAuth.data.accessToken)
+          .refreshToken(respAuth.data.refreshToken);
+        const respUser = await getCurrentUser();
+        dispatch(setProfile(respUser.data));
+        dispatch(setIsAuth(true));
+        setError('');
+        notify({
+          message: t('login_success'),
+          severity: 'success',
+        });
+        let route = ROUTE_PATH.HOME;
+        if (!_.isNull(location.state) && location.state !== ROUTE_PATH.LOGIN) {
+          route = location.state;
+        }
+        navigate(route);
+      } else {
+        setFocus('username');
         setError(respAuth.message);
         throw new Error(respAuth.message);
       }
@@ -105,9 +103,9 @@ export default function Login() {
           component='h1'
           variant='h4'
           fontWeight={500}
-          sx={{ width: '100%', fontSize: 'clamp(2rem, 10vw, 2.15rem)', textAlign:"center" }}
+          sx={{ width: '100%', fontSize: 'clamp(2rem, 10vw, 2.15rem)' }}
         >
-          Đăng nhập
+          Welcome to Telecom!
         </Typography>
       </Box>
       {_error && (
@@ -127,14 +125,14 @@ export default function Login() {
       >
         <ControllerTextField<LoginFormInputs>
           controllerProps={{
-            name: 'phone_number',
+            name: 'username',
             defaultValue: '',
             control: control,
           }}
           textFieldProps={{
-            label: 'Tài khoản',
-            error: !!errors.phone_number,
-            helperText: errors.phone_number?.message,
+            label: 'Username',
+            error: !!errors.username,
+            helperText: errors.username?.message,
             sx: { ariaLabel: 'username' },
           }}
           prefixIcon={Email}
@@ -146,7 +144,7 @@ export default function Login() {
             control: control,
           }}
           textFieldProps={{
-            label: 'Mật khẩu',
+            label: 'Password',
             type: showPassword ? 'text' : 'password',
             error: !!errors.password,
             helperText: errors.password?.message,
@@ -174,36 +172,31 @@ export default function Login() {
               color='primary'
               component={RouterLink}
               to={`/${ROUTE_PATH.AUTH}/${ROUTE_PATH.FORGOT_PASSWORD}`}
-              sx={{ textAlign: 'end', display: 'block', fontSize: '14px' }}
+              sx={{ textAlign: 'end', display: 'block' }}
             >
-              Quên mật khẩu?
+              Forgot password?
             </Typography>
           </Box>
-          {/* <FormControlLabel
+          <FormControlLabel
             label={'Remember me'}
             control={
               <Checkbox checked={remember} onChange={(e) => setRemember(e.target.checked)} />
             }
-          /> */}
+          />
         </div>
-        <LoadingButton loading={_loading} type='submit' variant='outlined' fullWidth
-          sx={{
-            color:"#00C7BE",
-            borderColor: "#00C7BE",
-          }}
-        >
-          Đăng nhập
+        <LoadingButton loading={_loading} type='submit' variant='contained' fullWidth>
+          Login
         </LoadingButton>
-        <Box display='flex' justifyContent='center' alignItems='center' flexWrap='wrap' gap={2}>
-          <Typography>Bạn chưa có tài khoản</Typography>
+        {/* <Box display='flex' justifyContent='center' alignItems='center' flexWrap='wrap' gap={2}>
+          <Typography>Don't have an account</Typography>
           <Typography
             to={`/${ROUTE_PATH.AUTH}/${ROUTE_PATH.REGISTRATION}`}
             component={RouterLink}
             color='primary'
           >
-            Đăng ký tài khoản
+            Create an account
           </Typography>
-        </Box>
+        </Box> */}
       </Box>
     </Page>
   );

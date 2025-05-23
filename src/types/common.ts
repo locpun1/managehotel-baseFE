@@ -20,7 +20,6 @@ export interface HttpResponse<T = any> {
   data: T | null;
   message: string;
   statusCode?: number;
-  success?: boolean
 }
 
 export type FilterType = {
