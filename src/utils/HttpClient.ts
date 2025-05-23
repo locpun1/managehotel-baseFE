@@ -7,9 +7,9 @@ import DateTime from './DateTime';
 
 import { __BASEURL__ } from '@/config';
 import { ACCESS_TOKEN } from '@/constants/auth';
+import { NotificationContextValue } from '@/contexts/Notification';
 
 const accessToken = parsedToken(ACCESS_TOKEN);
-console.log('Base URL:', __BASEURL__);
 const config: AxiosRequestConfig = {
   
   baseURL: __BASEURL__,
@@ -27,6 +27,7 @@ class Axios {
   private instance: AxiosInstance;
   private failedQueue: Array<{ resolve: Function; reject: Function }> = [];
   private setLogout: (() => void) | null = null;
+  private notify?: NotificationContextValue
 
   constructor() {
     const instance = axios.create(config);
@@ -40,6 +41,9 @@ class Axios {
         }
         return config;
       },
+      
+      
+      
       (error) => Promise.reject(error),
     );
 
@@ -47,12 +51,15 @@ class Axios {
     instance.interceptors.response.use(
       (response: AxiosResponse) => response,
       (error: AxiosError) => {
-        const { response } = error;
-
-        if (response?.status === 401 && !this.isRefreshing) {
+        const { response, config } = error;
+        
+        //Nếu là 401 (token hết hạn và không phải API login) thì mới refresh token
+        if (response?.status === 401 && !this.isRefreshing && !config?.url?.includes('/auth/login')) {
           return this.handleTokenRefresh(error);
         }
-        throw error;
+
+        // Nếu là lỗi từ login hoặc không liên quan đến refresh token
+        return Promise.reject(error);
       },
     );
 
@@ -71,12 +78,15 @@ class Axios {
 
       try {
         const refreshToken = getStorageToken.refreshToken;
-        const result = await axios.post(import.meta.env.VITE_BASE_URL, {
-          headers: {
-            Authorization: `Bearer ` + refreshToken,
-          },
+        const result = await axios.post(import.meta.env.VITE_API_BASE_URL + "/auth/refresh-tokens", {
+          // headers: {
+          //   Authorization: `Bearer ` + refreshToken,
+          // },
+          refreshToken: refreshToken
         });
         const { data } = result.data;
+        console.log("data: ", data);
+        
         setStorageToken().accessToken(data.accessToken);
         const newToken = data.accessToken;
 
@@ -90,15 +100,22 @@ class Axios {
           return this.instance(originalRequest);
         }
       } catch (refreshError) {
+        console.log("refreshError: ",refreshError);
+        
         this.failedQueue.forEach((req) => req.reject(refreshError));
         this.failedQueue = [];
 
         //call logout
-        if (this.setLogout) {
-          this.setLogout();
+        if (this.setLogout && this.notify) {
+          this.notify({
+            error: 'Phiên đăng nhập đã hết hạn. Mời bạn đăng nhập lại',
+            onForward: this.setLogout,
+            alertProps: { severity: 'error' },
+            snackbarProps: { autoHideDuration: null },
+          })
         }
 
-        throw refreshError;
+        return Promise.reject(refreshError);
       } finally {
         this.isRefreshing = false;
       }

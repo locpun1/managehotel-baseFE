@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 
-import { Email, Lock, Visibility, VisibilityOff } from '@mui/icons-material';
+import { Email, Lock, Phone, Visibility, VisibilityOff } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
 import {
   Alert,
@@ -53,7 +53,7 @@ export default function Login() {
   const notify = useNotification();
   const [_error, setError] = useState('');
   const [showPassword, setShowPassword] = useBoolean(false);
-  const [remember, setRemember] = useState(false);
+  const [remember, setRemember] = useState(true);
 
   useEffect(() => {
     setFocus('phone_number');
@@ -67,11 +67,12 @@ export default function Login() {
         identifier: identifier,
         password: values.password,
       });
+      
       if(respAuth.success){
         if (respAuth.data?.tokens) {
                 setStorageToken(remember)
-                  .accessToken(respAuth.data.tokens.access)
-                  .refreshToken(respAuth.data.tokens.refresh);
+                  .accessToken(respAuth.data.tokens.access.token)
+                  .refreshToken(respAuth.data.tokens.refresh.token);
                 const respUser = await getCurrentUser();
                 dispatch(setProfile(respUser.data));
                 dispatch(setIsAuth(true));
@@ -92,6 +93,11 @@ export default function Login() {
         throw new Error(respAuth.message);
       }
     } catch (error: any) {
+      const apiErrorMessage = error?.response?.data?.message ||
+                            error?.message || 
+                            t('login_error_occurred') || 
+                            'An unexpected error occurred.';
+      setError(apiErrorMessage);
       Logger.log(error);
     } finally {
       setLoading.off();
@@ -137,7 +143,7 @@ export default function Login() {
             helperText: errors.phone_number?.message,
             sx: { ariaLabel: 'username' },
           }}
-          prefixIcon={Email}
+          prefixIcon={Phone}
         />
         <ControllerTextField<LoginFormInputs>
           controllerProps={{

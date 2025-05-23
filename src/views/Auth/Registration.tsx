@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
 
-import { Email, Lock, Person, Visibility, VisibilityOff,  } from '@mui/icons-material';
+import { Email, Lock, Person, Phone, Visibility, VisibilityOff,  } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
 import { Alert, Box, Button, IconButton, InputAdornment, Typography } from '@mui/material';
 import ControllerTextField from '@/components/ControllerField/ControllerTextField';
@@ -113,7 +113,7 @@ export default function Registration() {
             error: !!errors.phone_number,
             helperText: errors.phone_number?.message,
           }}
-          prefixIcon={Email}
+          prefixIcon={Phone}
         />
         <ControllerTextField<RegistrationFormInputs>
           controllerProps={{

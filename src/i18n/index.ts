@@ -4,7 +4,7 @@ import { initReactI18next } from 'react-i18next';
 
 let i18nInstance: I18nInstance;
 
-const NS = ['auth', 'sidebar', 'common', 'customer', 'home'];
+const NS = ['auth', 'sidebar', 'common', 'customer', 'home', 'section'];
 
 const initI18n = (): I18nInstance => {
   if (i18nInstance) {
