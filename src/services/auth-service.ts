@@ -2,6 +2,8 @@ import {
   ForgotPasswordRequest,
   LoginRequest,
   LoginResponse,
+  LogoutResquest,
+  RegisterRequest,
   ResetPasswordRequest,
   ResetPasswordResponse,
   VerifyUsernameRequest,
@@ -16,12 +18,12 @@ export const signIn = (params: LoginRequest) => {
   return HttpClient.post<typeof params, HttpResponse<LoginResponse>>(`${prefix}/login`, params);
 };
 
-export const signUp = (params: LoginRequest) => {
-  return HttpClient.post<LoginRequest, HttpResponse>(`${prefix}/signup`, params);
+export const signUp = (params: RegisterRequest) => {
+  return HttpClient.post<RegisterRequest, HttpResponse>(`${prefix}/phone-register`, params);
 };
 
-export const signOut = () => {
-  return HttpClient.get<null, HttpResponse>(`${prefix}/logout`);
+export const signOut = (params: LogoutResquest) => {
+  return HttpClient.post<LogoutResquest, HttpResponse>(`${prefix}/logout`,params);
 };
 
 export const verifyEmail = (params: VerifyUsernameRequest) => {

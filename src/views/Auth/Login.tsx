@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 
-import { Email, Lock, Visibility, VisibilityOff } from '@mui/icons-material';
+import { Email, Lock, Phone, Visibility, VisibilityOff } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
 import {
   Alert,
@@ -32,7 +32,7 @@ import { setStorageToken } from '@/utils/AuthHelper';
 import Logger from '@/utils/Logger';
 
 interface LoginFormInputs {
-  username: string;
+  phone_number: string;
   password: string;
 }
 
@@ -53,43 +53,51 @@ export default function Login() {
   const notify = useNotification();
   const [_error, setError] = useState('');
   const [showPassword, setShowPassword] = useBoolean(false);
-  const [remember, setRemember] = useState(false);
+  const [remember, setRemember] = useState(true);
 
   useEffect(() => {
-    setFocus('username');
+    setFocus('phone_number');
   }, [setFocus]);
 
   const onSubmit = async (values: LoginFormInputs) => {
     setLoading.on();
     try {
+      const identifier = values.phone_number
       const respAuth = await signIn({
-        username: values.username,
+        identifier: identifier,
         password: values.password,
       });
-
-      if (respAuth.data?.accessToken) {
-        setStorageToken(remember)
-          .accessToken(respAuth.data.accessToken)
-          .refreshToken(respAuth.data.refreshToken);
-        const respUser = await getCurrentUser();
-        dispatch(setProfile(respUser.data));
-        dispatch(setIsAuth(true));
-        setError('');
-        notify({
-          message: t('login_success'),
-          severity: 'success',
-        });
-        let route = ROUTE_PATH.HOME;
-        if (!_.isNull(location.state) && location.state !== ROUTE_PATH.LOGIN) {
-          route = location.state;
-        }
-        navigate(route);
-      } else {
-        setFocus('username');
+      
+      if(respAuth.success){
+        if (respAuth.data?.tokens) {
+                setStorageToken(remember)
+                  .accessToken(respAuth.data.tokens.access.token)
+                  .refreshToken(respAuth.data.tokens.refresh.token);
+                const respUser = await getCurrentUser();
+                dispatch(setProfile(respUser.data));
+                dispatch(setIsAuth(true));
+                setError('');
+                notify({
+                  message: t('login_success'),
+                  severity: 'success',
+                });
+                let route = ROUTE_PATH.HOME;
+                if (!_.isNull(location.state) && location.state !== ROUTE_PATH.LOGIN) {
+                  route = location.state;
+                }
+                navigate(route);
+              } 
+      }else {
+        setFocus('phone_number');
         setError(respAuth.message);
         throw new Error(respAuth.message);
       }
     } catch (error: any) {
+      const apiErrorMessage = error?.response?.data?.message ||
+                            error?.message || 
+                            t('login_error_occurred') || 
+                            'An unexpected error occurred.';
+      setError(apiErrorMessage);
       Logger.log(error);
     } finally {
       setLoading.off();
@@ -103,9 +111,9 @@ export default function Login() {
           component='h1'
           variant='h4'
           fontWeight={500}
-          sx={{ width: '100%', fontSize: 'clamp(2rem, 10vw, 2.15rem)' }}
+          sx={{ width: '100%', fontSize: 'clamp(2rem, 10vw, 2.15rem)', textAlign:"center" }}
         >
-          Welcome to Telecom!
+          Đăng nhập
         </Typography>
       </Box>
       {_error && (
@@ -125,17 +133,17 @@ export default function Login() {
       >
         <ControllerTextField<LoginFormInputs>
           controllerProps={{
-            name: 'username',
+            name: 'phone_number',
             defaultValue: '',
             control: control,
           }}
           textFieldProps={{
-            label: 'Username',
-            error: !!errors.username,
-            helperText: errors.username?.message,
+            label: 'Tài khoản',
+            error: !!errors.phone_number,
+            helperText: errors.phone_number?.message,
             sx: { ariaLabel: 'username' },
           }}
-          prefixIcon={Email}
+          prefixIcon={Phone}
         />
         <ControllerTextField<LoginFormInputs>
           controllerProps={{
@@ -144,7 +152,7 @@ export default function Login() {
             control: control,
           }}
           textFieldProps={{
-            label: 'Password',
+            label: 'Mật khẩu',
             type: showPassword ? 'text' : 'password',
             error: !!errors.password,
             helperText: errors.password?.message,
@@ -172,31 +180,36 @@ export default function Login() {
               color='primary'
               component={RouterLink}
               to={`/${ROUTE_PATH.AUTH}/${ROUTE_PATH.FORGOT_PASSWORD}`}
-              sx={{ textAlign: 'end', display: 'block' }}
+              sx={{ textAlign: 'end', display: 'block', fontSize: '14px' }}
             >
-              Forgot password?
+              Quên mật khẩu?
             </Typography>
           </Box>
-          <FormControlLabel
+          {/* <FormControlLabel
             label={'Remember me'}
             control={
               <Checkbox checked={remember} onChange={(e) => setRemember(e.target.checked)} />
             }
-          />
+          /> */}
         </div>
-        <LoadingButton loading={_loading} type='submit' variant='contained' fullWidth>
-          Login
+        <LoadingButton loading={_loading} type='submit' variant='outlined' fullWidth
+          sx={{
+            color:"#00C7BE",
+            borderColor: "#00C7BE",
+          }}
+        >
+          Đăng nhập
         </LoadingButton>
-        {/* <Box display='flex' justifyContent='center' alignItems='center' flexWrap='wrap' gap={2}>
-          <Typography>Don't have an account</Typography>
+        <Box display='flex' justifyContent='center' alignItems='center' flexWrap='wrap' gap={2}>
+          <Typography>Bạn chưa có tài khoản</Typography>
           <Typography
             to={`/${ROUTE_PATH.AUTH}/${ROUTE_PATH.REGISTRATION}`}
             component={RouterLink}
             color='primary'
           >
-            Create an account
+            Đăng ký tài khoản
           </Typography>
-        </Box> */}
+        </Box>
       </Box>
     </Page>
   );
