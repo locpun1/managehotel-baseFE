@@ -1,17 +1,15 @@
 import type { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import axios from 'axios';
 import qs from 'qs';
-
 import { getStorageToken, parsedToken, setStorageToken } from './AuthHelper';
 import DateTime from './DateTime';
-
 import { __BASEURL__ } from '@/config';
 import { ACCESS_TOKEN } from '@/constants/auth';
 import { NotificationContextValue } from '@/contexts/Notification';
 
 const accessToken = parsedToken(ACCESS_TOKEN);
 const config: AxiosRequestConfig = {
-  
+
   baseURL: __BASEURL__,
   headers: {
     'Content-Type': 'application/json',
@@ -41,9 +39,7 @@ class Axios {
         }
         return config;
       },
-      
-      
-      
+
       (error) => Promise.reject(error),
     );
 
@@ -52,13 +48,11 @@ class Axios {
       (response: AxiosResponse) => response,
       (error: AxiosError) => {
         const { response, config } = error;
-        
-        //Nếu là 401 (token hết hạn và không phải API login) thì mới refresh token
+
         if (response?.status === 401 && !this.isRefreshing && !config?.url?.includes('/auth/login')) {
           return this.handleTokenRefresh(error);
         }
 
-        // Nếu là lỗi từ login hoặc không liên quan đến refresh token
         return Promise.reject(error);
       },
     );
@@ -85,27 +79,23 @@ class Axios {
           refreshToken: refreshToken
         });
         const { data } = result.data;
-        console.log("data: ", data);
-        
+
         setStorageToken().accessToken(data.accessToken);
         const newToken = data.accessToken;
 
         if (newToken) {
           originalRequest.headers.Authorization = `Bearer ${newToken}`;
 
-          // Retry the failed requests
           this.failedQueue.forEach((req) => req.resolve(newToken));
           this.failedQueue = [];
 
           return this.instance(originalRequest);
         }
       } catch (refreshError) {
-        console.log("refreshError: ",refreshError);
-        
+
         this.failedQueue.forEach((req) => req.reject(refreshError));
         this.failedQueue = [];
 
-        //call logout
         if (this.setLogout && this.notify) {
           this.notify({
             error: 'Phiên đăng nhập đã hết hạn. Mời bạn đăng nhập lại',
@@ -135,7 +125,6 @@ class Axios {
     return this.instance;
   }
 
-  // Create
   public post<D = any>(url: string): Promise<D>;
   public post<D = any, R = any>(url: string, data: D, config?: AxiosRequestConfig<D>): Promise<R>;
   public post<D = any, R = any>(
@@ -152,7 +141,6 @@ class Axios {
     });
   }
 
-  // Read
   public get<T = any, R = T, D = any>(url: string, config?: AxiosRequestConfig<D>): Promise<R> {
     return new Promise((resolve, reject) => {
       this.Instance.get<T, AxiosResponse<R>, D>(url, config)
@@ -163,7 +151,6 @@ class Axios {
     });
   }
 
-  // Update
   public put<D = any, R = any>(url: string, data?: D, config?: AxiosRequestConfig<D>): Promise<R> {
     return new Promise((resolve, reject) => {
       this.Instance.put<D, AxiosResponse<R>>(url, data, config)

@@ -51,11 +51,7 @@ const Profile = () => {
     });
     dispatch(setIsAuth(false));
     dispatch(setProfile(null));
-    notify({
-      message:"Đăng xuất thành cônng",
-      severity: 'success',
-    })
-    // removeStorageToken();
+    removeStorageToken();
   };
 
   const open = Boolean(anchorEl);
@@ -83,7 +79,7 @@ const Profile = () => {
             src={avatar1}
             sx={{ width: 32, height: 32, borderRadius: '100%' }}
           />
-          <Typography variant='subtitle1'>{profile?.email}</Typography>
+          <Typography variant='subtitle1'>{profile?.full_name}</Typography>
         </Stack>
       </ButtonBase>
       <Popper
