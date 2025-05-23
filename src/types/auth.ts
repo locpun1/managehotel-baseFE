@@ -1,13 +1,21 @@
 import { HttpResponse } from './common';
 
 export type LoginRequest = {
-  username: string;
+  identifier: string;
+  password: string;
+};
+
+export type RegisterRequest = {
+  fullName: string;
+  phone_number: string;
   password: string;
 };
 
 export type LoginResponse = {
-  accessToken: string;
-  refreshToken: string;
+ tokens:{
+   access: string;
+   refresh: string;
+ }
 };
 
 export type ResetPasswordRequest = {
