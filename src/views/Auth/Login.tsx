@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 
-import { Email, Lock, Phone, Visibility, VisibilityOff } from '@mui/icons-material';
+import { AccountCircle, Lock, Visibility, VisibilityOff } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
 import {
   Alert,
@@ -32,7 +32,7 @@ import { setStorageToken } from '@/utils/AuthHelper';
 import Logger from '@/utils/Logger';
 
 interface LoginFormInputs {
-  phone_number: string;
+  identifier: string;
   password: string;
 }
 
@@ -56,15 +56,14 @@ export default function Login() {
   const [remember, setRemember] = useState(true);
 
   useEffect(() => {
-    setFocus('phone_number');
+    setFocus('identifier');
   }, [setFocus]);
 
   const onSubmit = async (values: LoginFormInputs) => {
     setLoading.on();
     try {
-      const identifier = values.phone_number
       const respAuth = await signIn({
-        identifier: identifier,
+        identifier: values.identifier,
         password: values.password,
       });
       
@@ -88,7 +87,7 @@ export default function Login() {
                 navigate(route);
               } 
       }else {
-        setFocus('phone_number');
+        setFocus('identifier');
         setError(respAuth.message);
         throw new Error(respAuth.message);
       }
@@ -133,17 +132,17 @@ export default function Login() {
       >
         <ControllerTextField<LoginFormInputs>
           controllerProps={{
-            name: 'phone_number',
+            name: 'identifier',
             defaultValue: '',
             control: control,
           }}
           textFieldProps={{
             label: 'Tài khoản',
-            error: !!errors.phone_number,
-            helperText: errors.phone_number?.message,
-            sx: { ariaLabel: 'username' },
+            error: !!errors.identifier,
+            helperText: errors.identifier?.message,
+            sx: { ariaLabel: 'identifier' },
           }}
-          prefixIcon={Phone}
+          prefixIcon={AccountCircle}
         />
         <ControllerTextField<LoginFormInputs>
           controllerProps={{
