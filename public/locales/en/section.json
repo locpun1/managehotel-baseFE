@@ -1,4 +1,8 @@
 {
   "customer": "Customer",
-  "home": "Home"
+  "home": "Home",
+  "list-work": "List of work",
+  "manage-work": "Management work",
+  "updated-day": "Updated day",
+  "profile-user": "User profile"
 }

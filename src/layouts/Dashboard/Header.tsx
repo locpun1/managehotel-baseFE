@@ -1,12 +1,14 @@
 import { MINI_SIDEBAR_WIDTH, SIDEBAR_WIDTH } from '@/constants/layouts';
-import { ChevronLeft, ChevronRight } from '@mui/icons-material';
-import { Box, useMediaQuery } from '@mui/material';
+import { ChevronLeft, ChevronRight, DensityMedium } from '@mui/icons-material';
+import { Box, Stack, Typography, useMediaQuery } from '@mui/material';
 import AppBar from '@mui/material/AppBar';
 import IconButton from '@mui/material/IconButton';
 import { CSSObject, Theme, useTheme } from '@mui/material/styles';
 import Toolbar from '@mui/material/Toolbar';
 import SelectLanguage from './SelectLanguage';
 import Profile from './Sidebar/Profile';
+import { useSidebarTitle } from '@/contexts/SidebarTitleContext';
+import { useAppSelector } from '@/store';
 
 interface Props {
   collapsed: boolean;
@@ -33,6 +35,8 @@ const closedMixin = (theme: Theme): CSSObject => ({
 const Header = (props: Props) => {
   const theme = useTheme();
   const lgUp = useMediaQuery(theme.breakpoints.up('lg'));
+  const { title } = useSidebarTitle();
+   const profile = useAppSelector((state) => state.auth.profile);
 
   return (
     <AppBar
@@ -41,7 +45,6 @@ const Header = (props: Props) => {
       sx={{
         color: 'common.black',
         backgroundColor: '#fff',
-        height: '64px',
         borderBottom: 'thin solid #E6E8F0',
         marginLeft: 'auto',
         zIndex: 9,
@@ -53,25 +56,31 @@ const Header = (props: Props) => {
       }}
     >
       <Toolbar sx={{ display: 'flex', justifyContent: 'space-between', height: '100%' }}>
-        <IconButton
-          onClick={props.onToggleCollapsed}
-          edge='start'
-          sx={{
-            color: '#000',
-            borderRadius: '4px',
-            width: '36px',
-            height: '36px',
-            fontSize: '1rem',
-            backgroundColor: '#f0f0f0',
-          }}
-        >
-          {props.collapsed ? <ChevronRight /> : <ChevronLeft />}
-        </IconButton>
+        <Stack direction='row'>
+          <IconButton
+            onClick={props.onToggleCollapsed}
+            edge='start'
+            sx={{
+              color: '#000',
+              borderRadius: '4px',
+              width: '36px',
+              height: '36px',
+              fontSize: '1rem',
+              backgroundColor: '#f0f0f0',
+            }}
+          >
+            {props.collapsed ? <DensityMedium /> : <DensityMedium />}
+          </IconButton>
+          <Typography display='flex' justifyContent="center" alignItems='center'>{title}</Typography>
+        </Stack>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <SelectLanguage />
           <Profile />
         </Box>
       </Toolbar>
+      <Box sx={{ display: 'flex', textAlign: 'center', height:50, backgroundColor:"#00C7BE"}}>
+        <Typography color='info.contrastText' mx={3} my={1.5}>{`Xin chào, ${profile?.full_name}`}</Typography>
+      </Box>
     </AppBar>
   );
 };

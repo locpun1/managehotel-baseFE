@@ -11,7 +11,6 @@ import Badge from '@mui/material/Badge';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Collapse from '@mui/material/Collapse';
-import Divider from '@mui/material/Divider';
 import Drawer, { drawerClasses } from '@mui/material/Drawer';
 import IconButton from '@mui/material/IconButton';
 import type { ListProps } from '@mui/material/List';
@@ -32,8 +31,8 @@ import Scrollbar from '@/components/Scrollbar';
 import { MINI_SIDEBAR_WIDTH, SIDEBAR_WIDTH } from '@/constants/layouts';
 import useDerivedState from '@/hooks/useDerivedState';
 import usePrevious from '@/hooks/usePrevious';
-import { useAppSelector } from '@/store';
 import type { MouseEvent } from '@/types/react';
+import { useSidebarTitle } from '@/contexts/SidebarTitleContext';
 
 export const CollapseContext = createContext<boolean | null>(null);
 export const SidebarContext = createContext<boolean | null>(null);
@@ -73,8 +72,8 @@ const Sidebar = (props: Props) => {
             <Scrollbar>
               <Box
                 sx={{
-                  borderBottom: 'thin solid #E6E8F0',
-                  height: '64px',
+                  // borderBottom: 'thin solid #E6E8F0',
+                  height: '180px',
                 }}
               >
                 <Logo />
@@ -98,18 +97,17 @@ const Sidebar = (props: Props) => {
       sx={{
         zIndex: 999,
       }}
-      PaperProps={{ sx: { width: SIDEBAR_WIDTH, bgcolor: '#fff' } }}
+      PaperProps={{ sx: { width: SIDEBAR_WIDTH, bgcolor: '#2D323E' } }}
     >
       <SidebarContext.Provider value={openSidebar}>
         <CollapseContext.Provider value={false}>
           <Scrollbar sx={{ height: 1 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Logo />
-              <IconButton
+            <Box display='flex' justifyContent='end'>
+               <IconButton
                 onClick={onToggleCollapsed}
                 edge='start'
                 sx={{
-                  color: '#000',
+                  color: '#FFF',
                   borderRadius: '4px',
                   width: '36px',
                   height: '36px',
@@ -121,7 +119,9 @@ const Sidebar = (props: Props) => {
                 <CloseIcon />
               </IconButton>
             </Box>
-            <Divider sx={{ mb: 1.5 }} />
+            <Box sx={{ mb:2 , color: "white" }}>
+              <Logo />
+            </Box>
             {sections.map((section, i) => (
               <MenuSection key={i} pathname={pathname} {...section} />
             ))}
@@ -169,7 +169,6 @@ interface MenuItemsProps {
 }
 const MenuItems = (props: MenuItemsProps) => {
   const { items, pathname, level } = props;
-
   return (
     <List disablePadding>
       {items.reduce<ReactNode[]>((acc, item, i) => {
@@ -243,12 +242,19 @@ const MenuItem: FC<MenuItemProps> = (props) => {
 
   const { pathname } = useLocation();
   const prevPathName = usePrevious(pathname);
+  const { setTitle } = useSidebarTitle();
 
   useEffect(() => {
     if (prevPathName !== pathname && collapsed) {
       setAnchor(null);
     }
   }, [pathname, collapsed, prevPathName]);
+
+  useEffect(() => {
+    if(active){
+      setTitle(title)
+    }
+  }, [active, title, setTitle])
 
   const handleToggle = (): void => {
     setExpanded(!expanded);
@@ -290,13 +296,13 @@ const MenuItem: FC<MenuItemProps> = (props) => {
                 to: path,
               })}
             sx={{
-              color: 'neutral.800',
+              color: 'neutral.100',
               '&:hover': {
-                bgcolor: alpha('#FFFFFF', 0.08),
+                bgcolor: alpha('#FFFFFF', 0.5),
               },
               ...(active && {
-                color: 'info.main',
-                bgcolor: alpha('#FFFFFF', 0.08),
+                color: 'info.contrastText',
+                bgcolor: alpha('#00C7BE', 1),
               }),
             }}
           >
@@ -339,16 +345,17 @@ const MenuItem: FC<MenuItemProps> = (props) => {
           size='medium'
           fullWidth
           sx={{
-            color: 'neutral.800',
+            color: 'neutral.100',
             p: 1.25,
             pl: `${paddingLeft}px`,
             textAlign: 'left',
             '&:hover': {
-              bgcolor: alpha('#FFFFFF', 0.08),
+              bgcolor: alpha('#FFFFFF', 0.5),
             },
             ...(active && {
-              color: 'info.main',
-              bgcolor: alpha('#FFFFFF', 0.08),
+              color: 'info.contrastText',
+              bgcolor: alpha('#00C7BE', 1),
+              fontWeight: active ? 'bold' : 'normal',
             }),
           }}
         >
@@ -378,7 +385,7 @@ const MenuItem: FC<MenuItemProps> = (props) => {
       sx={{
         display: 'flex',
         ...(level === 0 && {
-          px: 1.5,
+          pr: 5,
           pb: 0.5,
         }),
       }}
@@ -390,15 +397,19 @@ const MenuItem: FC<MenuItemProps> = (props) => {
         size='medium'
         fullWidth
         sx={{
-          color: 'neutral.800',
+          color: 'neutral.200',
           p: 1.25,
           pl: `${paddingLeft}px`,
           '&:hover': {
             bgcolor: alpha('#000', 0.08),
           },
           ...(active && {
-            color: 'info.main',
-            bgcolor: '#e6f4ff',
+            color: 'info.contrastText',
+            bgcolor: '#00C7BE',
+            borderTopLeftRadius: '0px',
+            borderTopRightRadius: '999px',
+            borderBottomLeftRadius: '0px',
+            borderBottomRightRadius: '999px',
           }),
           flexShrink: 0,
         }}
@@ -413,6 +424,7 @@ const MenuItem: FC<MenuItemProps> = (props) => {
             '& .MuiTypography-root': {
               whiteSpace: 'nowrap',
               fontSize: '14px',
+              fontWeight: active ? 'bold' : 'normal',
             },
           }}
         />
@@ -426,9 +438,9 @@ const CollapsibleDrawer = styled(Drawer, {
   shouldForwardProp: (prop: string) => !['collapsed'].includes(prop),
 })<{ collapsed: boolean }>(({ theme, collapsed }) => ({
   [`& .${drawerClasses.paper}`]: {
-    backgroundColor: theme.palette.common.white,
+    backgroundColor: '#2D323E',
     borderRight: '1px solid #f0f0f0',
-    color: theme.palette.common.black,
+    color: theme.palette.common.white,
     flexShrink: 0,
     whiteSpace: 'nowrap',
     boxSizing: 'border-box',
