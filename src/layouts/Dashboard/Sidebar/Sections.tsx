@@ -1,9 +1,10 @@
 import { TFunction } from 'i18next';
 
 import type { SvgIconComponent } from '@mui/icons-material';
-import { Assignment, Badge, EventNote, HomeOutlined, MoreTime } from '@mui/icons-material';
+import { Assignment, Badge, ConnectedTv, EventNote, HomeOutlined, MoreTime } from '@mui/icons-material';
 
 import { ROUTE_PATH } from '@/constants/routes';
+import { useAppSelector } from '@/store';
 
 export interface SectionItem {
   title: string;
@@ -18,10 +19,52 @@ interface Section {
   items: SectionItem[];
 }
 
-const Sections = (t: TFunction): Section[] => {
+const Sections = (t: TFunction): Section[] => {  
   return AdminSections(t);
 };
-const AdminSections = (t: TFunction): Section[] => [
+const AdminSections = (t: TFunction) : Section[] => [
+  {
+    section: null,
+    items: [
+      {
+        title: t('home'),
+        path: `${ROUTE_PATH.MANAGE}/${ROUTE_PATH.MANAGE_HOME}`,
+        icon: HomeOutlined,
+      },
+    ],
+  },
+  {
+    section: null,
+    items: [
+      {
+        title: t('manage-work'),
+        path: `${ROUTE_PATH.MANAGE}/${ROUTE_PATH.MANAGE_WORK}`,
+        icon: Assignment,
+      },
+    ],
+  },
+  {
+    section: null,
+    items: [
+      {
+        title: t('manage-display'),
+        path: `${ROUTE_PATH.MANAGE}/${ROUTE_PATH.MANAGE_DISPLAY}`,
+        icon: ConnectedTv,
+      },
+    ],
+  },
+  {
+    section: null,
+    items: [
+      {
+        title: t('profile-user'),
+        path: "#",
+        icon: Badge,
+      },
+    ],
+  },
+]
+const UserSection = (t: TFunction): Section[] => [
   {
     section: null,
     items: [
@@ -36,7 +79,7 @@ const AdminSections = (t: TFunction): Section[] => [
     section: null,
     items: [
       {
-        title: "Danh sách công việc",
+        title: t('list-work'),
         path: "#",
         icon: EventNote,
       },
@@ -46,7 +89,7 @@ const AdminSections = (t: TFunction): Section[] => [
     section: null,
     items: [
       {
-        title: "Quản lý công việc",
+        title: t('manage-work'),
         path: "#",
         icon: Assignment,
       },
@@ -56,7 +99,7 @@ const AdminSections = (t: TFunction): Section[] => [
     section: null,
     items: [
       {
-        title: "Cập nhật hằng ngày",
+        title: t('updated-day'),
         path: "#",
         icon: MoreTime,
       },
@@ -66,7 +109,7 @@ const AdminSections = (t: TFunction): Section[] => [
     section: null,
     items: [
       {
-        title: "Hồ sơ người dùng",
+        title: t('profile-user'),
         path: "#",
         icon: Badge,
       },

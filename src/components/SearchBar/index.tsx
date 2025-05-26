@@ -2,7 +2,8 @@ import { Grid, Stack } from "@mui/material";
 import React from "react";
 import InputSearch from "./InputSearch";
 import Button from "../Button/Button";
-import { Add, AddCircleOutlineOutlined, Cached, FilterAlt, FilterAltOutlined, NotificationsNone } from "@mui/icons-material";
+import { AddCircleOutlineOutlined, Cached, FilterAltOutlined, NotificationsNone } from "@mui/icons-material";
+import IconButton from "../IconButton/IconButton";
 
 interface SearchBarProps{
     onSearch: (searchTerm: string) => void;
@@ -21,32 +22,38 @@ const SearchBar: React.FC<SearchBarProps> = (props) => {
                 />
             </Grid>
             <Grid item xs={4}>
-                <Stack direction='row' sx={{ display: 'flex', justifyContent:'end', mt: 2}}>
-                    <Button
+                <Stack direction='row' sx={{ display: 'flex', justifyContent:'end', mt: 2, mr:3}}>
+                    <IconButton
                         handleFunt={() => {}}
-                        leadingIcon={<NotificationsNone sx={{color: 'black', width: "28px", height:"28px"}}/>}
+                        icon={<NotificationsNone sx={{color: 'black', width:"28px", height:"28px"}}/>}
                         backgroundColor="white"
                         border="1px solid black"
+                        borderRadius={6}
+                        tooltip="Thông báo"
+                        sx={{ mr: 2}}
+                    />
+                    <IconButton
+                        handleFunt={() => {}}
+                        icon={<FilterAltOutlined sx={{color: 'white', width: "28px", height:"28px"}}/>}
+                        backgroundColor="#00C7BE"
+                        borderRadius={6}
+                        tooltip="Lọc"
 
                     />
-                    <Button
+                    <IconButton
                         handleFunt={() => {}}
-                        leadingIcon={<FilterAltOutlined sx={{color: 'white', width: "28px", height:"28px"}}/>}
+                        icon={<Cached sx={{color: 'white', width: "28px", height:"28px"}}/>}
                         backgroundColor="#00C7BE"
-
-                    />
-                    <Button
-                        handleFunt={() => {}}
-                        leadingIcon={<Cached sx={{color: 'white', width: "28px", height:"28px"}}/>}
-                        backgroundColor="#00C7BE"
-
+                        borderRadius={6}
+                        tooltip="Refresh"
                     />
                     <Button
                         handleFunt={() => {}}
                         leadingIcon={<AddCircleOutlineOutlined sx={{color: 'white', width: "28px", height:"28px"}}/>}
                         backgroundColor="#00C7BE"
                         width='120px'
-
+                        height="37px"
+                        borderRadius="6px"
                     >
                         Tạo mới
                     </Button>
