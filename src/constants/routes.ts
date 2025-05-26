@@ -3,7 +3,7 @@ export const ROUTE_PATH = {
   PRODUCTS: '/products',
   TO_PROFILE: '/profile',
 
-  MANAGE:"/manage",
+  MANAGE:"manage",
   MANAGE_HOME:'home',
   MANAGE_WORK:'work',
   MANAGE_DISPLAY:'display-remote',
