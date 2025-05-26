@@ -33,6 +33,7 @@ import useDerivedState from '@/hooks/useDerivedState';
 import usePrevious from '@/hooks/usePrevious';
 import type { MouseEvent } from '@/types/react';
 import { useSidebarTitle } from '@/contexts/SidebarTitleContext';
+import { useAppSelector } from '@/store';
 
 export const CollapseContext = createContext<boolean | null>(null);
 export const SidebarContext = createContext<boolean | null>(null);
@@ -46,10 +47,11 @@ interface Props {
 const Sidebar = (props: Props) => {
   const { openSidebar, collapsed, onCloseSidebar, onToggleCollapsed } = props;
   const { pathname } = useLocation();
-  const { t } = useTranslation('section');
-  const sections = useMemo(() => Sections(t), [t]);
   const theme = useTheme();
   const prevPathName = usePrevious(pathname);
+  const user = useAppSelector((state) => state.auth.profile); 
+  const userRole = user?.role;
+  const sections = useMemo(() => Sections(userRole), [userRole]);
 
   const lgUp = useMediaQuery(theme.breakpoints.up('lg'));
 

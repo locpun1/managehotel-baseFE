@@ -48,7 +48,7 @@ const DashboardLayout = () => {
           <Box sx={{ flexGrow: 1, overflowY: 'auto' }}>
             <Outlet />
           </Box>
-          <Footer />
+          {/* <Footer /> */}
         </Box>
       </Box>
     </SidebarTitleContext.Provider>

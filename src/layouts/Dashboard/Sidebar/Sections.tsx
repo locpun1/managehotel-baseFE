@@ -4,6 +4,7 @@ import type { SvgIconComponent } from '@mui/icons-material';
 import { Assignment, Badge, ConnectedTv, EventNote, HomeOutlined, MoreTime } from '@mui/icons-material';
 
 import { ROUTE_PATH } from '@/constants/routes';
+import { ROLE } from '@/constants/roles';
 import { useAppSelector } from '@/store';
 
 export interface SectionItem {
@@ -19,15 +20,22 @@ interface Section {
   items: SectionItem[];
 }
 
-const Sections = (t: TFunction): Section[] => {  
-  return AdminSections(t);
+const Sections = (role?: string | string | null): Section[] => {
+  switch (role) {
+    case ROLE.MANAGER:
+      return AdminSections();
+    case ROLE.STAFF:
+      return UserSection(); 
+    default:
+      return [];
+  }
 };
-const AdminSections = (t: TFunction) : Section[] => [
+const AdminSections = () : Section[] => [
   {
     section: null,
     items: [
       {
-        title: t('home'),
+        title: 'Trang chủ',
         path: `${ROUTE_PATH.MANAGE}/${ROUTE_PATH.MANAGE_HOME}`,
         icon: HomeOutlined,
       },
@@ -37,7 +45,7 @@ const AdminSections = (t: TFunction) : Section[] => [
     section: null,
     items: [
       {
-        title: t('manage-work'),
+        title: 'Quản lý công việc',
         path: `${ROUTE_PATH.MANAGE}/${ROUTE_PATH.MANAGE_WORK}`,
         icon: Assignment,
       },
@@ -47,7 +55,7 @@ const AdminSections = (t: TFunction) : Section[] => [
     section: null,
     items: [
       {
-        title: t('manage-display'),
+        title: 'Quản lý Display Remote',
         path: `${ROUTE_PATH.MANAGE}/${ROUTE_PATH.MANAGE_DISPLAY}`,
         icon: ConnectedTv,
       },
@@ -57,19 +65,19 @@ const AdminSections = (t: TFunction) : Section[] => [
     section: null,
     items: [
       {
-        title: t('profile-user'),
+        title: 'Hồ sơ người dùng',
         path: "#",
         icon: Badge,
       },
     ],
   },
 ]
-const UserSection = (t: TFunction): Section[] => [
+const UserSection = (): Section[] => [
   {
     section: null,
     items: [
       {
-        title: t('home'),
+        title: 'Trang chủ',
         path: ROUTE_PATH.HOME,
         icon: HomeOutlined,
       },
@@ -79,7 +87,7 @@ const UserSection = (t: TFunction): Section[] => [
     section: null,
     items: [
       {
-        title: t('list-work'),
+        title: 'Danh sách công việc',
         path: "#",
         icon: EventNote,
       },
@@ -89,7 +97,7 @@ const UserSection = (t: TFunction): Section[] => [
     section: null,
     items: [
       {
-        title: t('manage-work'),
+        title: 'Quản lý công việc',
         path: "#",
         icon: Assignment,
       },
@@ -99,7 +107,7 @@ const UserSection = (t: TFunction): Section[] => [
     section: null,
     items: [
       {
-        title: t('updated-day'),
+        title: 'Báo cáo công việc',
         path: "#",
         icon: MoreTime,
       },
@@ -109,7 +117,7 @@ const UserSection = (t: TFunction): Section[] => [
     section: null,
     items: [
       {
-        title: t('profile-user'),
+        title: 'Hồ sơ người dùng',
         path: "#",
         icon: Badge,
       },
