@@ -31,15 +31,15 @@ const DialogComponent = ({
   const { t } = useTranslation('common', { keyPrefix: 'actions' });
   return (
     <DialogContainer {...rest} open={!!dialogKey} onClose={handleClose}>
-      <DialogHeader title={dialogTitle || ''} marginTop={2} />
+      <DialogHeader onClose={handleClose} title={dialogTitle || ''} marginTop={2} />
       <DialogContent>
-        <Box sx={{ height: dialogContentHeight, padding: 2 }}>{children}</Box>
+        <Box sx={{ height: {xs: dialogContentHeight, md: 350}, padding: 2 }}>{children}</Box>
       </DialogContent>
       <DialogFooter>
-        <ActionButton actionType='cancel' onClick={handleClose}>
+        {customButtons}
+        <ActionButton border='1px solid #00C7BE' fontColor='#00C7BE' actionType='cancel' onClick={handleClose}>
           {t('cancel')}
         </ActionButton>
-        {customButtons}
       </DialogFooter>
     </DialogContainer>
   );

@@ -42,10 +42,14 @@ interface Props extends LoadingButtonProps {
   actionType?: keyof typeof Icons;
   iconPosition?: 'start' | 'end';
   onSubmit?: () => Promise<void>;
+  backgroundColor?:string;
+  border?: string,
+  borderRadius?:string,
+  fontColor?: string
 }
 
 const ActionButton = (props: Props) => {
-  const { actionType, iconPosition = 'start', onSubmit, loading, ...rest } = props;
+  const { actionType, iconPosition , onSubmit, loading,backgroundColor, border,fontColor, borderRadius, ...rest } = props;
 
   const [submitting, setSubmitting] = useState<boolean>(false);
 
@@ -75,6 +79,14 @@ const ActionButton = (props: Props) => {
         endIcon: Icon && iconPosition === 'end' ? <Icon /> : void 0,
         variant: actionType === 'cancel' ? 'outlined' : void 0,
       })}
+      style={{
+        backgroundColor,
+        border,
+        borderRadius,
+        color: fontColor,
+        width:"80px",
+        ...rest.style
+      }}
       {...rest}
     />
   );

@@ -107,7 +107,7 @@ export default function Login() {
   };
 
   return (
-    <Page title='Login'>
+    <Page title='Quản lý khách sạn'>
       <Box>
         <Typography
           component='h1'

@@ -9,20 +9,21 @@ interface SearchBarProps{
     onSearch: (searchTerm: string) => void;
     placeholder?: string;
     initialValue?: string;
+    onOpenDialogCreate: () =>  void;
 }
 const SearchBar: React.FC<SearchBarProps> = (props) => {
-    const { placeholder,onSearch, initialValue } = props;
+    const { placeholder,onSearch, initialValue,onOpenDialogCreate } = props;
     return (
         <Grid sx={{backgroundColor:"white", px:1}} container>
-            <Grid item xs={8}>
+            <Grid item xs={12} sm={8}>
                 <InputSearch
                     placeholder={placeholder}
                     initialValue={initialValue}
                     onSearch={onSearch}
                 />
             </Grid>
-            <Grid item xs={4}>
-                <Stack direction='row' sx={{ display: 'flex', justifyContent:'end', mt: 2, mr:3}}>
+            <Grid item xs={12} sm={4}>
+                <Stack direction='row' sx={{ display: 'flex', justifyContent: {xs: 'start', sm:'end'}, mt: { sm: 2}, mb: { xs: 1, sm: 0}, mx:{ sm: 3}}}>
                     <IconButton
                         handleFunt={() => {}}
                         icon={<NotificationsNone sx={{color: 'black', width:"28px", height:"28px"}}/>}
@@ -48,7 +49,7 @@ const SearchBar: React.FC<SearchBarProps> = (props) => {
                         tooltip="Refresh"
                     />
                     <Button
-                        handleFunt={() => {}}
+                        handleFunt={onOpenDialogCreate}
                         leadingIcon={<AddCircleOutlineOutlined sx={{color: 'white', width: "28px", height:"28px"}}/>}
                         backgroundColor="#00C7BE"
                         width='120px'
