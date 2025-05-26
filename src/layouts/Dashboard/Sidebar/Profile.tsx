@@ -27,7 +27,6 @@ import { signOut } from '@/services/auth-service';
 import { setIsAuth, setProfile } from '@/slices/auth';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { getStorageToken, removeStorageToken } from '@/utils/AuthHelper';
-import useNotification from '@/hooks/useNotification';
 
 // ==============================|| PROFILE COMPONENT ||============================== //
 
@@ -36,7 +35,6 @@ const Profile = () => {
   const dispatch = useAppDispatch();
   const profile = useAppSelector((state) => state.auth.profile);
   const navigate = useNavigate();
-  const notify = useNotification()
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 

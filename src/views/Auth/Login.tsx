@@ -80,7 +80,10 @@ export default function Login() {
                   message: t('login_success'),
                   severity: 'success',
                 });
-                let route = ROUTE_PATH.HOME;
+                console.log("respUser: ",respUser);
+                
+                let route = respUser.data?.role === "manager" ? `/${ROUTE_PATH.MANAGE}/${ROUTE_PATH.MANAGE_HOME}` :  ROUTE_PATH.HOME;
+                
                 if (!_.isNull(location.state) && location.state !== ROUTE_PATH.LOGIN) {
                   route = location.state;
                 }

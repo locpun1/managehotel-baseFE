@@ -35,7 +35,7 @@ const DashboardLayout = () => {
             display: 'flex',
             flexDirection: 'column',
             minHeight: '100svh',
-            paddingTop: '64px',
+            paddingTop: '114px',
             overflow: 'hidden',
           }}
         >
@@ -45,7 +45,7 @@ const DashboardLayout = () => {
             onToggleCollapsed={handleToggleCollapsed}
           />
 
-          <Box sx={{ flexGrow: 1 }}>
+          <Box sx={{ flexGrow: 1, overflowY: 'auto' }}>
             <Outlet />
           </Box>
           <Footer />

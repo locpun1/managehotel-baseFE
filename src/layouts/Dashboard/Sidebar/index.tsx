@@ -169,6 +169,8 @@ interface MenuItemsProps {
 }
 const MenuItems = (props: MenuItemsProps) => {
   const { items, pathname, level } = props;
+  console.log("items: ",items);
+  
   return (
     <List disablePadding>
       {items.reduce<ReactNode[]>((acc, item, i) => {
@@ -176,7 +178,7 @@ const MenuItems = (props: MenuItemsProps) => {
         const key = `${title}-${level}-${i}`;
         // const partialMatch = pathname.startsWith(path);
         const exactMatch = pathname === path || pathname.startsWith(`${path}/`);
-
+        
         if (children) {
           acc.push(
             <MenuItem

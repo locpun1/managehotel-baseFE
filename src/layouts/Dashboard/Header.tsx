@@ -47,6 +47,7 @@ const Header = (props: Props) => {
         backgroundColor: '#fff',
         borderBottom: 'thin solid #E6E8F0',
         marginLeft: 'auto',
+        height:"86px",
         zIndex: 9,
         width: lgUp
           ? props.collapsed
@@ -78,7 +79,7 @@ const Header = (props: Props) => {
           <Profile />
         </Box>
       </Toolbar>
-      <Box sx={{ display: 'flex', textAlign: 'center', height:50, backgroundColor:"#00C7BE"}}>
+      <Box sx={{ display: 'flex', textAlign: 'center', height:"50px", backgroundColor:"#00C7BE"}}>
         <Typography color='info.contrastText' mx={3} my={1.5}>{`Xin chào, ${profile?.full_name}`}</Typography>
       </Box>
     </AppBar>

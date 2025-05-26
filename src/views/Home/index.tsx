@@ -1,23 +1,23 @@
-import PageWrapper from '@/components/PageWrapper';
-import { Box } from '@mui/material';
+import { Box, Container } from '@mui/material';
 import { useTranslation } from 'react-i18next';
-import comingSoon from '/imgs/coming_soon.jpg';
+import SearchBar from '@/components/SearchBar';
+import { useState } from 'react';
 
 const Home = () => {
   const { t } = useTranslation();
+  const [searchTerm, setSearchTerm] = useState<string>('')
+  const handleSearch = () => {
+  }
   return (
-    <PageWrapper title={t('home')}>
-      <Box></Box>
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-        <img
-          src={comingSoon}
-          alt='logo'
-          width={400}
-          height={400}
-          style={{ objectFit: 'contain' }}
-        />
+    <Box>
+      <SearchBar
+        onSearch={handleSearch}
+        placeholder="Tìm kiếm"
+        initialValue={searchTerm}
+      />
+      <Box sx={{ display: 'flex' }}>
       </Box>
-    </PageWrapper>
+    </Box>
   );
 };
 
