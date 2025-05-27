@@ -1,20 +1,23 @@
 import DialogComponent from "@/components/DialogComponent";
 import ActionButton from "@/components/ProButton/ActionButton";
-import { Box, CircularProgress, FormControl, Grid, InputLabel, MenuItem, Select, Typography } from "@mui/material";
-import React, { useEffect, useState,FormEvent } from "react";
+import { Box, Grid, Typography } from "@mui/material";
+import React, { useEffect, useState,FormEvent, useMemo } from "react";
 import InputText from "./InputText";
 import { createTask, getAllListFloor, getRoomByFloor } from "@/services/manager.service";
-import { Floors, Rooms } from "@/types/manager";
+import { Floors, Rooms, Tasks } from "@/types/manager";
 import { Dayjs } from "dayjs";
 import useAuth from "@/hooks/useAuth";
 import { UserProfile } from "@/types/users";
 import { Hotel, Layers } from "@mui/icons-material";
 import InputSelect from "./InputSelect";
+import useNotification from "@/hooks/useNotification";
+import { TaskStatus } from "@/constants/taskStatus";
 
 interface DialogCreateTaskProps{
     open:boolean,
     title?: string,
     onClose: () => void;
+    handleLoadList:(data: any) => void;
 }
 
 interface DataFloors{
@@ -36,11 +39,15 @@ interface TaskFormData {
   title: string;
   notes: string;
   quantity: number;
-  status: string;
+  status: TaskStatus;
   assigned_by_id: string | number;
   room_id: number | string,
   floor_id: number | string,
 
+}
+
+interface DataTask{
+    task: Tasks
 }
 
 const ITEM_HEIGHT = 48;
@@ -77,9 +84,9 @@ const MenuProps = {
 };
 
 const DialogCreateTask: React.FC<DialogCreateTaskProps> = (props) => {
-    const {open, title, onClose} = props;
+    const {open, title, onClose, handleLoadList} = props;
     const [formData, setFormData] = useState<TaskFormData>({
-        title: '', notes: '', quantity: 0, status: 'pending', assigned_by_id: '', room_id: '', floor_id: ''
+        title: '', notes: '', quantity: 0, status: TaskStatus.PENDING, assigned_by_id: '', room_id: '', floor_id: ''
     })
 
     const [listFloors, setListFloors] = useState<IconFloor[]>([]);
@@ -88,12 +95,14 @@ const DialogCreateTask: React.FC<DialogCreateTaskProps> = (props) => {
     const [errors, setErrors] = useState<Partial<Record<'title' | 'notes' | 'quantity' | 'floor_id' | 'room_id', string>>>({});
     const [infoCurrentUser, setInfoCurrentUser] = useState<UserProfile | null>(null)
     const { profile} = useAuth();
+
+    const notify = useNotification();
     
 
     const handleClose = () => {
         onClose()
         setFormData({
-            title: '', notes: '', quantity: 0, status: 'pending', assigned_by_id: '', room_id: '', floor_id: ""
+            title: '', notes: '', quantity: 0, status: TaskStatus.PENDING, assigned_by_id: '', room_id: '', floor_id: ""
         })
         setErrors({})
     }
@@ -116,13 +125,13 @@ const DialogCreateTask: React.FC<DialogCreateTaskProps> = (props) => {
         }
     }, [open, profile])
     
-
+    const selectedFloor = useMemo(() => formData.floor_id, [formData.floor_id]);
     useEffect(() => {
-        if(formData && formData.floor_id){
+        if(selectedFloor){
             const getRooms = async() => {
                 setLoading(true);
                 try {
-                    const resRoom = await getRoomByFloor(formData.floor_id)
+                    const resRoom = await getRoomByFloor(selectedFloor)
                     const data = resRoom as any as DataRooms;
                     const dataRoom: IconRoom[] = data.data.map(
                         (room) => ({
@@ -144,7 +153,7 @@ const DialogCreateTask: React.FC<DialogCreateTaskProps> = (props) => {
             // Nếu không chọn tầng thì clear danh sách phòng
             setListRooms([]);
         }
-    },[formData])
+    },[selectedFloor])
 
 
     const handleCustomInputChange = (name: string, value: string | number| null | Dayjs) => {
@@ -194,15 +203,27 @@ const DialogCreateTask: React.FC<DialogCreateTaskProps> = (props) => {
         
         const data = {
             ...formData,
-            "assigned_by_id": id,
-            "createdAt":new Date(),
-            "updatedAt":new Date(),       
+            "assigned_by_id": id,    
         }
         const { floor_id, ...payload} = data;
-        const res = await createTask(payload)
-        console.log("res: ", res);
-        
-        
+        try {
+            const res = await createTask(payload)
+            notify({
+                message:res.message,
+                severity:"success"
+            })
+            if(handleLoadList && res.data){
+                const data = res.data as any as DataTask
+                handleLoadList(data.task)
+            }
+            handleClose()
+        } catch (error:any) {
+            notify({
+                message:error.message,
+                severity:"error"
+            })
+        }
+
     }
 
     return (

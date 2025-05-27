@@ -9,10 +9,11 @@ interface SearchBarProps{
     onSearch: (searchTerm: string) => void;
     placeholder?: string;
     initialValue?: string;
-    onOpenDialogCreate: () =>  void;
+    onOpenDialogCreate?: () =>  void;
+    isCheckOpenCreate?:boolean
 }
 const SearchBar: React.FC<SearchBarProps> = (props) => {
-    const { placeholder,onSearch, initialValue,onOpenDialogCreate } = props;
+    const { placeholder,onSearch, initialValue,onOpenDialogCreate, isCheckOpenCreate=false } = props;
     return (
         <Grid sx={{backgroundColor:"white", px:1}} container>
             <Grid item xs={12} sm={8}>
@@ -29,7 +30,7 @@ const SearchBar: React.FC<SearchBarProps> = (props) => {
                         icon={<NotificationsNone sx={{color: 'black', width:"28px", height:"28px"}}/>}
                         backgroundColor="white"
                         border="1px solid black"
-                        borderRadius={6}
+                        borderRadius={1}
                         tooltip="Thông báo"
                         sx={{ mr: 2}}
                     />
@@ -37,7 +38,7 @@ const SearchBar: React.FC<SearchBarProps> = (props) => {
                         handleFunt={() => {}}
                         icon={<FilterAltOutlined sx={{color: 'white', width: "28px", height:"28px"}}/>}
                         backgroundColor="#00C7BE"
-                        borderRadius={6}
+                        borderRadius={1}
                         tooltip="Lọc"
 
                     />
@@ -45,19 +46,21 @@ const SearchBar: React.FC<SearchBarProps> = (props) => {
                         handleFunt={() => {}}
                         icon={<Cached sx={{color: 'white', width: "28px", height:"28px"}}/>}
                         backgroundColor="#00C7BE"
-                        borderRadius={6}
+                        borderRadius={1}
                         tooltip="Refresh"
                     />
-                    <Button
-                        handleFunt={onOpenDialogCreate}
-                        leadingIcon={<AddCircleOutlineOutlined sx={{color: 'white', width: "28px", height:"28px"}}/>}
-                        backgroundColor="#00C7BE"
-                        width='120px'
-                        height="37px"
-                        borderRadius="6px"
-                    >
-                        Tạo mới
-                    </Button>
+                    {!isCheckOpenCreate &&
+                        <Button
+                            handleFunt={() => onOpenDialogCreate && onOpenDialogCreate()}
+                            leadingIcon={<AddCircleOutlineOutlined sx={{color: 'white', width: "28px", height:"28px"}}/>}
+                            backgroundColor="#00C7BE"
+                            width='120px'
+                            height="37px"
+                            borderRadius="6px"
+                        >
+                            Tạo mới
+                        </Button>
+                    }
                 </Stack>
             </Grid>
         </Grid>

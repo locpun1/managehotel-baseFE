@@ -7,6 +7,15 @@ import { prepareRealPath } from '@/utils/url';
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api'; 
 const prefix = `${API_BASE_URL}`;
 
+export interface DataTaskProps{
+    result:{
+      data: Tasks[],
+      totalCount: number;   
+      totalPages?: number;
+      number?: number;
+    }
+}
+
 export const getAllListFloor = () => {
   return HttpClient.get<HttpResponse<Floors>>(`${prefix}/floors/get-list-floors`);
 };
@@ -20,3 +29,15 @@ export const getRoomByFloor = (floorId: string | number) => {
 export const createTask =  (params: TaskData) => {
   return HttpClient.post<typeof params, HttpResponse<Tasks>>(`${prefix}/tasks/create-task`, params);
 }
+
+export const getListTask = (
+    page: number,
+    size: number,
+): Promise<HttpResponse<Tasks>> => {
+    const endpoint = `${prefix}/tasks/list-task`;
+    const params: Record<string, any> = {
+        page: page,
+        size: size,
+    }
+    return HttpClient.get<HttpResponse<Tasks>>(endpoint,{params})
+} 

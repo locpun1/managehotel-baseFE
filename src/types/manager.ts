@@ -1,3 +1,5 @@
+import { TaskStatus } from "@/constants/taskStatus";
+
 export interface Floors{
     id: string | number,
     floor_number: number,
@@ -34,11 +36,13 @@ export interface Tasks {
     quantity: number;
     qr_code_identifier?: string,
     qr_code_url?: string,
-    status: string,
+    status: TaskStatus,
     notes: string,
     due_date?: string,
     started_at?: string,
     completed_at?: string,
     createdAt?:string,
-    updatedAt?:string
+    updatedAt?:string,
+    roomName?:string,
+    floorName?:string,
 }
