@@ -48,6 +48,7 @@ interface CustomInputProps {
     DateTimePickerProps<Dayjs>,
     | 'value' | 'onChange' | 'label' | 'disabled' | 'slotProps' | 'sx' 
   >;
+  onlyPositiveNumber?: boolean;
 }
 
 const InputText: React.FC<CustomInputProps> = ({
@@ -70,6 +71,7 @@ const InputText: React.FC<CustomInputProps> = ({
   textFieldProps = {},
   datePickerProps = {},
   dateTimePickerProps = {},
+  onlyPositiveNumber = false,
 }) => {
 
   const commonSlotTextFieldProps = {
@@ -120,8 +122,26 @@ const InputText: React.FC<CustomInputProps> = ({
     ...textFieldProps,
     type: (type === 'text' && multiline) ? undefined : type,
     value: value as string | number,
-    onChange: (event: React.ChangeEvent<HTMLInputElement>) =>
-      onChange(name, event.target.value),
+    onChange: (event: React.ChangeEvent<HTMLInputElement>) => {
+      const val = event.target.value
+      if(onlyPositiveNumber){
+        //Cho phép xóa trắng
+        if(val.trim() === ''){
+          onChange(name, val);
+          return;
+        }
+
+        // Kiểm tra số dương hợp lệ (số thực hoặc số nguyên dương)
+        const numVal = Number(val);
+        
+        if(!isNaN(numVal) && numVal > 0 && /^\d*\.?\d*$/.test(val)){
+          onChange(name,val);
+        }
+        // Nếu không hợp lệ thì bỏ qua, không gọi onChange => không update value
+      }else{
+        onChange(name, val)
+      }
+    },
     name,
     label,
     required,

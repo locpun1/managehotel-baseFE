@@ -16,6 +16,7 @@ interface Props extends Omit<DialogProps, 'open' | 'fullScreen'> {
   dialogContentHeight?: string | number;
   showSaveButton?: boolean;
   customButtons?: ReactNode;
+  hasError?: boolean
 }
 
 const DialogComponent = ({
@@ -26,14 +27,16 @@ const DialogComponent = ({
   dialogContentHeight = 500,
   showSaveButton = false,
   customButtons,
+  hasError,
   ...rest
 }: Props) => {
+  
   const { t } = useTranslation('common', { keyPrefix: 'actions' });
   return (
     <DialogContainer {...rest} open={!!dialogKey} onClose={handleClose}>
       <DialogHeader onClose={handleClose} title={dialogTitle || ''} marginTop={2} />
       <DialogContent>
-        <Box sx={{ height: {xs: dialogContentHeight, md: 350}, padding: 2 }}>{children}</Box>
+        <Box sx={{ height: {xs: hasError ? 480 : 400, md: hasError ? 400 : 330}, padding: 2 }}>{children}</Box>
       </DialogContent>
       <DialogFooter>
         {customButtons}

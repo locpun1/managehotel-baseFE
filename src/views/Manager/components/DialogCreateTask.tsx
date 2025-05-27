@@ -1,13 +1,15 @@
 import DialogComponent from "@/components/DialogComponent";
 import ActionButton from "@/components/ProButton/ActionButton";
-import { Box, CircularProgress, Grid, InputLabel, MenuItem, Select, Typography } from "@mui/material";
+import { Box, CircularProgress, FormControl, Grid, InputLabel, MenuItem, Select, Typography } from "@mui/material";
 import React, { useEffect, useState,FormEvent } from "react";
 import InputText from "./InputText";
-import { getAllListFloor, getRoomByFloor } from "@/services/manager.service";
+import { createTask, getAllListFloor, getRoomByFloor } from "@/services/manager.service";
 import { Floors, Rooms } from "@/types/manager";
 import { Dayjs } from "dayjs";
 import useAuth from "@/hooks/useAuth";
 import { UserProfile } from "@/types/users";
+import { Hotel, Layers } from "@mui/icons-material";
+import InputSelect from "./InputSelect";
 
 interface DialogCreateTaskProps{
     open:boolean,
@@ -22,13 +24,23 @@ interface DataRooms{
     data: Rooms[],
 }
 
+interface IconFloor extends Floors{
+    icon: React.ReactNode
+}
+
+interface IconRoom extends Rooms{
+    icon: React.ReactNode
+}
+
 interface TaskFormData {
   title: string;
   notes: string;
-  quantity: number | string;
+  quantity: number;
   status: string;
   assigned_by_id: string | number;
   room_id: number | string,
+  floor_id: number | string,
+
 }
 
 const ITEM_HEIGHT = 48;
@@ -67,23 +79,23 @@ const MenuProps = {
 const DialogCreateTask: React.FC<DialogCreateTaskProps> = (props) => {
     const {open, title, onClose} = props;
     const [formData, setFormData] = useState<TaskFormData>({
-        title: '', notes: '', quantity: '', status: 'pending', assigned_by_id: '', room_id: ''
+        title: '', notes: '', quantity: 0, status: 'pending', assigned_by_id: '', room_id: '', floor_id: ''
     })
 
-    const [listFloors, setListFloors] = useState<Floors[]>([]);
-    const [selectedFloor, setSelectedFloor] = useState<number | string>('')
-    const [selectedRoom, setSelectedRoom] = useState<number | string>('')
-    const [listRooms, setListRooms] = useState<Rooms[]>([])
+    const [listFloors, setListFloors] = useState<IconFloor[]>([]);
+    const [listRooms, setListRooms] = useState<IconRoom[]>([])
     const [loading, setLoading] = useState(false);
-    const [errors, setErrors] = useState<Partial<Record<'title' | 'notes' | 'quantity', string>>>({});
+    const [errors, setErrors] = useState<Partial<Record<'title' | 'notes' | 'quantity' | 'floor_id' | 'room_id', string>>>({});
     const [infoCurrentUser, setInfoCurrentUser] = useState<UserProfile | null>(null)
     const { profile} = useAuth();
     
 
     const handleClose = () => {
         onClose()
-        setSelectedFloor('')
-        setSelectedRoom('')
+        setFormData({
+            title: '', notes: '', quantity: 0, status: 'pending', assigned_by_id: '', room_id: '', floor_id: ""
+        })
+        setErrors({})
     }
 
     useEffect(() => {
@@ -92,20 +104,33 @@ const DialogCreateTask: React.FC<DialogCreateTaskProps> = (props) => {
             const getList = async() => {
                 const res = await getAllListFloor();
                 const data = res as any as DataFloors
-                setListFloors(data.data)     
+                const dataFloor: IconFloor[] = data.data.map(
+                    (floor) => ({
+                        ...floor,
+                        icon:<Layers/>
+                    })
+                )
+                setListFloors(dataFloor)     
             }
             getList()
         }
     }, [open, profile])
+    
 
     useEffect(() => {
-        if(selectedFloor){
+        if(formData && formData.floor_id){
             const getRooms = async() => {
                 setLoading(true);
                 try {
-                    const resRoom = await getRoomByFloor(selectedFloor)
+                    const resRoom = await getRoomByFloor(formData.floor_id)
                     const data = resRoom as any as DataRooms;
-                    setListRooms(data.data)
+                    const dataRoom: IconRoom[] = data.data.map(
+                        (room) => ({
+                            ...room,
+                            icon:<Hotel/>
+                        })
+                    )
+                    setListRooms(dataRoom)
                 } catch (error) {
                     console.error('Lấy phòng thất bại:', error);
                     setListRooms([])
@@ -118,24 +143,9 @@ const DialogCreateTask: React.FC<DialogCreateTaskProps> = (props) => {
         }else{
             // Nếu không chọn tầng thì clear danh sách phòng
             setListRooms([]);
-            setSelectedRoom('');
         }
-    },[selectedFloor])
+    },[formData])
 
-
-    const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
-        const id = infoCurrentUser !== null && infoCurrentUser.id ;
-        const data = new FormData();
-        data.append('title', formData.title);
-        data.append('notes', formData.notes);
-        data.append('quantity', String(formData.quantity));
-        data.append('status', 'pending');
-        data.append('assigned_by_id', String(id));
-        data.append('room_id', String(selectedRoom));
-        console.log("data: ", data);
-        
-    }
 
     const handleCustomInputChange = (name: string, value: string | number| null | Dayjs) => {
         if (Object.prototype.hasOwnProperty.call(formData, name)) {
@@ -143,14 +153,14 @@ const DialogCreateTask: React.FC<DialogCreateTaskProps> = (props) => {
   
       setFormData((prevData) => ({
         ...prevData,
-        [validName]: value, 
+        [validName]: name === 'quantity' ? Number(value) : value, 
       }));
 
-      if (validName === 'title' || validName === 'notes' || validName === 'quantity') {
-          if (errors[validName as 'title' | 'notes' | 'quantity']) {
+      if (validName === 'title' || validName === 'notes' || validName === 'quantity' || validName === 'floor_id' || validName === 'room_id') {
+          if (errors[validName as 'title' | 'notes' | 'quantity' | 'floor_id' | 'room_id']) {
               setErrors(prev => {
                   const newErrors = { ...prev };
-                  delete newErrors[validName as 'title' | 'notes' | 'quantity'];
+                  delete newErrors[validName as 'title' | 'notes' | 'quantity' | 'floor_id' | 'room_id'];
                   return newErrors;
               });
           }
@@ -160,19 +170,54 @@ const DialogCreateTask: React.FC<DialogCreateTaskProps> = (props) => {
     }
     }
 
+  const validateForm = (): boolean => {
+      const newErrors: Partial<Record<'title' | 'notes' | 'quantity' | 'floor_id' | 'room_id', string>> = {};
+      if (!formData.title.trim()) newErrors.title = 'Tên công việc là bắt buộc';
+      if (!formData.notes.trim()) {
+          newErrors.notes = 'Yêu cầu là bắt buộc';
+      }
+      if (!formData.quantity) newErrors.quantity = 'Số lượng là bắt buộc';
+      if (!formData.floor_id) newErrors.floor_id = 'Số tầng là bắt buộc';
+      if (!formData.room_id) newErrors.room_id = 'Số phòng là bắt buộc';
+      // Thêm validation khác nếu cần
+
+      setErrors(newErrors);
+      return Object.keys(newErrors).length === 0; // True nếu không có lỗi
+  };
+
+      const handleSubmit = async(event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        if(!validateForm()){
+            return;
+        }
+        const id = infoCurrentUser !== null ? infoCurrentUser.id : "" ;
+        
+        const data = {
+            ...formData,
+            "assigned_by_id": id,
+            "createdAt":new Date(),
+            "updatedAt":new Date(),       
+        }
+        const { floor_id, ...payload} = data;
+        const res = await createTask(payload)
+        console.log("res: ", res);
+        
+        
+    }
+
     return (
         <DialogComponent
-            dialogContentHeight={450}
+            hasError={Object.keys(errors).length > 0}
             dialogKey={open}
             handleClose={handleClose}
             dialogTitle={title}
             customButtons={
-                <ActionButton  backgroundColor="#00C7BE" actionType='save'>
+                <ActionButton form="create-task-form" backgroundColor="#00C7BE" actionType='save'>
                     Lưu
                 </ActionButton>
             }
         >
-            <Box component='form' onSubmit={handleSubmit}>
+            <Box id="create-task-form" component='form' onSubmit={handleSubmit}>
                 <Grid container spacing={1}>
                     <Grid item xs={12}>
                         <Typography variant="body2" fontWeight={600} gutterBottom>Tên công việc</Typography>
@@ -184,6 +229,9 @@ const DialogCreateTask: React.FC<DialogCreateTaskProps> = (props) => {
                             onChange={handleCustomInputChange}
                             placeholder="Tên công việc"
                             sx={{ mt: 0 }}
+                            error={!!errors.title}
+                            helperText={errors.title}
+                            margin="dense"
                         />
                     </Grid>
                     <Grid item xs={12}>
@@ -196,6 +244,9 @@ const DialogCreateTask: React.FC<DialogCreateTaskProps> = (props) => {
                             onChange={handleCustomInputChange}
                             placeholder="Yêu cầu"
                             sx={{ mt: 0 }}
+                            error={!!errors.notes}
+                            helperText={errors.notes}
+                            margin="dense"
                         />
                     </Grid>
                     <Grid item xs={12}>
@@ -208,75 +259,57 @@ const DialogCreateTask: React.FC<DialogCreateTaskProps> = (props) => {
                             onChange={handleCustomInputChange}
                             placeholder="Số lượng"
                             sx={{ mt: 0 }}
+                            onlyPositiveNumber
+                            error={!!errors.quantity}
+                            helperText={errors.quantity}
+                            margin="dense"
                         />
                     </Grid>
                     <Grid item xs={12}>
                         <Grid container spacing={1}>
                             <Grid item xs={12} md={6}>
-                                <Typography id="floors-select-label" variant="body2" fontWeight={600} gutterBottom>Số tầng</Typography>
-                                <Select
-                                    displayEmpty
-                                    labelId="floors-select-label"
-                                    id="floors-select"
-                                    value={selectedFloor}
-                                    onChange={(e) => setSelectedFloor(e.target.value)}
-                                    renderValue={(selected) =>
-                                        selected ? listFloors.find(f => f.id === selected)?.name : <span style={{ color: '#aaa' }}>Số tầng</span>
+                                <Typography variant="body2" fontWeight={600} gutterBottom>Số tầng</Typography>
+                                <InputSelect
+                                    name="floor_id"
+                                    label=""
+                                    value={formData.floor_id}
+                                    onChange={handleCustomInputChange}
+                                    options={listFloors}
+                                    transformOptions={(data) =>
+                                        data.map((item) => ({
+                                          value: item.id,
+                                          label: item.name,
+                                          icon: item.icon
+                                        }))
                                     }
-                                    sx={{
-                                        "& .MuiOutlinedInput-notchedOutline":{
-                                            border:"1px solid rgb(82, 81, 81)",
-                                            borderRadius:"8px",
-                                        },
-                                        "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                                            border:"1px solid rgb(82, 81, 81)"
-                                        },
-                                    }}
-                                >
-                                    {listFloors.map(option => (
-                                        <MenuItem key={option.id} value={option.id}>
-                                            {option.name}
-                                        </MenuItem>
-                                    ))}
-                                </Select>
+                                    placeholder="Số tầng"
+                                    error={!!errors.floor_id}
+                                    helperText={errors.floor_id}
+                               />
+
                             </Grid>
                             <Grid item xs={12} md={6}>
                                 <Typography id="rooms-select-label" variant="body2" fontWeight={600} gutterBottom>Số phòng</Typography>
-                                <Select
-                                    disabled={!selectedFloor || loading}
-                                    displayEmpty
-                                    labelId="rooms-select-label"
-                                    id="rooms-select"
-                                    value={selectedRoom}
-                                    onChange={(e) => setSelectedRoom(e.target.value)}
-                                    renderValue={(selected) =>
-                                        selected ? listRooms.find(f => f.id === selected)?.room_number : <span style={{ color: '#aaa' }}>Số phòng</span>
-                                    }
-                                    sx={{
-                                        "& .MuiOutlinedInput-notchedOutline":{
-                                            border:"1px solid rgb(82, 81, 81)",
-                                            borderRadius:"8px",
-                                        },
-                                        "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                                            border:"1px solid rgb(82, 81, 81)"
-                                        },
-                                    }}
+                                <InputSelect
+                                    disabled={!formData.floor_id || loading}
+                                    loading={loading}
+                                    label=""
+                                    name="room_id"
+                                    value={formData.room_id}
+                                    onChange={handleCustomInputChange}
+                                    options={listRooms}
                                     MenuProps={MenuProps}
-                                >
-                                    {loading ? (
-                                        <MenuItem disabled>
-                                            <CircularProgress size={20}/>
-                                            &nbsp; Đang tải phòng...
-                                        </MenuItem>
-                                    ): listRooms.length > 0 ? (
-                                        listRooms.map(option => (
-                                        <MenuItem key={option.id} value={option.id}>
-                                            {`Phòng ${option.room_number}`}
-                                        </MenuItem>
-                                    ))) : (
-                                        <MenuItem disabled>Không có phòng</MenuItem>
-                                    )}
-                                </Select>
+                                    transformOptions={(data) =>
+                                        data.map((item) => ({
+                                            value: item.id,
+                                            label: `Phòng ${item.room_number}`,
+                                            icon: item.icon
+                                        }))
+                                    }
+                                    placeholder="Số phòng"
+                                    error={!!errors.room_id}
+                                    helperText={errors.room_id}
+                                />
                             </Grid>
                         </Grid>
                     </Grid>
