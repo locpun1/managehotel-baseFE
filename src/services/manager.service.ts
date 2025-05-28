@@ -5,7 +5,7 @@ import HttpClient from '@/utils/HttpClient';
 import { prepareRealPath } from '@/utils/url';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api'; 
-const prefix = `${API_BASE_URL}`;
+const prefix = `${API_BASE_URL}/api/v1`;
 
 export interface DataTaskProps{
     result:{
