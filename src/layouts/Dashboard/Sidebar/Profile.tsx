@@ -26,7 +26,7 @@ import { ROUTE_PATH } from '@/constants/routes';
 import { signOut } from '@/services/auth-service';
 import { setIsAuth, setProfile } from '@/slices/auth';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { removeStorageToken } from '@/utils/AuthHelper';
+import { getStorageToken, removeStorageToken } from '@/utils/AuthHelper';
 
 // ==============================|| PROFILE COMPONENT ||============================== //
 
@@ -43,7 +43,10 @@ const Profile = () => {
   };
 
   const handleLogout = async () => {
-    await signOut();
+    const refreshToken = getStorageToken.refreshToken;
+    await signOut({
+      refreshToken: refreshToken
+    });
     dispatch(setIsAuth(false));
     dispatch(setProfile(null));
     removeStorageToken();
@@ -74,7 +77,7 @@ const Profile = () => {
             src={avatar1}
             sx={{ width: 32, height: 32, borderRadius: '100%' }}
           />
-          <Typography variant='subtitle1'>{profile?.email}</Typography>
+          <Typography variant='subtitle1'>{profile?.full_name}</Typography>
         </Stack>
       </ButtonBase>
       <Popper

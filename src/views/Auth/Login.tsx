@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 
-import { Email, Lock, Visibility, VisibilityOff } from '@mui/icons-material';
+import { AccountCircle, Lock, Visibility, VisibilityOff } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
 import {
   Alert,
@@ -32,7 +32,7 @@ import { setStorageToken } from '@/utils/AuthHelper';
 import Logger from '@/utils/Logger';
 
 interface LoginFormInputs {
-  phone_number: string;
+  identifier: string;
   password: string;
 }
 
@@ -53,25 +53,25 @@ export default function Login() {
   const notify = useNotification();
   const [_error, setError] = useState('');
   const [showPassword, setShowPassword] = useBoolean(false);
-  const [remember, setRemember] = useState(false);
+  const [remember, setRemember] = useState(true);
 
   useEffect(() => {
-    setFocus('phone_number');
+    setFocus('identifier');
   }, [setFocus]);
 
   const onSubmit = async (values: LoginFormInputs) => {
     setLoading.on();
     try {
-      const identifier = values.phone_number
       const respAuth = await signIn({
-        identifier: identifier,
+        identifier: values.identifier,
         password: values.password,
       });
+      
       if(respAuth.success){
         if (respAuth.data?.tokens) {
                 setStorageToken(remember)
-                  .accessToken(respAuth.data.tokens.access)
-                  .refreshToken(respAuth.data.tokens.refresh);
+                  .accessToken(respAuth.data.tokens.access.token)
+                  .refreshToken(respAuth.data.tokens.refresh.token);
                 const respUser = await getCurrentUser();
                 dispatch(setProfile(respUser.data));
                 dispatch(setIsAuth(true));
@@ -80,18 +80,26 @@ export default function Login() {
                   message: t('login_success'),
                   severity: 'success',
                 });
-                let route = ROUTE_PATH.HOME;
+                console.log("respUser: ",respUser);
+                
+                let route = respUser.data?.role === "manager" ? `/${ROUTE_PATH.MANAGE}/${ROUTE_PATH.MANAGE_HOME}` :  ROUTE_PATH.HOME;
+                
                 if (!_.isNull(location.state) && location.state !== ROUTE_PATH.LOGIN) {
                   route = location.state;
                 }
                 navigate(route);
               } 
       }else {
-        setFocus('phone_number');
+        setFocus('identifier');
         setError(respAuth.message);
         throw new Error(respAuth.message);
       }
     } catch (error: any) {
+      const apiErrorMessage = error?.response?.data?.message ||
+                            error?.message || 
+                            t('login_error_occurred') || 
+                            'An unexpected error occurred.';
+      setError(apiErrorMessage);
       Logger.log(error);
     } finally {
       setLoading.off();
@@ -99,7 +107,7 @@ export default function Login() {
   };
 
   return (
-    <Page title='Login'>
+    <Page title='Quản lý khách sạn'>
       <Box>
         <Typography
           component='h1'
@@ -127,17 +135,17 @@ export default function Login() {
       >
         <ControllerTextField<LoginFormInputs>
           controllerProps={{
-            name: 'phone_number',
+            name: 'identifier',
             defaultValue: '',
             control: control,
           }}
           textFieldProps={{
             label: 'Tài khoản',
-            error: !!errors.phone_number,
-            helperText: errors.phone_number?.message,
-            sx: { ariaLabel: 'username' },
+            error: !!errors.identifier,
+            helperText: errors.identifier?.message,
+            sx: { ariaLabel: 'identifier' },
           }}
-          prefixIcon={Email}
+          prefixIcon={AccountCircle}
         />
         <ControllerTextField<LoginFormInputs>
           controllerProps={{

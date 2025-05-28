@@ -13,7 +13,7 @@ interface Props {
 const ProtectedRoute = ({ children, requiredRoles, requiredPermissions }: Props) => {
   const { isAuthenticated, profile } = useAppSelector((state) => state.auth);
   const role = profile?.role;
-  const permissions = profile?.permissions;
+  // const permissions = profile?.permissions;
 
   const location = useLocation();
 
@@ -27,14 +27,20 @@ const ProtectedRoute = ({ children, requiredRoles, requiredPermissions }: Props)
     return <Navigate to={ROUTE_PATH.PERMISSION_DENIED} replace />;
   }
 
-  if (
-    requiredPermissions &&
-    permissions &&
-    requiredPermissions.length > 0 &&
-    !requiredPermissions?.some((permission) => permissions.includes(permission))
-  ) {
-    return <Navigate to={ROUTE_PATH.PERMISSION_DENIED} replace />;
+  if (location.pathname === '/' || location.pathname === '') {
+    if (role === 'manager') {
+      return <Navigate to={`/${ROUTE_PATH.MANAGE}/${ROUTE_PATH.MANAGE_HOME}`} replace />;
+    } 
   }
+
+  // if (
+  //   requiredPermissions &&
+  //   permissions &&
+  //   requiredPermissions.length > 0 &&
+  //   !requiredPermissions?.some((permission) => permissions.includes(permission))
+  // ) {
+  //   return <Navigate to={ROUTE_PATH.PERMISSION_DENIED} replace />;
+  // }
 
   return children;
 };

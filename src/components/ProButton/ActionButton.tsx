@@ -42,10 +42,15 @@ interface Props extends LoadingButtonProps {
   actionType?: keyof typeof Icons;
   iconPosition?: 'start' | 'end';
   onSubmit?: () => Promise<void>;
+  backgroundColor?:string;
+  border?: string,
+  borderRadius?:string,
+  fontColor?: string
+  form?:string,
 }
 
 const ActionButton = (props: Props) => {
-  const { actionType, iconPosition = 'start', onSubmit, loading, ...rest } = props;
+  const { actionType, iconPosition , onSubmit, loading,backgroundColor, border,fontColor, borderRadius,form, ...rest } = props;
 
   const [submitting, setSubmitting] = useState<boolean>(false);
 
@@ -65,9 +70,12 @@ const ActionButton = (props: Props) => {
     }
   };
 
+
   return (
     <LoadingButton
-      onClick={handleSubmit}
+      form={form}
+      type={form ? 'submit' : 'button'} // 👈 CHỈNH DÒNG NÀY
+      onClick={!form ? handleSubmit : undefined} // Nếu là form submit thì KHÔNG override
       loading={submitting || loading}
       {...(actionType && {
         loadingPosition: iconPosition,
@@ -75,6 +83,14 @@ const ActionButton = (props: Props) => {
         endIcon: Icon && iconPosition === 'end' ? <Icon /> : void 0,
         variant: actionType === 'cancel' ? 'outlined' : void 0,
       })}
+      style={{
+        backgroundColor,
+        border,
+        borderRadius,
+        color: fontColor,
+        width:"80px",
+        ...rest.style
+      }}
       {...rest}
     />
   );

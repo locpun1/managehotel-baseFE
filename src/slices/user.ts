@@ -1,5 +1,5 @@
 import { RootState } from '@/store';
-import { IUser } from '@/types/user';
+import { UserProfile } from '@/types/users';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import { createSlice } from '@reduxjs/toolkit';
 
@@ -9,7 +9,7 @@ interface ResponseError {
 }
 
 interface UserState {
-  profile: IUser | null;
+  profile: UserProfile | null;
 }
 
 const initialState: UserState = {

@@ -11,10 +11,15 @@ export type RegisterRequest = {
   password: string;
 };
 
+export type TokenObject = {
+  token: string;
+  expires: string;
+};
+
 export type LoginResponse = {
  tokens:{
-   access: string;
-   refresh: string;
+   access: TokenObject;
+   refresh: TokenObject;
  }
 };
 
@@ -30,6 +35,10 @@ export type ForgotPasswordRequest = {
 
 export type VerifyUsernameRequest = {
   username: string;
+};
+
+export type LogoutResquest = {
+  refreshToken: string;
 };
 
 export type ResetPasswordResponse = Promise<HttpResponse<string>>;

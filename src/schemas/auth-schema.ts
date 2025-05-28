@@ -20,7 +20,7 @@ const passwordSchema = <T extends string>(label: T) =>
   });
 
 export const loginSchema = object().shape({
-  phone_number: usernameValidateSchema,
+  identifier: string().required("Username or Phone is required"),
   password: string().required('Password is required'),
 });
 

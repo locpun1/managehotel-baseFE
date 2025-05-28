@@ -24,11 +24,12 @@ const DialogFooter: FCC<Props> = (props) => {
 
 const Wrapper = styled(Box)(({ theme }) => ({
   display: 'flex',
-  justifyContent: 'center',
+  justifyContent: 'end',
   alignItems: 'center',
   padding: theme.spacing(1),
   borderColor: theme.palette.divider,
-  marginBottom: '16px'
+  marginBottom: '16px',
+  marginRight:'10px'
 }));
 
 export default DialogFooter;

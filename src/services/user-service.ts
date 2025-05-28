@@ -1,9 +1,10 @@
 import type { HttpResponse } from '@/types/common';
-import { IUser } from '@/types/user';
+import { UserProfile } from '@/types/users';
 import HttpClient from '@/utils/HttpClient';
 
-const prefix = 'users';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api'; 
+const prefix = `${API_BASE_URL}/auth`;
 
 export const getCurrentUser = () => {
-  return HttpClient.get<HttpResponse<IUser>>(`${prefix}/me`);
+  return HttpClient.get<HttpResponse<UserProfile>>(`${prefix}/me`);
 };

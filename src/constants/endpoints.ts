@@ -3,6 +3,9 @@ export const Endpoints = {
     login: '/login',
     logout: '/logout',
   },
+  manager:{
+    getRoomByFloor:'/rooms/get-list-floor/:floorId/room',
+  },
   products: {
     url: '/products',
     update: '/products/:id',
@@ -129,7 +132,6 @@ export const Endpoints = {
     updateStatus: '/orders/:id/update-status',
     detail: '/orders/:id',
     getQuote: '/orders/get-quote',
-    search: '/orders/search',
     detailById: '/orders/:id/detail',
   },
   tag: {

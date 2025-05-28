@@ -18,7 +18,9 @@ const InitLoadingProvider: FCC = ({ children }) => {
     try {
       if (getStorageToken.accessToken) {
         const resp = await getCurrentUser();
+        
         const isAuth = resp.statusCode === axios.HttpStatusCode.Ok;
+        
         dispatch(setIsAuth(isAuth));
         if (isAuth) {
           dispatch(setProfile(resp.data));

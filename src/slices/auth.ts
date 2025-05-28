@@ -1,11 +1,11 @@
-import { IUser } from '@/types/user';
+import { UserProfile } from '@/types/users';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import { createSlice } from '@reduxjs/toolkit';
 
 interface InitState {
   isInitialized: boolean;
   isAuthenticated: boolean;
-  profile: IUser | null;
+  profile: UserProfile | null;
 }
 
 const initialState: InitState = {

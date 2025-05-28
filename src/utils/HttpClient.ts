@@ -1,17 +1,15 @@
 import type { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import axios from 'axios';
 import qs from 'qs';
-
 import { getStorageToken, parsedToken, setStorageToken } from './AuthHelper';
 import DateTime from './DateTime';
-
 import { __BASEURL__ } from '@/config';
 import { ACCESS_TOKEN } from '@/constants/auth';
+import { NotificationContextValue } from '@/contexts/Notification';
 
 const accessToken = parsedToken(ACCESS_TOKEN);
-console.log('Base URL:', __BASEURL__);
 const config: AxiosRequestConfig = {
-  
+
   baseURL: __BASEURL__,
   headers: {
     'Content-Type': 'application/json',
@@ -27,6 +25,7 @@ class Axios {
   private instance: AxiosInstance;
   private failedQueue: Array<{ resolve: Function; reject: Function }> = [];
   private setLogout: (() => void) | null = null;
+  private notify?: NotificationContextValue
 
   constructor() {
     const instance = axios.create(config);
@@ -40,6 +39,7 @@ class Axios {
         }
         return config;
       },
+
       (error) => Promise.reject(error),
     );
 
@@ -47,12 +47,13 @@ class Axios {
     instance.interceptors.response.use(
       (response: AxiosResponse) => response,
       (error: AxiosError) => {
-        const { response } = error;
+        const { response, config } = error;
 
-        if (response?.status === 401 && !this.isRefreshing) {
+        if (response?.status === 401 && !this.isRefreshing && !config?.url?.includes('/auth/login')) {
           return this.handleTokenRefresh(error);
         }
-        throw error;
+
+        return Promise.reject(error);
       },
     );
 
@@ -71,34 +72,40 @@ class Axios {
 
       try {
         const refreshToken = getStorageToken.refreshToken;
-        const result = await axios.post(import.meta.env.VITE_BASE_URL, {
-          headers: {
-            Authorization: `Bearer ` + refreshToken,
-          },
+        const result = await axios.post(import.meta.env.VITE_API_BASE_URL + "/auth/refresh-tokens", {
+          // headers: {
+          //   Authorization: `Bearer ` + refreshToken,
+          // },
+          refreshToken: refreshToken
         });
         const { data } = result.data;
+
         setStorageToken().accessToken(data.accessToken);
         const newToken = data.accessToken;
 
         if (newToken) {
           originalRequest.headers.Authorization = `Bearer ${newToken}`;
 
-          // Retry the failed requests
           this.failedQueue.forEach((req) => req.resolve(newToken));
           this.failedQueue = [];
 
           return this.instance(originalRequest);
         }
       } catch (refreshError) {
+
         this.failedQueue.forEach((req) => req.reject(refreshError));
         this.failedQueue = [];
 
-        //call logout
-        if (this.setLogout) {
-          this.setLogout();
+        if (this.setLogout && this.notify) {
+          this.notify({
+            error: 'Phiên đăng nhập đã hết hạn. Mời bạn đăng nhập lại',
+            onForward: this.setLogout,
+            alertProps: { severity: 'error' },
+            snackbarProps: { autoHideDuration: null },
+          })
         }
 
-        throw refreshError;
+        return Promise.reject(refreshError);
       } finally {
         this.isRefreshing = false;
       }
@@ -118,7 +125,6 @@ class Axios {
     return this.instance;
   }
 
-  // Create
   public post<D = any>(url: string): Promise<D>;
   public post<D = any, R = any>(url: string, data: D, config?: AxiosRequestConfig<D>): Promise<R>;
   public post<D = any, R = any>(
@@ -135,7 +141,6 @@ class Axios {
     });
   }
 
-  // Read
   public get<T = any, R = T, D = any>(url: string, config?: AxiosRequestConfig<D>): Promise<R> {
     return new Promise((resolve, reject) => {
       this.Instance.get<T, AxiosResponse<R>, D>(url, config)
@@ -146,7 +151,6 @@ class Axios {
     });
   }
 
-  // Update
   public put<D = any, R = any>(url: string, data?: D, config?: AxiosRequestConfig<D>): Promise<R> {
     return new Promise((resolve, reject) => {
       this.Instance.put<D, AxiosResponse<R>>(url, data, config)
