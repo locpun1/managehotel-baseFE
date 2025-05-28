@@ -11,6 +11,9 @@ import {
 import type { HttpResponse } from '@/types/common';
 import HttpClient from '@/utils/HttpClient';
 
+console.log('[SERVICE_INIT] VITE_API_BASE_URL from import.meta.env:', import.meta.env.VITE_API_BASE_URL);
+console.log('[SERVICE_INIT] Full import.meta.env object:', import.meta.env);
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api'; 
 const prefix = `${API_BASE_URL}/auth`;
 
