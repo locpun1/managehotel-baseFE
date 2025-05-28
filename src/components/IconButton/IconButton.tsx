@@ -39,14 +39,14 @@ const IconButton: React.FC<IconButtonProps> = ({
                 <MuiIconButton
                     {...props}
                     onClick={handleClick}
-                    style={{
+                    sx={{
                         width,
                         height,
                         border,
                         borderRadius,
                         backgroundColor,
                         color,
-                        ...props.style
+                        ...props.sx
                     }}
                     disabled={disabled}
                 >

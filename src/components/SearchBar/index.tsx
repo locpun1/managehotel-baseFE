@@ -9,26 +9,28 @@ interface SearchBarProps{
     onSearch: (searchTerm: string) => void;
     placeholder?: string;
     initialValue?: string;
+    onOpenDialogCreate?: () =>  void;
+    isCheckOpenCreate?:boolean
 }
 const SearchBar: React.FC<SearchBarProps> = (props) => {
-    const { placeholder,onSearch, initialValue } = props;
+    const { placeholder,onSearch, initialValue,onOpenDialogCreate, isCheckOpenCreate=false } = props;
     return (
         <Grid sx={{backgroundColor:"white", px:1}} container>
-            <Grid item xs={8}>
+            <Grid item xs={12} sm={8}>
                 <InputSearch
                     placeholder={placeholder}
                     initialValue={initialValue}
                     onSearch={onSearch}
                 />
             </Grid>
-            <Grid item xs={4}>
-                <Stack direction='row' sx={{ display: 'flex', justifyContent:'end', mt: 2, mr:3}}>
+            <Grid item xs={12} sm={4}>
+                <Stack direction='row' sx={{ display: 'flex', justifyContent: {xs: 'start', sm:'end'}, mt: { sm: 2}, mb: { xs: 1, sm: 0}, mx:{ sm: 3}}}>
                     <IconButton
                         handleFunt={() => {}}
                         icon={<NotificationsNone sx={{color: 'black', width:"28px", height:"28px"}}/>}
                         backgroundColor="white"
                         border="1px solid black"
-                        borderRadius={6}
+                        borderRadius={1}
                         tooltip="Thông báo"
                         sx={{ mr: 2}}
                     />
@@ -36,7 +38,7 @@ const SearchBar: React.FC<SearchBarProps> = (props) => {
                         handleFunt={() => {}}
                         icon={<FilterAltOutlined sx={{color: 'white', width: "28px", height:"28px"}}/>}
                         backgroundColor="#00C7BE"
-                        borderRadius={6}
+                        borderRadius={1}
                         tooltip="Lọc"
 
                     />
@@ -44,19 +46,21 @@ const SearchBar: React.FC<SearchBarProps> = (props) => {
                         handleFunt={() => {}}
                         icon={<Cached sx={{color: 'white', width: "28px", height:"28px"}}/>}
                         backgroundColor="#00C7BE"
-                        borderRadius={6}
+                        borderRadius={1}
                         tooltip="Refresh"
                     />
-                    <Button
-                        handleFunt={() => {}}
-                        leadingIcon={<AddCircleOutlineOutlined sx={{color: 'white', width: "28px", height:"28px"}}/>}
-                        backgroundColor="#00C7BE"
-                        width='120px'
-                        height="37px"
-                        borderRadius="6px"
-                    >
-                        Tạo mới
-                    </Button>
+                    {!isCheckOpenCreate &&
+                        <Button
+                            handleFunt={() => onOpenDialogCreate && onOpenDialogCreate()}
+                            leadingIcon={<AddCircleOutlineOutlined sx={{color: 'white', width: "28px", height:"28px"}}/>}
+                            backgroundColor="#00C7BE"
+                            width='120px'
+                            height="37px"
+                            borderRadius="6px"
+                        >
+                            Tạo mới
+                        </Button>
+                    }
                 </Stack>
             </Grid>
         </Grid>
