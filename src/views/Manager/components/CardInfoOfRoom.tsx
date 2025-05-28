@@ -1,13 +1,13 @@
 import { useCachedImage } from "@/hooks/useCachedImage";
-import { Tasks } from "@/types/manager";
+import { Rooms, Tasks } from "@/types/manager";
 import { Box, Card, CardMedia, Chip, Grid, styled, Typography } from "@mui/material";
-import React from "react";
+import React, { useState } from "react";
 import defaultAvatar from '@/assets/images/users/default-avatar.jpg';
 import IconButton from "@/components/IconButton/IconButton";
 import { AttachFile, Delete, Edit, InsertLink, QrCodeScanner } from "@mui/icons-material";
 
 interface InfoProps{
-    data?: Tasks,
+    data?: Rooms,
     personalPhoto?: string | null,
 }
 
@@ -24,11 +24,19 @@ const ObjectCardStyled = styled(Card)(({theme}) => ({
 
 const CardInfo: React.FC<InfoProps> = (props) => {
     const { data, personalPhoto } = props;
+    const [openTable, setOpenTable] = useState<boolean>(false)
+    
 
     const cachedImgSrc = useCachedImage(personalPhoto);
     const imgSrc = cachedImgSrc ?? defaultAvatar;
+
+    const handleOpenTable = () => {
+        console.log("fdgdfgfdgf"); 
+        setOpenTable(!openTable)
+    }
+
     return (
-        <ObjectCardStyled variant="outlined">
+        <ObjectCardStyled onClick={handleOpenTable} variant="outlined">
             <Grid container spacing={1}>
                 <Grid item xs={12} md={5}>
                     <CardMedia
@@ -53,7 +61,7 @@ const CardInfo: React.FC<InfoProps> = (props) => {
                     <Grid sx={{ ml: { xs: 1, md: 0}}} container>
                         <Grid xs={12}>
                             <Box sx={{ mb:1 }} display='flex' justifyContent='space-between'>
-                                <Typography variant="body2">Số phòng: Phòng 201</Typography>
+                                <Typography variant="body2">{`Số phòng: Phòng ${data?.room_number}`}</Typography>
                                 <Box sx={{ mx:1, mt:-0.5}}>
                                     <IconButton
                                         handleFunt={() => {}}
@@ -87,7 +95,7 @@ const CardInfo: React.FC<InfoProps> = (props) => {
                             </Box>
                         </Grid>
                         <Grid xs={12}>
-                            <Typography sx={{ mb:1}} variant="body2">Số tầng: Tầng 2</Typography>
+                            <Typography sx={{ mb:1}} variant="body2">{`Số tầng: ${data?.floorName}`}</Typography>
                         </Grid>
                         <Grid xs={12}>
                             <Typography sx={{ mb:1}} variant="body2">Công việc: Dọn dẹp tổng vệ sinh phòng</Typography>

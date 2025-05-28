@@ -16,6 +16,14 @@ export interface DataTaskProps{
     }
 }
 
+export interface DataRoomsProps{
+    data: Rooms[],
+    totalCount: number;   
+    totalPages?: number;
+    number?: number;
+  
+}
+
 export const getAllListFloor = () => {
   return HttpClient.get<HttpResponse<Floors>>(`${prefix}/floors/get-list-floors`);
 };
@@ -41,3 +49,17 @@ export const getListTask = (
     }
     return HttpClient.get<HttpResponse<Tasks>>(endpoint,{params})
 } 
+
+export const getListRoom = (
+  page: number,
+  size: number,
+): Promise<HttpResponse<Tasks>> => {
+  const endpoint = `${prefix}/rooms/get-list-room`;
+  const params: Record<string, any> = {
+      page: page,
+      size: size,
+  }
+  return HttpClient.get<HttpResponse<Tasks>>(endpoint,{params})
+} 
+
+
