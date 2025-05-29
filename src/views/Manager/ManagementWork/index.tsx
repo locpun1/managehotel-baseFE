@@ -9,12 +9,12 @@ import { Delete, Edit } from "@mui/icons-material";
 import CustomPagination from "@/components/Pagination/CustomPagination";
 import { STATUS_LABELS, TaskStatus } from "@/constants/taskStatus";
 
-const getStatusLabel = (status: TaskStatus | null | undefined): string => {
+export const getStatusLabel = (status: TaskStatus | null | undefined): string => {
     if(!status) return "Chưa xác định";
     return STATUS_LABELS[status] || status;
 }
 
-const getStatusChipColor = (status: TaskStatus | null | undefined): "default" | "primary" | "secondary" | "error" | "info" | "success" | "warning" => {
+export const getStatusChipColor = (status: TaskStatus | null | undefined): "default" | "primary" | "secondary" | "error" | "info" | "success" | "warning" => {
     switch(status){
         case TaskStatus.PENDING: return "primary";
         case TaskStatus.PROGRESS: return "warning";
@@ -30,14 +30,14 @@ function ManagementWork (){
     const [error, setError] = useState(null);
     const [listTasks, setListTask] = useState<Tasks[]>([]);
     const [page, setPage] = useState(0)
-    const [rowPerPgae, setRowPerPage] = useState(10)
+    const [rowPerPgae, setRowPerPage] = useState<number>(10)
     const [total, setTotal] = useState(0)
 
-    const fetchListTask = useCallback(async (currentPage: number, currentLimit: number) => {
+    const fetchListTask = useCallback(async (currentPage: number, currentLimit: number, roomId?: number) => {
         setLoading(true)
         setError(null)
         try {
-            const res = await getListTask(currentPage, currentLimit)
+            const res = await getListTask(currentPage, currentLimit,roomId)
             const data = res.data as any as DataTaskProps
             setListTask(data.result.data)
             setTotal(data.result.totalCount)

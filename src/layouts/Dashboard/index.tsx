@@ -45,7 +45,7 @@ const DashboardLayout = () => {
             onToggleCollapsed={handleToggleCollapsed}
           />
 
-          <Box sx={{ flexGrow: 1, overflowY: 'auto' }}>
+          <Box sx={{ flexGrow: 1 }}>
             <Outlet />
           </Box>
           <Footer />

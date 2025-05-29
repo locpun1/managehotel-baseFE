@@ -4,11 +4,12 @@ import { Box, Card, CardMedia, Chip, Grid, styled, Typography } from "@mui/mater
 import React, { useState } from "react";
 import defaultAvatar from '@/assets/images/users/default-avatar.jpg';
 import IconButton from "@/components/IconButton/IconButton";
-import { AttachFile, Delete, Edit, InsertLink, QrCodeScanner } from "@mui/icons-material";
+import { Delete, Edit, InsertLink, QrCodeScanner } from "@mui/icons-material";
 
 interface InfoProps{
     data?: Rooms,
     personalPhoto?: string | null,
+    handleOpenTable: (id: string | number) => void
 }
 
 const ObjectCardStyled = styled(Card)(({theme}) => ({
@@ -20,23 +21,19 @@ const ObjectCardStyled = styled(Card)(({theme}) => ({
         boxShadow: theme.shadows[6],
     },
     border:`1px solid ${theme.palette.divider}`,
+    cursor:"pointer"
 }));
 
 const CardInfo: React.FC<InfoProps> = (props) => {
-    const { data, personalPhoto } = props;
-    const [openTable, setOpenTable] = useState<boolean>(false)
+    const { data, personalPhoto, handleOpenTable } = props;
     
-
     const cachedImgSrc = useCachedImage(personalPhoto);
     const imgSrc = cachedImgSrc ?? defaultAvatar;
 
-    const handleOpenTable = () => {
-        console.log("fdgdfgfdgf"); 
-        setOpenTable(!openTable)
-    }
+    
 
     return (
-        <ObjectCardStyled onClick={handleOpenTable} variant="outlined">
+        <ObjectCardStyled onClick={() => data !== undefined && handleOpenTable(data.id)} variant="outlined">
             <Grid container spacing={1}>
                 <Grid item xs={12} md={5}>
                     <CardMedia
