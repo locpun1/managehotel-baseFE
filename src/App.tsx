@@ -17,6 +17,7 @@ import './i18n';
 import Routers from './routers';
 import store from './store';
 import i18n from './i18n';
+import { RoomLinkProvider } from './contexts/RoomLinkContext';
 
 const App = () => {
   return (
@@ -31,7 +32,9 @@ const App = () => {
                   adapterLocale={i18n.language}
                   localeText={DateTimeLocaleText()}
                 >
-                  <Routers />
+                  <RoomLinkProvider>
+                    <Routers />
+                  </RoomLinkProvider>
                 </LocalizationProvider>
               </InitLoadingProvider>
             </DialogProvider>

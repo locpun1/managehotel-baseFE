@@ -18,6 +18,7 @@ import Manager from './Manager';
 
 // Home
 const Home = Loadable(lazy(() => import('@/views/Home')));
+const DisplayRemote = Loadable(lazy(() => import('@/views/DisplayRemote')));
 
 // Error
 const NotFound = Loadable(lazy(() => import('@/views/Errors/NotFound')));
@@ -49,6 +50,10 @@ const routes: RouteObject[] = [
       { path: 'forgot-password', element: <ForgotPassword /> },
       { path: 'change-password', element: <ChangePassword /> },
     ],
+  },
+  {
+    path: '/display-remote/room/:roomId',
+    element: <DisplayRemote />,
   },
   {
     path: '*',

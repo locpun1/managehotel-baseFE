@@ -1,15 +1,18 @@
 import SearchBar from '@/components/SearchBar';
 import { ROUTE_PATH } from '@/constants/routes';
-import { Alert, Box, Chip, CircularProgress, Collapse, Grid, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from '@mui/material';
+import { Alert, Box, Button, Chip, CircularProgress, Collapse, Dialog, DialogContent, DialogTitle, Grid, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from '@mui/material';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import CardInfo from '../components/CardInfoOfRoom';
-import { DataRoomsProps, DataTaskProps, getListRoom, getListTask } from '@/services/manager.service';
+import { DataRoomsProps, DataTaskProps, generateLink, getListRoom, getListTask, LinkResponse } from '@/services/manager.service';
 import { Rooms, Tasks } from '@/types/manager';
 import IconButton from '@/components/IconButton/IconButton';
-import { NavigateBefore, NavigateNext } from '@mui/icons-material';
+import { ContentCopy, NavigateBefore, NavigateNext } from '@mui/icons-material';
 import { getStatusChipColor, getStatusLabel } from '../ManagementWork';
 import CustomPagination from '@/components/Pagination/CustomPagination';
+import { convertRoomPathToDisplayRemoteUrl } from '@/utils/url';
+import { useRoomLinkContext } from '@/contexts/RoomLinkContext';
+import useNotification from '@/hooks/useNotification';
 
 
 const ManagementHome = () => {
@@ -35,6 +38,13 @@ const ManagementHome = () => {
   const [showAll, setShowAll] = useState(false);
   const [expandedRoomId, setExpandedRoomId] = useState<string | number>('');
   const bufferRooms: Rooms[] = [];
+
+  const [open, setOpen] = useState(false);
+  const { link, setLink } = useRoomLinkContext();
+  const [roomId, setRoomId] = useState<any>('');
+
+  const notify = useNotification()
+
 
   const handleSearch = () => {
   }
@@ -71,7 +81,6 @@ const ManagementHome = () => {
   }
 
   const fetchListTask = useCallback(async (currentPage: number, currentLimit: number, roomId?: number | string) => {
-    setLoading(true)
     setErrorTask(null)
     try {
       const res = await getListTask(currentPage, currentLimit,roomId)
@@ -81,8 +90,6 @@ const ManagementHome = () => {
     } catch (error: any) {
       setErrorTask(error.message);
       setListTask([])
-    } finally {
-      setLoading(false)
     }
     }, [])
     const pageSize = showAll ? 5 : 8
@@ -106,6 +113,36 @@ const ManagementHome = () => {
     const handlePage = (newPage: number) => {
     setPage(newPage)
   }
+
+  const newLink = link[roomId];
+
+  const handleGenerate = async(id: number | string) => {
+    setExpandedRoomId('')
+    setRoomId(id)
+    if(newLink) return
+    try {
+      const data = {
+        roomId:id
+      }
+      const res = await generateLink(data);
+      const link = res.data as any as LinkResponse;
+      const clientPath = convertRoomPathToDisplayRemoteUrl(link.link);
+      setLink(id,clientPath)
+      setOpen(true)
+    } catch (error: any) {
+      setError(error.message || "Tạo link thất bại");
+    }
+  }
+
+  const handleCopy = () => {
+    if (link) {
+      navigator.clipboard.writeText(newLink);
+      notify({
+        message:"Sao chép thành công",
+        severity: "success"
+      })
+    };
+  };
 
   return (
     <Box>
@@ -143,8 +180,8 @@ const ManagementHome = () => {
               const shouldShowCollapse = bufferRooms.some(r => r.id === expandedRoomId)
               return (
                 <React.Fragment key={room.id}>
-                  <Grid item xs={12} sm={6} lg={4}>
-                    <CardInfo handleOpenTable={handleOpenTable} data={room}/>
+                  <Grid item xs={12} sm={6} lg={4} key={room.id}>
+                    <CardInfo handleOpenTable={handleOpenTable} data={room} handleGenerate={handleGenerate}/>
                   </Grid>
                   {isEndOfRow && shouldShowCollapse && (
                     <>
@@ -243,7 +280,7 @@ const ManagementHome = () => {
           {displayedRooms?.map((room) => {
             return (
               <Grid item xs={12} sm={6} lg={4}>
-                <CardInfo handleOpenTable={handleOpenTable} data={room}/>
+                <CardInfo handleOpenTable={handleOpenTable} handleGenerate={handleGenerate} data={room}/>
               </Grid>
             )
           })}
@@ -324,6 +361,43 @@ const ManagementHome = () => {
         
       </Collapse>
       )}
+
+       <Dialog open={open} onClose={() => setOpen(false)}>
+        <DialogContent style={{ textAlign: "center", minWidth: 500 }}>
+          <Typography fontWeight={500}>
+            Tạo đường link thành công, Phòng: {displayedRooms.find(r => r.id === roomId)?.room_number}
+          </Typography>
+          {link && (
+            <>
+            <Box sx={{ border: "1px solid rgb(164, 165, 165)", borderRadius: "5px", padding:2, mt:2}} >
+              <Typography variant="body2" sx={{ wordBreak: "break-all" }}>
+                {newLink}
+              </Typography>
+            </Box>
+              <Button
+                variant="contained"
+                startIcon={<ContentCopy />}
+                onClick={handleCopy}
+                sx={{ mt: 2, backgroundColor:"#00C7BE" }}
+              >
+                Sao chép link
+              </Button>
+              <Button
+                variant="outlined"
+                onClick={() => setOpen(false)}
+                sx={{ mt: 2, ml: 2 }}
+              >
+                Đóng
+              </Button>
+            </>
+          )}
+          {!link && (
+            <Typography color="error" sx={{ mt: 2 }}>
+              Không thể tạo link. Vui lòng thử lại.
+            </Typography>
+          )}
+        </DialogContent>
+      </Dialog>
 
     </Box>
   );
