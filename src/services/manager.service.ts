@@ -24,6 +24,11 @@ export interface DataRoomsProps{
   
 }
 
+export type LinkRequest = {
+  roomId: string | number;
+};
+
+
 export const getAllListFloor = () => {
   return HttpClient.get<HttpResponse<Floors>>(`${prefix}/floors/get-list-floors`);
 };
@@ -35,6 +40,10 @@ export const getRoomByFloor = (floorId: string | number) => {
 
 export const createTask =  (params: TaskData) => {
   return HttpClient.post<typeof params, HttpResponse<Tasks>>(`${prefix}/tasks/create-task`, params);
+}
+
+export const generateLink =  (params: LinkRequest) => {
+  return HttpClient.post<typeof params, HttpResponse<Rooms>>(`${prefix}/rooms/generate-link`, params);
 }
 
 export const getListTask = (
