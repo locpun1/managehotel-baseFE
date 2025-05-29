@@ -41,11 +41,13 @@ export const createTask =  (params: TaskData) => {
 export const getListTask = (
     page: number,
     size: number,
+    roomId?:number | string
 ): Promise<HttpResponse<Tasks>> => {
     const endpoint = `${prefix}/tasks/list-task`;
     const params: Record<string, any> = {
         page: page,
         size: size,
+        roomId: roomId
     }
     return HttpClient.get<HttpResponse<Tasks>>(endpoint,{params})
 } 

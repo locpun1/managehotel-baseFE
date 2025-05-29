@@ -79,8 +79,9 @@ class Axios {
           refreshToken: refreshToken
         });
         const { data } = result.data;
+        
 
-        setStorageToken().accessToken(data.accessToken);
+        setStorageToken().accessToken(data.access.token);
         const newToken = data.accessToken;
 
         if (newToken) {
