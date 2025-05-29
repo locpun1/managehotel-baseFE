@@ -29,7 +29,7 @@ export const getAllListFloor = () => {
 };
 
 export const getRoomByFloor = (floorId: string | number) => {
-  const url = `${prefix}/floors/${floorId}/rooms`;
+  const url = `${prefix}/get-list-floor/${floorId}/rooms`;
   return HttpClient.get<HttpResponse<Rooms>>(url); 
 };
 
