@@ -129,7 +129,6 @@ const DialogCreateTask: React.FC<DialogCreateTaskProps> = (props) => {
     useEffect(() => {
         if(selectedFloor){
             const getRooms = async() => {
-                setLoading(true);
                 try {
                     const resRoom = await getRoomByFloor(selectedFloor)
                     const data = resRoom as any as DataRooms;
@@ -143,10 +142,7 @@ const DialogCreateTask: React.FC<DialogCreateTaskProps> = (props) => {
                 } catch (error) {
                     console.error('Lấy phòng thất bại:', error);
                     setListRooms([])
-                }finally{
-                    setLoading(false)
                 }
-
             }
             getRooms()
         }else{
