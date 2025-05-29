@@ -14,7 +14,8 @@ export const prepareRealPath = (
 };
 
 
-const baseUrl = import.meta.env.VITE_BASE_URL || '';
+const baseUrl = import.meta.env.MODE === "development" ? import.meta.env.VITE_BASE_URL : import.meta.env.VITE_API_BASE_URL; 
+
 
 export function convertRoomPathToDisplayRemoteUrl(path: string): string {
   // path từ BE là "/room/101" → muốn "/display-remote/room/101"
