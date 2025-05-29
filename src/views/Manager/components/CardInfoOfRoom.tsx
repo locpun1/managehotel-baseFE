@@ -57,7 +57,7 @@ const CardInfo: React.FC<InfoProps> = (props) => {
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
                         <Box>
                             <Typography variant="body2" component="span">Số phòng: </Typography>
-                            <Typography variant="body2" component="span" fontWeight="bold">{data?.floorName}</Typography>
+                            <Typography variant="body2" component="span" fontWeight="bold">{data?.room_number}</Typography>
                         </Box>
                         <Box sx={{ mx:1}}>
                             <IconButton
