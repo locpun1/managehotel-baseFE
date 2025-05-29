@@ -1,8 +1,6 @@
-import { Endpoints } from '@/constants/endpoints';
 import type { HttpResponse } from '@/types/common';
 import { Floors, Rooms, TaskData, Tasks } from '@/types/manager';
 import HttpClient from '@/utils/HttpClient';
-import { prepareRealPath } from '@/utils/url';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api'; 
 const prefix = `${API_BASE_URL}/api/v1`;
