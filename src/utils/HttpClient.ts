@@ -72,7 +72,7 @@ class Axios {
 
       try {
         const refreshToken = getStorageToken.refreshToken;
-        const result = await axios.post(import.meta.env.VITE_API_BASE_URL + "/api/v1/auth/refresh-tokens", {
+        const result = await axios.post(import.meta.env.VITE_API_BASE_URL + "api/v1/auth/refresh-tokens", {
           // headers: {
           //   Authorization: `Bearer ` + refreshToken,
           // },
