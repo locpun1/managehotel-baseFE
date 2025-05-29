@@ -1,15 +1,17 @@
 import SearchBar from '@/components/SearchBar';
 import { ROUTE_PATH } from '@/constants/routes';
-import { Alert, Box, Chip, CircularProgress, Collapse, Grid, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from '@mui/material';
+import { Alert, Box, Button, Chip, CircularProgress, Collapse, Dialog, DialogContent, DialogTitle, Grid, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from '@mui/material';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import CardInfo from '../components/CardInfoOfRoom';
-import { DataRoomsProps, DataTaskProps, getListRoom, getListTask } from '@/services/manager.service';
+import { DataRoomsProps, DataTaskProps, generateLink, getListRoom, getListTask } from '@/services/manager.service';
 import { Rooms, Tasks } from '@/types/manager';
 import IconButton from '@/components/IconButton/IconButton';
-import { NavigateBefore, NavigateNext } from '@mui/icons-material';
+import { ContentCopy, NavigateBefore, NavigateNext } from '@mui/icons-material';
 import { getStatusChipColor, getStatusLabel } from '../ManagementWork';
 import CustomPagination from '@/components/Pagination/CustomPagination';
+import { convertRoomPathToDisplayRemoteUrl } from '@/utils/url';
+import useNotification from '@/hooks/useNotification';
 
 
 const ManagementHome = () => {
@@ -35,6 +37,14 @@ const ManagementHome = () => {
   const [showAll, setShowAll] = useState(false);
   const [expandedRoomId, setExpandedRoomId] = useState<string | number>('');
   const bufferRooms: Rooms[] = [];
+
+  const [open, setOpen] = useState(false);
+  const [room, setRoom] = useState<Rooms | null>(null);
+  const [title, setTitle] = useState<string>('');
+  const [generateRoomId, setGenerateRoomId] = useState<string | number>('');
+
+  const notify = useNotification()
+
 
   const handleSearch = () => {
   }
@@ -71,7 +81,6 @@ const ManagementHome = () => {
   }
 
   const fetchListTask = useCallback(async (currentPage: number, currentLimit: number, roomId?: number | string) => {
-    setLoading(true)
     setErrorTask(null)
     try {
       const res = await getListTask(currentPage, currentLimit,roomId)
@@ -81,8 +90,6 @@ const ManagementHome = () => {
     } catch (error: any) {
       setErrorTask(error.message);
       setListTask([])
-    } finally {
-      setLoading(false)
     }
     }, [])
     const pageSize = showAll ? 5 : 8
@@ -106,6 +113,40 @@ const ManagementHome = () => {
     const handlePage = (newPage: number) => {
     setPage(newPage)
   }
+
+  const handleGenerate = async(id: number | string) => {
+    console.log("id: ",id);
+    setGenerateRoomId(id)
+    setExpandedRoomId('')
+    if(room?.link_web || displayedRooms.find(r => r.id === id)) {
+      setOpen(true)
+      setTitle("Bạn đã tạo link web cho phòng này rồi");
+      return
+    }
+    try {
+      const data = {
+        roomId:id
+      }
+      const res = await generateLink(data);
+      const room = res.data as any as Rooms;
+      setRoom(room)
+      setOpen(true)
+    } catch (error: any) {
+      setError(error.message || "Tạo link thất bại");
+    }
+  }
+
+  const handleCopy = () => {
+    if (room?.link_web) {
+      navigator.clipboard.writeText(convertRoomPathToDisplayRemoteUrl(room?.link_web));
+      notify({
+        message:"Sao chép thành công",
+        severity: "success"
+      })
+    };
+  };
+
+  const link = displayedRooms.find(r => r.id === generateRoomId)?.link_web;
 
   return (
     <Box>
@@ -143,8 +184,8 @@ const ManagementHome = () => {
               const shouldShowCollapse = bufferRooms.some(r => r.id === expandedRoomId)
               return (
                 <React.Fragment key={room.id}>
-                  <Grid item xs={12} sm={6} lg={4}>
-                    <CardInfo handleOpenTable={handleOpenTable} data={room}/>
+                  <Grid item xs={12} sm={6} lg={4} key={room.id}>
+                    <CardInfo handleOpenTable={handleOpenTable} data={room} handleGenerate={handleGenerate}/>
                   </Grid>
                   {isEndOfRow && shouldShowCollapse && (
                     <>
@@ -243,7 +284,7 @@ const ManagementHome = () => {
           {displayedRooms?.map((room) => {
             return (
               <Grid item xs={12} sm={6} lg={4}>
-                <CardInfo handleOpenTable={handleOpenTable} data={room}/>
+                <CardInfo handleOpenTable={handleOpenTable} handleGenerate={handleGenerate} data={room}/>
               </Grid>
             )
           })}
@@ -324,6 +365,66 @@ const ManagementHome = () => {
         
       </Collapse>
       )}
+
+       <Dialog open={open} onClose={() => setOpen(false)}>
+        <DialogContent style={{ textAlign: "center", minWidth: 500 }}>
+          <Typography fontWeight={500}>
+            {title ? `Đường link Phòng: ${displayedRooms.find(r => r.id === generateRoomId)?.room_number}` : `Tạo đường link thành công, Phòng: ${room?.room_number}`}
+          </Typography>
+          {room?.link_web ? (
+            <>
+            <Box sx={{ border: "1px solid rgb(164, 165, 165)", borderRadius: "5px", padding:2, mt:2}} >
+              <Typography variant="body2" sx={{ wordBreak: "break-all" }}>
+                {convertRoomPathToDisplayRemoteUrl(room?.link_web)}
+              </Typography>
+            </Box>
+              <Button
+                variant="contained"
+                startIcon={<ContentCopy />}
+                onClick={handleCopy}
+                sx={{ mt: 2, backgroundColor:"#00C7BE" }}
+              >
+                Sao chép link
+              </Button>
+              <Button
+                variant="outlined"
+                onClick={() => setOpen(false)}
+                sx={{ mt: 2, ml: 2 }}
+              >
+                Đóng
+              </Button>
+            </>
+          ) : (
+            <>
+            <Box sx={{ border: "1px solid rgb(164, 165, 165)", borderRadius: "5px", padding:2, mt:2}} >
+              <Typography variant="body2" sx={{ wordBreak: "break-all" }}>
+                {link !== undefined && convertRoomPathToDisplayRemoteUrl(link)}
+              </Typography>
+            </Box>
+              <Button
+                variant="contained"
+                startIcon={<ContentCopy />}
+                onClick={handleCopy}
+                sx={{ mt: 2, backgroundColor:"#00C7BE" }}
+              >
+                Sao chép link
+              </Button>
+              <Button
+                variant="outlined"
+                onClick={() => setOpen(false)}
+                sx={{ mt: 2, ml: 2 }}
+              >
+                Đóng
+              </Button>
+            </>
+          )}
+          {!room?.link_web || !link && (
+            <Typography color="error" sx={{ mt: 2 }}>
+              Không thể tạo link. Vui lòng thử lại.
+            </Typography>
+          )}
+        </DialogContent>
+      </Dialog>
 
     </Box>
   );

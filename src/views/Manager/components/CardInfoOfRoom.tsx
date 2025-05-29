@@ -9,7 +9,8 @@ import { Delete, Edit, InsertLink, QrCodeScanner } from "@mui/icons-material";
 interface InfoProps{
     data?: Rooms,
     personalPhoto?: string | null,
-    handleOpenTable: (id: string | number) => void
+    handleOpenTable: (id: string | number) => void,
+    handleGenerate: (id: string | number) => void
 }
 
 const ObjectCardStyled = styled(Card)(({theme}) => ({
@@ -25,12 +26,10 @@ const ObjectCardStyled = styled(Card)(({theme}) => ({
 }));
 
 const CardInfo: React.FC<InfoProps> = (props) => {
-    const { data, personalPhoto, handleOpenTable } = props;
+    const { data, personalPhoto, handleOpenTable, handleGenerate } = props;
     
     const cachedImgSrc = useCachedImage(personalPhoto);
     const imgSrc = cachedImgSrc ?? defaultAvatar;
-
-    
 
     return (
         <ObjectCardStyled onClick={() => data !== undefined && handleOpenTable(data.id)} variant="outlined">
@@ -55,54 +54,54 @@ const CardInfo: React.FC<InfoProps> = (props) => {
                     />
                 </Grid>
                 <Grid sx={{ mt: 2}} item xs={12} md={7}>
-                    <Grid sx={{ ml: { xs: 1, md: 0}}} container>
-                        <Grid xs={12}>
-                            <Box sx={{ mb:1 }} display='flex' justifyContent='space-between'>
-                                <Typography variant="body2">{`Số phòng: Phòng ${data?.room_number}`}</Typography>
-                                <Box sx={{ mx:1, mt:-0.5}}>
-                                    <IconButton
-                                        handleFunt={() => {}}
-                                        icon={<InsertLink color="primary" sx={{ width:"20px", height: "20px"}} />}
-                                        height={22}
-                                        width={22}
-                                        tooltip="Tạo link"
-                                    />
-                                    <IconButton
-                                        handleFunt={() => {}}
-                                        icon={<QrCodeScanner color="success" sx={{ width:"20px", height: "20px"}}/>}
-                                        height={22}
-                                        width={22}
-                                        tooltip="Tạo QR"
-                                    />
-                                    <IconButton
-                                        handleFunt={() => {}}
-                                        icon={<Edit color="info" sx={{ width:"20px", height: "20px"}}/>}
-                                        height={22}
-                                        width={22}
-                                        tooltip="Sửa"
-                                    />
-                                    <IconButton
-                                        handleFunt={() => {}}
-                                        icon={<Delete color="error" sx={{ width:"20px", height: "20px"}}/>}
-                                        height={22}
-                                        width={22}
-                                        tooltip="Xóa"
-                                    />
-                                </Box>
-                            </Box>
-                        </Grid>
-                        <Grid xs={12}>
-                            <Typography sx={{ mb:1}} variant="body2">{`Số tầng: ${data?.floorName}`}</Typography>
-                        </Grid>
-                        <Grid xs={12}>
-                            <Typography sx={{ mb:1}} variant="body2">Công việc: Dọn dẹp tổng vệ sinh phòng</Typography>
-                        </Grid>
-                        <Grid xs={12}>
-                            <Typography sx={{ mb:1}} variant="body2">Thời gian: 00h00 - 00h00, 27/05/2025</Typography></Grid>
-                        <Grid xs={12}>
-                            <Chip sx={{ width: 150, my:1.5 }} label='Chưa làm' color="primary"/>
-                        </Grid>
-                    </Grid>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                        <Box>
+                            <Typography variant="body2" component="span">Số phòng: </Typography>
+                            <Typography variant="body2" component="span" fontWeight="bold">{data?.room_number}</Typography>
+                        </Box>
+                        <Box sx={{ mx:1}}>
+                            <IconButton
+                                handleFunt={() => data !== undefined && handleGenerate(data.id)}
+                                icon={<InsertLink color="primary" sx={{ width:"20px", height: "20px"}} />}
+                                height={22}
+                                width={22}
+                                tooltip="Tạo link"
+                            />
+                            <IconButton
+                                handleFunt={() => {}}
+                                icon={<QrCodeScanner color="success" sx={{ width:"20px", height: "20px"}}/>}
+                                height={22}
+                                width={22}
+                                tooltip="Tạo QR"
+                            />
+                            <IconButton
+                                handleFunt={() => {}}
+                                icon={<Edit color="info" sx={{ width:"20px", height: "20px"}}/>}
+                                height={22}
+                                width={22}
+                                tooltip="Sửa"
+                            />
+                            <IconButton
+                                handleFunt={() => {}}
+                                icon={<Delete color="error" sx={{ width:"20px", height: "20px"}}/>}
+                                height={22}
+                                width={22}
+                                tooltip="Xóa"
+                            />
+                        </Box>
+                    </Box>
+                    <Box sx={{ mb:1}}>
+                        <Typography variant="body2">{`Số tầng: ${data?.floorName}`}</Typography>
+                    </Box>
+                    <Box sx={{ mb:1}}>
+                        <Typography variant="body2">Công việc: Dọn dẹp tổng vệ sinh phòng</Typography>
+                    </Box>
+                    <Box sx={{ mb:1}}>
+                        <Typography variant="body2">Thời gian: 00h00 - 00h00, 27/05/2025</Typography>
+                    </Box>
+                    <Box>
+                        <Chip sx={{ width: 150, my:1.5 }} label='Chưa làm' color="primary"/>
+                    </Box>
                 </Grid>
             </Grid>
         </ObjectCardStyled>
