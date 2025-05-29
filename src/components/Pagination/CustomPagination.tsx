@@ -22,6 +22,7 @@ const CustomPagination: React.FC<CustomPaginationProps> = ({
 }) => {
   const theme = useTheme();
   const totalPages = Math.ceil(count / rowsPerPage);
+  
 
   const handlePrevious = () => {
     if (page > 0) {

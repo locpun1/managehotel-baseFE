@@ -29,10 +29,9 @@ export const getAllListFloor = () => {
 };
 
 export const getRoomByFloor = (floorId: string | number) => {
-  const url = prepareRealPath(Endpoints.manager.getRoomByFloor, { floorId });
-  
-  return HttpClient.get<HttpResponse<Rooms>>(url)
-}
+  const url = `${prefix}/floors/${floorId}/rooms`;
+  return HttpClient.get<HttpResponse<Rooms>>(url); 
+};
 
 export const createTask =  (params: TaskData) => {
   return HttpClient.post<typeof params, HttpResponse<Tasks>>(`${prefix}/tasks/create-task`, params);
@@ -41,11 +40,13 @@ export const createTask =  (params: TaskData) => {
 export const getListTask = (
     page: number,
     size: number,
+    roomId?:number | string
 ): Promise<HttpResponse<Tasks>> => {
     const endpoint = `${prefix}/tasks/list-task`;
     const params: Record<string, any> = {
         page: page,
         size: size,
+        roomId: roomId
     }
     return HttpClient.get<HttpResponse<Tasks>>(endpoint,{params})
 } 
