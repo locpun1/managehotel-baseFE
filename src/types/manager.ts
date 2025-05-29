@@ -16,7 +16,8 @@ export interface Rooms{
     status: string,
     createdAt: string,
     updatedAt: string,
-    floorName?:string
+    floorName?:string,
+    link_web: string,
 }
 
 export interface TaskData {

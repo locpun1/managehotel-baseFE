@@ -4,14 +4,13 @@ import { Alert, Box, Button, Chip, CircularProgress, Collapse, Dialog, DialogCon
 import React, { useCallback, useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import CardInfo from '../components/CardInfoOfRoom';
-import { DataRoomsProps, DataTaskProps, generateLink, getListRoom, getListTask, LinkResponse } from '@/services/manager.service';
+import { DataRoomsProps, DataTaskProps, generateLink, getListRoom, getListTask } from '@/services/manager.service';
 import { Rooms, Tasks } from '@/types/manager';
 import IconButton from '@/components/IconButton/IconButton';
 import { ContentCopy, NavigateBefore, NavigateNext } from '@mui/icons-material';
 import { getStatusChipColor, getStatusLabel } from '../ManagementWork';
 import CustomPagination from '@/components/Pagination/CustomPagination';
 import { convertRoomPathToDisplayRemoteUrl } from '@/utils/url';
-import { useRoomLinkContext } from '@/contexts/RoomLinkContext';
 import useNotification from '@/hooks/useNotification';
 
 
@@ -40,8 +39,9 @@ const ManagementHome = () => {
   const bufferRooms: Rooms[] = [];
 
   const [open, setOpen] = useState(false);
-  const { link, setLink } = useRoomLinkContext();
-  const [roomId, setRoomId] = useState<any>('');
+  const [room, setRoom] = useState<Rooms | null>(null);
+  const [title, setTitle] = useState<string>('');
+  const [generateRoomId, setGenerateRoomId] = useState<string | number>('');
 
   const notify = useNotification()
 
@@ -114,20 +114,22 @@ const ManagementHome = () => {
     setPage(newPage)
   }
 
-  const newLink = link[roomId];
-
   const handleGenerate = async(id: number | string) => {
+    console.log("id: ",id);
+    setGenerateRoomId(id)
     setExpandedRoomId('')
-    setRoomId(id)
-    if(newLink) return
+    if(room?.link_web || displayedRooms.find(r => r.id === id)) {
+      setOpen(true)
+      setTitle("Bạn đã tạo link web cho phòng này rồi");
+      return
+    }
     try {
       const data = {
         roomId:id
       }
       const res = await generateLink(data);
-      const link = res.data as any as LinkResponse;
-      const clientPath = convertRoomPathToDisplayRemoteUrl(link.link);
-      setLink(id,clientPath)
+      const room = res.data as any as Rooms;
+      setRoom(room)
       setOpen(true)
     } catch (error: any) {
       setError(error.message || "Tạo link thất bại");
@@ -135,14 +137,16 @@ const ManagementHome = () => {
   }
 
   const handleCopy = () => {
-    if (link) {
-      navigator.clipboard.writeText(newLink);
+    if (room?.link_web) {
+      navigator.clipboard.writeText(convertRoomPathToDisplayRemoteUrl(room?.link_web));
       notify({
         message:"Sao chép thành công",
         severity: "success"
       })
     };
   };
+
+  const link = displayedRooms.find(r => r.id === generateRoomId)?.link_web;
 
   return (
     <Box>
@@ -365,13 +369,36 @@ const ManagementHome = () => {
        <Dialog open={open} onClose={() => setOpen(false)}>
         <DialogContent style={{ textAlign: "center", minWidth: 500 }}>
           <Typography fontWeight={500}>
-            Tạo đường link thành công, Phòng: {displayedRooms.find(r => r.id === roomId)?.room_number}
+            {title ? `Đường link Phòng: ${displayedRooms.find(r => r.id === generateRoomId)?.room_number}` : `Tạo đường link thành công, Phòng: ${room?.room_number}`}
           </Typography>
-          {link && (
+          {room?.link_web ? (
             <>
             <Box sx={{ border: "1px solid rgb(164, 165, 165)", borderRadius: "5px", padding:2, mt:2}} >
               <Typography variant="body2" sx={{ wordBreak: "break-all" }}>
-                {newLink}
+                {convertRoomPathToDisplayRemoteUrl(room?.link_web)}
+              </Typography>
+            </Box>
+              <Button
+                variant="contained"
+                startIcon={<ContentCopy />}
+                onClick={handleCopy}
+                sx={{ mt: 2, backgroundColor:"#00C7BE" }}
+              >
+                Sao chép link
+              </Button>
+              <Button
+                variant="outlined"
+                onClick={() => setOpen(false)}
+                sx={{ mt: 2, ml: 2 }}
+              >
+                Đóng
+              </Button>
+            </>
+          ) : (
+            <>
+            <Box sx={{ border: "1px solid rgb(164, 165, 165)", borderRadius: "5px", padding:2, mt:2}} >
+              <Typography variant="body2" sx={{ wordBreak: "break-all" }}>
+                {link !== undefined && convertRoomPathToDisplayRemoteUrl(link)}
               </Typography>
             </Box>
               <Button
@@ -391,7 +418,7 @@ const ManagementHome = () => {
               </Button>
             </>
           )}
-          {!link && (
+          {!room?.link_web || !link && (
             <Typography color="error" sx={{ mt: 2 }}>
               Không thể tạo link. Vui lòng thử lại.
             </Typography>
