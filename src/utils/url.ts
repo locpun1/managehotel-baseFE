@@ -13,8 +13,8 @@ export const prepareRealPath = (
   return path;
 };
 
-
-const baseUrl = import.meta.env.MODE === "development" ? import.meta.env.VITE_BASE_URL : import.meta.env.VITE_API_BASE_URL; 
+const VITE_BASE_URL_PRODUCTION ='https://managehotel.vercel.app'
+const baseUrl = import.meta.env.MODE === "development" ? import.meta.env.VITE_BASE_URL : VITE_BASE_URL_PRODUCTION; 
 
 
 export function convertRoomPathToDisplayRemoteUrl(path: string): string {

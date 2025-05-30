@@ -16,7 +16,8 @@ interface Props extends Omit<DialogProps, 'open' | 'fullScreen'> {
   dialogContentHeight?: string | number;
   showSaveButton?: boolean;
   customButtons?: ReactNode;
-  hasError?: boolean
+  hasError?: boolean,
+  isActiveFooter?:boolean
 }
 
 const DialogComponent = ({
@@ -24,26 +25,27 @@ const DialogComponent = ({
   handleClose,
   children,
   dialogTitle,
-  dialogContentHeight = 500,
+  dialogContentHeight,
   showSaveButton = false,
   customButtons,
   hasError,
+  isActiveFooter = true,
   ...rest
 }: Props) => {
   
-  const { t } = useTranslation('common', { keyPrefix: 'actions' });
   return (
     <DialogContainer {...rest} open={!!dialogKey} onClose={handleClose}>
-      <DialogHeader onClose={handleClose} title={dialogTitle || ''} marginTop={2} />
-      <DialogContent>
-        <Box sx={{ height: {xs: hasError ? 480 : 400, md: hasError ? 400 : 330}, padding: 2 }}>{children}</Box>
+      {isActiveFooter && <DialogHeader onClose={handleClose} title={dialogTitle || ''} marginTop={2} />}
+      <DialogContent sx={{ textAlign: isActiveFooter ? "" : "center"}}>
+        <Box sx={{ height: {xs: hasError ? 480 : 400, md: hasError ? 400 : 330}, padding: 2, maxHeight:"fit-content" }}>{children}</Box>
       </DialogContent>
-      <DialogFooter>
+      {isActiveFooter &&<DialogFooter>
         {customButtons}
         <ActionButton border='1px solid #00C7BE' fontColor='#00C7BE' actionType='cancel' onClick={handleClose}>
-          {t('cancel')}
+          Hủy
         </ActionButton>
       </DialogFooter>
+      }
     </DialogContainer>
   );
 };
