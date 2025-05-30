@@ -8,6 +8,7 @@ import IconButton from "@/components/IconButton/IconButton";
 import { Delete, Edit } from "@mui/icons-material";
 import CustomPagination from "@/components/Pagination/CustomPagination";
 import { STATUS_LABELS, TaskStatus } from "@/constants/taskStatus";
+import TableTask from "../components/TableTask";
 
 export const getStatusLabel = (status: TaskStatus | null | undefined): string => {
     if(!status) return "Chưa xác định";
@@ -86,67 +87,14 @@ function ManagementWork (){
                     <Alert severity='error' sx={{ my: 2 }}>{error}</Alert>
                 )}
                 {!loading && !error && (
-                    <Box sx={{ m:2 }}>
-                        <TableContainer component={Paper}>
-                            <Table stickyHeader aria-label="task">
-                                <TableHead>
-                                    <TableRow sx={{ height:"50px"}}>
-                                        {[ 'Tầng', 'Phòng', 'Công việc', 'Số lượng', 'Tiến độ', 'Bắt đầu', 'Kết thúc', 'Hành động'].map((header) => (
-                                            <TableCell key={header} align="center" sx={{ fontWeight: 'bolid', backgroundColor: '#00C7BE'}}>
-                                                {header}
-                                            </TableCell>
-                                        ))}
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                    {listTasks?.length === 0 ? (
-                                        <TableRow>
-                                            <TableCell colSpan={8} align="center">
-                                                Không tim thấy công việc nào cả
-                                            </TableCell>
-                                        </TableRow>
-                                    ):(
-                                        listTasks?.map((task) => {
-                                            const statusLabel = getStatusLabel(task.status);
-                                            const statusColor = getStatusChipColor(task.status);
-                                            return(
-                                                <TableRow hover key={task.id}>
-                                                    <TableCell align="center">{task.floorName}</TableCell>
-                                                    <TableCell align="center">{task.roomName}</TableCell>
-                                                    <TableCell align="center">{task.title}</TableCell>
-                                                    <TableCell align="center">{task.quantity}</TableCell>
-                                                    <TableCell align="center">
-                                                        <Chip label={statusLabel} size="small" color={statusColor} />
-                                                    </TableCell>
-                                                    <TableCell align="center">{task.started_at || " "}</TableCell>
-                                                    <TableCell align="center">{task.completed_at || " "}</TableCell>
-                                                    <TableCell align="center">
-                                                        <IconButton
-                                                            handleFunt={() => {}}
-                                                            icon={<Edit color="primary"/>}
-                                                            tooltip="Sửa"
-                                                        />
-                                                        <IconButton
-                                                            handleFunt={() => {}}
-                                                            icon={<Delete color="error"/>}
-                                                            tooltip="Xóa"
-                                                        />
-                                                    </TableCell>
-                                                </TableRow>
-                                            )
-                                        })
-                                    )}
-                                </TableBody>
-                            </Table>
-                        </TableContainer>
-                        <CustomPagination
-                            count={total}
-                            page={page}
-                            rowsPerPage={rowPerPgae}
-                            sx={{ mt: 2, mb: 1}}
-                            onPageChange={handlePageChange}
-                        />
-                    </Box>
+                    <TableTask
+                        listTask={listTasks}
+                        total={total}
+                        page={page}
+                        rowsPerPage={rowPerPgae}
+                        handlePageChange={handlePageChange}
+                        from="from-manage-task"
+                    />
                 )}
             </Box>
             <DialogCreateTask

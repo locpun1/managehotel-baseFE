@@ -32,9 +32,9 @@ const CardInfo: React.FC<InfoProps> = (props) => {
     const imgSrc = cachedImgSrc ?? defaultAvatar;
 
     return (
-        <ObjectCardStyled onClick={() => data !== undefined && handleOpenTable(data.id)} variant="outlined">
+        <ObjectCardStyled variant="outlined">
             <Grid container spacing={1}>
-                <Grid item xs={12} md={5}>
+                <Grid item xs={12} md={5} onClick={() => data !== undefined && handleOpenTable(data.id)}>
                     <CardMedia
                         component='img'
                         image={imgSrc}
@@ -55,7 +55,7 @@ const CardInfo: React.FC<InfoProps> = (props) => {
                 </Grid>
                 <Grid sx={{ mt: 2}} item xs={12} md={7}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                        <Box>
+                        <Box onClick={() => data !== undefined && handleOpenTable(data.id)}>
                             <Typography variant="body2" component="span">Số phòng: </Typography>
                             <Typography variant="body2" component="span" fontWeight="bold">{data?.room_number}</Typography>
                         </Box>
@@ -90,16 +90,16 @@ const CardInfo: React.FC<InfoProps> = (props) => {
                             />
                         </Box>
                     </Box>
-                    <Box sx={{ mb:1}}>
+                    <Box sx={{ mb:1}} onClick={() => data !== undefined && handleOpenTable(data.id)}>
                         <Typography variant="body2">{`Số tầng: ${data?.floorName}`}</Typography>
                     </Box>
-                    <Box sx={{ mb:1}}>
+                    <Box sx={{ mb:1}} onClick={() => data !== undefined && handleOpenTable(data.id)}>
                         <Typography variant="body2">Công việc: Dọn dẹp tổng vệ sinh phòng</Typography>
                     </Box>
-                    <Box sx={{ mb:1}}>
+                    <Box sx={{ mb:1}} onClick={() => data !== undefined && handleOpenTable(data.id)}>
                         <Typography variant="body2">Thời gian: 00h00 - 00h00, 27/05/2025</Typography>
                     </Box>
-                    <Box>
+                    <Box onClick={() => data !== undefined && handleOpenTable(data.id)}>
                         <Chip sx={{ width: 150, my:1.5 }} label='Chưa làm' color="primary"/>
                     </Box>
                 </Grid>

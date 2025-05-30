@@ -70,4 +70,16 @@ export const getListRoom = (
   return HttpClient.get<HttpResponse<Tasks>>(endpoint,{params})
 } 
 
+export const getRooms = (
+  page: number,
+  size: number,
+): Promise<HttpResponse<Rooms>> => {
+  const endpoint = `${prefix}/rooms/get-rooms`;
+  const params: Record<string, any> = {
+      page: page,
+      size: size,
+  }
+  return HttpClient.get<HttpResponse<Rooms>>(endpoint,{params})
+} 
+
 

@@ -12,6 +12,11 @@ import { getStatusChipColor, getStatusLabel } from '../ManagementWork';
 import CustomPagination from '@/components/Pagination/CustomPagination';
 import { convertRoomPathToDisplayRemoteUrl } from '@/utils/url';
 import useNotification from '@/hooks/useNotification';
+import TableTask from '../components/TableTask';
+import DialogComponent from '@/components/DialogComponent';
+import DialogConformLink from '../components/DialogConformLink';
+import DialogOpenGenerateCode from '../components/DialogOpenGenerateCode';
+import DialogCopyLink from '../components/DialogCopyLink';
 
 
 const ManagementHome = () => {
@@ -39,6 +44,10 @@ const ManagementHome = () => {
   const bufferRooms: Rooms[] = [];
 
   const [open, setOpen] = useState(false);
+  const [openDialogGenerate, setOpenDialogGenerate] = useState(false);
+  const [openDialogCopy, setOpenDialogCopy] = useState(false);
+
+
   const [room, setRoom] = useState<Rooms | null>(null);
   const [title, setTitle] = useState<string>('');
   const [generateRoomId, setGenerateRoomId] = useState<string | number>('');
@@ -114,39 +123,51 @@ const ManagementHome = () => {
     setPage(newPage)
   }
 
-  const handleGenerate = async (id: number | string) => {
-    console.log("id: ", id);
-    setGenerateRoomId(id)
-    setExpandedRoomId('')
-    if (room?.link_web || displayedRooms.find(r => r.id === id)?.link_web) {
+  const handleOpenGenerateCode = (id: number | string) => {
+    if(listRooms.find(r => r.id === id)?.link_web){
+      setOpen(true)
+      setTitle("Bạn đã tạo link web cho phòng này rồi");
+    }else{
+      setOpenDialogGenerate(true)
+      setGenerateRoomId(id)
+    }
+
+  }
+
+  const handleGenerate = async () => {
+    if (room?.link_web || listRooms.find(r => r.id === generateRoomId)?.link_web) {
       setOpen(true)
       setTitle("Bạn đã tạo link web cho phòng này rồi");
       return
     }
     try {
       const data = {
-        roomId: id
+        roomId: generateRoomId
       }
       const res = await generateLink(data);
       const room = res.data as any as Rooms;
       setRoom(room)
       setOpen(true)
+      setOpenDialogGenerate(false)
     } catch (error: any) {
       setError(error.message || "Tạo link thất bại");
     }
   }
-
+  const link = listRooms.find(r => r.id === generateRoomId)?.link_web;
   const handleCopy = () => {
-    if (room?.link_web) {
+    if (room?.link_web !== undefined) {
       navigator.clipboard.writeText(convertRoomPathToDisplayRemoteUrl(room?.link_web));
-      notify({
-        message: "Sao chép thành công",
-        severity: "success"
-      })
+      setOpenDialogCopy(true)
+      setOpen(false)
+    };
+    if (link !== undefined) {
+      navigator.clipboard.writeText(convertRoomPathToDisplayRemoteUrl(link));
+      setOpenDialogCopy(true)
+      setOpen(false)
     };
   };
 
-  const link = displayedRooms.find(r => r.id === generateRoomId)?.link_web;
+  
 
   return (
     <Box>
@@ -185,7 +206,7 @@ const ManagementHome = () => {
                 return (
                   <React.Fragment key={room.id}>
                     <Grid item xs={12} sm={6} lg={4} key={room.id}>
-                      <CardInfo handleOpenTable={handleOpenTable} data={room} handleGenerate={handleGenerate} />
+                      <CardInfo handleOpenTable={handleOpenTable} data={room} handleGenerate={handleOpenGenerateCode} />
                     </Grid>
                     {isEndOfRow && shouldShowCollapse && (
                       <>
@@ -195,72 +216,30 @@ const ManagementHome = () => {
                               <Alert severity='error' sx={{ my: 2 }}>{errorTask}</Alert>
                             )}
                             {!errorTask && !loading && expandedRoomId && (
-                              <Box sx={{ mt: 2 }}>
-                                <Typography fontWeight={500}>Danh sách công việc phòng {displayedRooms.find(r => r.id === expandedRoomId)?.room_number}, {displayedRooms.find(r => r.id === expandedRoomId)?.floorName} </Typography>
-                                <TableContainer component={Paper}>
-                                  <Table stickyHeader aria-label="task">
-                                    <TableHead>
-                                      <TableRow sx={{ height: "50px" }}>
-                                        {['Tầng', 'Phòng', 'Công việc', 'Số lượng', 'Tiến độ', 'Bắt đầu', 'Kết thúc'].map((header) => (
-                                          <TableCell key={header} align='center' sx={{ fontWeight: 'bolid', backgroundColor: '#00C7BE' }}>
-                                            {header}
-                                          </TableCell>
-                                        ))}
-                                      </TableRow>
-                                    </TableHead>
-                                    <TableBody>
-                                      {listTasks?.length === 0 ? (
-                                        <TableRow>
-                                          <TableCell colSpan={7} align='center'>
-                                            Không tìm thấy bản ghi nào cả
-                                          </TableCell>
-                                        </TableRow>
-                                      ) : (
-                                        listTasks?.map((task) => {
-                                          const statusLabel = getStatusLabel(task.status);
-                                          const statusColor = getStatusChipColor(task.status);
-                                          return (
-                                            <TableRow hover key={task.id}>
-                                              <TableCell align='center'>{task.floorName}</TableCell>
-                                              <TableCell align='center'>{task.roomName}</TableCell>
-                                              <TableCell align='center'>{task.title}</TableCell>
-                                              <TableCell align='center'>{task.quantity}</TableCell>
-                                              <TableCell align='center'>
-                                                <Chip label={statusLabel} size='small' color={statusColor} />
-                                              </TableCell>
-                                              <TableCell align='center'>{task.started_at || " "}</TableCell>
-                                              <TableCell align='center'>{task.completed_at || " "}</TableCell>
-                                            </TableRow>
-                                          )
-                                        })
-                                      )}
-                                    </TableBody>
-                                  </Table>
-                                </TableContainer>
-                                <CustomPagination
-                                  count={totalTask}
-                                  page={pageTask}
-                                  rowsPerPage={pageSize}
-                                  sx={{ mt: 2, mb: 1 }}
-                                  onPageChange={handlePageTask}
-                                />
-                              </Box>
+                              <TableTask
+                                titleTypo={`Danh sách công việc phòng ${displayedRooms.find(r => r.id === expandedRoomId)?.room_number}, ${displayedRooms.find(r => r.id === expandedRoomId)?.floorName}`}
+                                page={pageTask}
+                                total={totalTask}
+                                rowsPerPage={pageSize}
+                                handlePageChange={handlePageTask}
+                                listTask={listTasks}
+                              />
                             )}
                           </Collapse>
                         </Grid>
                         {bufferRooms.length = 0}
                       </>
                     )}
+
+                    <CustomPagination
+                      count={total}
+                      page={page}
+                      rowsPerPage={rowPerPage}
+                      onPageChange={handlePage}
+                    />
                   </React.Fragment>
                 )
               })}
-              <CustomPagination
-                count={total}
-                page={page}
-                rowsPerPage={rowPerPage}
-                onPageChange={handlePage}
-              />
-
             </Grid>
           </Box>
         </>
@@ -272,7 +251,15 @@ const ManagementHome = () => {
             initialValue={searchTerm}
             isCheckOpenCreate={location.pathname === `/${ROUTE_PATH.MANAGE}/${ROUTE_PATH.MANAGE_HOME}`}
           />
-          <Box sx={{ m: 2 }}>
+          <Box
+            sx={{
+              m: 2,
+              maxHeight: 'calc(100vh - 265px)',
+              overflowY: 'auto', pr: 1,
+              '&::-webkit-scrollbar': { width: '6px' },
+              '&::-webkit-scrollbar-thumb': { bgcolor: 'rgba(0,0,0,0.2)', borderRadius: 1 },
+            }}
+          >
             {displayedRooms?.length === 0 ? (
               <Typography sx={{ mt: 4, textAlign: 'center' }}>Không tìm thấy bản ghi nào </Typography>
             ) : (
@@ -280,13 +267,12 @@ const ManagementHome = () => {
                 {displayedRooms?.map((room) => {
                   return (
                     <Grid item xs={12} sm={6} lg={4}>
-                      <CardInfo handleOpenTable={handleOpenTable} handleGenerate={handleGenerate} data={room} />
+                      <CardInfo handleOpenTable={handleOpenTable} handleGenerate={handleOpenGenerateCode} data={room} />
                     </Grid>
                   )
                 })}
               </Grid>
             )}
-          </Box>
           {listRooms.length > 0 && (
             <Box onClick={handleShow} sx={{ cursor: 'pointer' }} display='flex' justifyContent='end'>
               <Typography fontWeight={500} variant='h6'>Xem tất cả</Typography>
@@ -296,128 +282,45 @@ const ManagementHome = () => {
               />
             </Box>
           )}
-        </>
-      }
-      {!showAll && (
-        <Collapse in={!!expandedRoomId} timeout='auto' unmountOnExit>
-          {errorTask && (
-            <Alert severity='error' sx={{ my: 2 }}>{errorTask}</Alert>
-          )}
-          {!errorTask && !loading && expandedRoomId && (
-            <Box sx={{ m: 2 }}>
-              <Typography fontWeight={500}>Danh sách công việc phòng {displayedRooms.find(r => r.id === expandedRoomId)?.room_number}, {displayedRooms.find(r => r.id === expandedRoomId)?.floorName} </Typography>
-              <TableContainer component={Paper}>
-                <Table stickyHeader aria-label="task">
-                  <TableHead>
-                    <TableRow sx={{ height: "50px" }}>
-                      {['Tầng', 'Phòng', 'Công việc', 'Số lượng', 'Tiến độ', 'Bắt đầu', 'Kết thúc'].map((header) => (
-                        <TableCell key={header} align='center' sx={{ fontWeight: 'bolid', backgroundColor: '#00C7BE' }}>
-                          {header}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {listTasks?.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={7} align='center'>
-                          Không tìm thấy bản ghi nào cả
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      listTasks?.map((task) => {
-                        const statusLabel = getStatusLabel(task.status);
-                        const statusColor = getStatusChipColor(task.status);
-                        return (
-                          <TableRow hover key={task.id}>
-                            <TableCell align='center'>{task.floorName}</TableCell>
-                            <TableCell align='center'>{task.roomName}</TableCell>
-                            <TableCell align='center'>{task.title}</TableCell>
-                            <TableCell align='center'>{task.quantity}</TableCell>
-                            <TableCell align='center'>
-                              <Chip label={statusLabel} size='small' color={statusColor} />
-                            </TableCell>
-                            <TableCell align='center'>{task.started_at || " "}</TableCell>
-                            <TableCell align='center'>{task.completed_at || " "}</TableCell>
-                          </TableRow>
-                        )
-                      })
-                    )}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-              <CustomPagination
-                count={totalTask}
+          {!showAll && (
+          <Collapse in={!!expandedRoomId} timeout='auto' unmountOnExit>
+            {errorTask && (
+              <Alert severity='error' sx={{ my: 2 }}>{errorTask}</Alert>
+            )}
+            {!errorTask && !loading && expandedRoomId && (
+              <TableTask
+                titleTypo={`Danh sách công việc phòng ${displayedRooms.find(r => r.id === expandedRoomId)?.room_number}, ${displayedRooms.find(r => r.id === expandedRoomId)?.floorName}`}
+                listTask={listTasks}
                 page={pageTask}
                 rowsPerPage={pageSize}
-                sx={{ mt: 2, mb: 1 }}
-                onPageChange={handlePageTask}
+                total={totalTask}
+                handlePageChange={handlePageTask}
               />
-            </Box>
-          )}
-
-        </Collapse>
-      )}
-      <Dialog open={open} onClose={() => setOpen(false)}>
-        <DialogContent style={{ textAlign: "center", minWidth: 500 }}>
-          <Typography fontWeight={500}>
-            {title ? `Đường link Phòng: ${displayedRooms.find(r => r.id === generateRoomId)?.room_number}` : `Tạo đường link thành công, Phòng: ${room?.room_number}`}
-          </Typography>
-          {room?.link_web ? (
-            <>
-              <Box sx={{ border: "1px solid rgb(164, 165, 165)", borderRadius: "5px", padding: 2, mt: 2 }} >
-                <Typography variant="body2" sx={{ wordBreak: "break-all" }}>
-                  {convertRoomPathToDisplayRemoteUrl(room?.link_web)}
-                </Typography>
-              </Box>
-              <Button
-                variant="contained"
-                startIcon={<ContentCopy />}
-                onClick={handleCopy}
-                sx={{ mt: 2, backgroundColor: "#00C7BE" }}
-              >
-                Sao chép link
-              </Button>
-              <Button
-                variant="outlined"
-                onClick={() => setOpen(false)}
-                sx={{ mt: 2, ml: 2 }}
-              >
-                Đóng
-              </Button>
-            </>
-          ) : (
-            <>
-              <Box sx={{ border: "1px solid rgb(164, 165, 165)", borderRadius: "5px", padding: 2, mt: 2 }} >
-                <Typography variant="body2" sx={{ wordBreak: "break-all" }}>
-                  {link !== undefined && convertRoomPathToDisplayRemoteUrl(link)}
-                </Typography>
-              </Box>
-              <Button
-                variant="contained"
-                startIcon={<ContentCopy />}
-                onClick={handleCopy}
-                sx={{ mt: 2, backgroundColor: "#00C7BE" }}
-              >
-                Sao chép link
-              </Button>
-              <Button
-                variant="outlined"
-                onClick={() => setOpen(false)}
-                sx={{ mt: 2, ml: 2 }}
-              >
-                Đóng
-              </Button>
-            </>
-          )}
-          {!room?.link_web || link === null && (
-            <Typography color="error" sx={{ mt: 2 }}>
-              Không thể tạo link. Vui lòng thử lại.
-            </Typography>
-          )}
-        </DialogContent>
-      </Dialog>
-
+            )}
+          </Collapse>
+        )}
+          </Box>
+        </>
+      }
+      <DialogOpenGenerateCode
+        open={openDialogGenerate}
+        handleClose={() => setOpenDialogGenerate(false)}
+        handleGenerate={handleGenerate}
+      />
+      <DialogConformLink
+        open={open}
+        handleClose={() => setOpen(false)}
+        title={title}
+        displayedRooms={displayedRooms}
+        room={room}
+        generateRoomId={generateRoomId}
+        handleCopy={handleCopy}
+        link={link}
+      />
+      <DialogCopyLink
+        open={openDialogCopy}
+        handleClose={() => setOpenDialogCopy(false)}
+      />
     </Box>
   );
 };
