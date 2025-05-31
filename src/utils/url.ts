@@ -18,6 +18,10 @@ const baseUrl = import.meta.env.MODE === "development" ? import.meta.env.VITE_BA
 
 
 export function convertRoomPathToDisplayRemoteUrl(path: string): string {
+    if (!path) {
+    console.error("Path bị null hoặc undefined!", new Error().stack);
+    return "";
+  }
   // path từ BE là "/room/101" → muốn "/display-remote/room/101"
   return `${baseUrl}/display-remote${path}`;
 }

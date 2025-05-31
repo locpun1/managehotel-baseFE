@@ -7,6 +7,7 @@ export const ROUTE_PATH = {
   MANAGE_HOME:'home',
   MANAGE_WORK:'work',
   MANAGE_DISPLAY:'display-remote',
+  MANAGE_PROFILE:'profile',
 
 
   PRODUCT_CATEGORY: '/products/categories',

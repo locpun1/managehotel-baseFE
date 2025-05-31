@@ -58,7 +58,7 @@ const AdminSections = (t: TFunction) : Section[] => [
     items: [
       {
         title: t('profile-user'),
-        path: "#",
+        path: `${ROUTE_PATH.MANAGE}/${ROUTE_PATH.MANAGE_PROFILE}`,
         icon: Badge,
       },
     ],

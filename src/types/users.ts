@@ -7,5 +7,11 @@ export interface UserProfile{
     phone_number: number,
     employee_code: string,
     createdAt:string,
-    updatedAt: string
+    updatedAt: string,
+    sex: string,
+    date_of_birth: string,
+    position: string,
+    address_work: string,
+    email: string,
+    address: string
 }
