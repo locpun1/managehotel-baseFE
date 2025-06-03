@@ -1,7 +1,6 @@
-import { Avatar, Box, Button, Paper, Stack, Typography } from "@mui/material";
+import { Avatar, Box, Button, CircularProgress, Paper, Stack, Typography } from "@mui/material";
 import Grid from '@mui/material/Grid2';
-import avatar1 from '@/assets/images/users/avatar-1.png';
-import { PhotoCamera } from "@mui/icons-material";
+import { Edit, PhotoCamera } from "@mui/icons-material";
 import InputText from "../components/InputText";
 import dayjs, { Dayjs } from "dayjs";
 import useAuth from "@/hooks/useAuth";
@@ -9,6 +8,14 @@ import { ROLE_LABELS, RoleUser } from "@/constants/taskStatus";
 import { useState, FormEvent, ChangeEvent, useEffect } from "react";
 import useNotification from "@/hooks/useNotification";
 import { updateUserProfile } from "@/services/user-service";
+import DateTime from "@/utils/DateTime";
+import { useAppDispatch } from "@/store";
+import { setProfile } from "@/slices/user";
+import { UserProfile } from "@/types/users";
+import DialogUpdatedProfile from "../components/DialogUpdatedProfile";
+import { getPathImage } from "@/utils/url";
+import IconButton from "@/components/IconButton/IconButton";
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL_IMAGE
 
 interface DetailItemProps {
     label: string;
@@ -45,22 +52,27 @@ interface ProfileFormData {
   avatar_url: File | null;
   address: string | null;
   role: string;
-  address_work: string | null;
+  address_work?: string | null;
   phone_number: string;
   email: string | null;
 }
 
 function ProfileManager (){
     const today = dayjs();
-    const eighteenYearsAgo = today.subtract(18, 'year');
+    const eighteenYearsAgo = today.subtract(18, 'year').endOf('year');
     const { userId, profile } = useAuth();
+    const dispatch = useAppDispatch();
     const notify = useNotification();
     const [formData, setFormData] = useState<ProfileFormData>({
         full_name: '', sex: '', date_of_birth: null, avatar_url: null,
-        address: '', role: getRoleLabel(profile?.role), address_work: '', phone_number: '', email: '',
+        address: '', role: '', address_work: '', phone_number: '', email: '',
     });
     const [errors, setErrors] = useState<Partial<Record<'full_name' | 'phone_number' | 'date_of_birth' | 'sex', string>>>({});
     const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+    const [submitSuccess, setSubmitSuccess] = useState<boolean | null>(null);
+    const [initialAvatarUrl, setInitialAvatarUrl] = useState<string | null>(null);
+    const [isEditMode, setIsEditMode] = useState(false);
 
     const phoneRegex = /^(0|\+84)(3[2-9]|5[6|8|9]|7[0|6-9]|8[1-5]|9[0-9])[0-9]{7}$/;
 
@@ -162,18 +174,21 @@ function ProfileManager (){
     let finalDisplayAvatarSrc: string | undefined = undefined;
     if (avatarPreview) {
         finalDisplayAvatarSrc = avatarPreview;
-    } 
-//   else if (initialAvatarUrl && apiBaseUrl) {
-//     const baseUrl = apiBaseUrl.endsWith('/') ? apiBaseUrl.slice(0, -1) : apiBaseUrl;
-//     const imagePath = initialAvatarUrl.startsWith('/') ? initialAvatarUrl.slice(1) : initialAvatarUrl;
-//     finalDisplayAvatarSrc = `${baseUrl}/${imagePath}`;
-//   }
+    } else if (initialAvatarUrl && apiBaseUrl) {
+        const baseUrl = apiBaseUrl.endsWith('/') ? apiBaseUrl.slice(0, -1) : apiBaseUrl;
+        const imagePath = initialAvatarUrl.startsWith('/') ? initialAvatarUrl.slice(1) : initialAvatarUrl;
+        finalDisplayAvatarSrc = `${baseUrl}/${imagePath}`;
+    }
 
     const handleSubmit = async(event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         if(!validateForm()){
             return;
         }
+        
+        setIsSubmitting(true);
+        setSubmitSuccess(null)
+
         const data = new FormData();
         data.append('full_name', formData.full_name);
         data.append('sex', formData.sex);
@@ -182,18 +197,58 @@ function ProfileManager (){
         if(formData.address_work) data.append('address_work', formData.address_work);
         if(formData.email) data.append('email', formData.email);
         if(formData.address) data.append('address', formData.address)
+        if(formData.avatar_url ) data.append('avatar_url', formData.avatar_url);
+        
         try {
             const res = await updateUserProfile(userId, data)
-            console.log("res: ", res);
+            if(res){
+                const updatedProfile = res.data;
+                notify({ message: 'Cập nhật thông tin thành công!', severity: 'success' });
+                setSubmitSuccess(true)
+                dispatch(setProfile(updatedProfile))
+                setFormData({
+                    full_name: '', sex: '', date_of_birth: null, avatar_url: null,
+                    address: '', role: '', address_work: '', phone_number: '', email: '',
+                })
+                setIsEditMode(false)
+                setAvatarPreview(null);
+                setInitialAvatarUrl(null)
+                const avatarInput = document.querySelector('input[type="file"][accept="image/*"]') as HTMLInputElement;
+                if (avatarInput) avatarInput.value = '';
+            }else{
+                throw new Error("Phản hòi cập nhật không hợp lệ từ máy chủ.")
+            }
             
-        } catch (error) {
-            
+        } catch (error: any) {
+            const errorMessage = error.message || 'Cập nhật thông tin thất bại. Vui lòng thử lại.';
+            notify({ message: errorMessage, severity: 'error' });
+            setSubmitSuccess(false);
+        }finally{
+            setIsSubmitting(false);
         }
+        
+    }
 
-        // const { role, ...payload} = data;
-        // console.log("payload: ",payload); 
-        
-        
+    const handleRenderInfoProfile = () => {
+        setIsEditMode(true)
+        if(profile){
+            const typedProfile = profile as UserProfile;
+            setFormData({
+                full_name: typedProfile.full_name,
+                sex: typedProfile.sex,
+                date_of_birth: typedProfile.date_of_birth ?  dayjs(typedProfile.date_of_birth) : null,
+                phone_number: typedProfile.phone_number,
+                avatar_url: null,
+                address: typedProfile.address ?  typedProfile.address : '',
+                address_work: typedProfile.address_work ?  typedProfile.address_work :  '',
+                email: typedProfile.email ? typedProfile.email : '',
+                role: typedProfile.role ? getRoleLabel(typedProfile.role ) : '',
+
+            })
+            const rawAvatarUrlFromApi = typedProfile.avatar_url || null;
+                setInitialAvatarUrl(rawAvatarUrlFromApi);
+                setAvatarPreview(null);
+        }
     }
     
     return(
@@ -202,11 +257,18 @@ function ProfileManager (){
                 {/* Hồ sơ người dùng */}
                 <Grid size={{ xs: 12, md:3}}>
                     <Paper elevation={2} sx={{ padding: 2, borderRadius: '8px', border: '1px solid #e0e0e0',height: '100%' }}>
-                        <Typography variant="h6" align="center" fontWeight={500}> Hồ sơ người dùng</Typography>
+                        <Stack direction='row' justifyContent="center" alignItems="center">
+                            <Typography variant="h6" align="center" fontWeight={500}> Hồ sơ người dùng</Typography>
+                            <IconButton
+                                handleFunt={handleRenderInfoProfile}
+                                icon={<Edit color="primary"/>}
+                                title="Chỉnh sửa"
+                            />
+                        </Stack>
                         <Box sx={{my: 1 }}>
                             <Stack direction="column" spacing={1} alignItems="center" justifyContent="center" sx={{ py:2}}>
                                 <Avatar
-                                    src={avatar1}
+                                    src={profile?.avatar_url ? getPathImage(profile?.avatar_url) : ""}
                                     sx={{ width: 120, height: 120, bgcolor: 'grey.300', borderRadius:'50%', mb:2 }}
                                 >
                                 </Avatar>
@@ -219,7 +281,7 @@ function ProfileManager (){
                         </Box>
                         <DetailItem label="Tên" value={profile?.full_name}/>
                         <DetailItem label="Giới tính" value={profile?.sex}/>
-                        <DetailItem label="Ngày sinh" value={profile?.date_of_birth}/>
+                        <DetailItem label="Ngày sinh" value={DateTime.FormatDate(profile?.date_of_birth)}/>
                         <DetailItem label="Chức vụ" value={getRoleLabel(profile?.role)}/>
                         <DetailItem label="Công tác" value={profile?.address_work}/>
                         <Box sx={{ mx:4, mt:4}} display='flex' flexDirection='column'>
@@ -253,6 +315,7 @@ function ProfileManager (){
                                             }} 
                                             component="label" 
                                             startIcon={<PhotoCamera sx={{  width: '25px', height: '25px', ml: 1.2}} />}
+                                            disabled={!isEditMode}
                                         >
                                             <input type="file" hidden accept="image/*" onChange={handleAvatarChange} />
                                         </Button>
@@ -273,6 +336,7 @@ function ProfileManager (){
                                                 error={!!errors.full_name}
                                                 helperText={errors.full_name}
                                                 margin="dense"
+                                                disabled={!isEditMode}
                                             />
                                         </Grid>
                                         <Grid  size={{ xs: 12, md: 6}}>
@@ -288,6 +352,7 @@ function ProfileManager (){
                                                 error={!!errors.sex}
                                                 helperText={errors.sex}
                                                 margin="dense"
+                                                disabled={!isEditMode}
                                             />
                                         </Grid>
                                         <Grid  size={{ xs: 12, md: 6}}>
@@ -304,6 +369,7 @@ function ProfileManager (){
                                                 error={!!errors.date_of_birth}
                                                 helperText={errors.date_of_birth}
                                                 margin="dense"
+                                                disabled={!isEditMode}
                                             />
                                         </Grid>
                                         <Grid  size={{ xs: 12, md: 6}}>
@@ -319,6 +385,7 @@ function ProfileManager (){
                                                 // error={!!errors.title}
                                                 // helperText={errors.title}
                                                 margin="dense"
+                                                disabled={!isEditMode}
                                             />
                                         </Grid>
                                         <Grid  size={{ xs: 12}}>
@@ -327,13 +394,14 @@ function ProfileManager (){
                                                 label=""
                                                 type="text"
                                                 name="address_work"
-                                                value={formData.address_work}
+                                                value={formData.address_work ? formData.address_work : ''}
                                                 onChange={handleCustomInputChange}
                                                 placeholder="Công tác"
                                                 sx={{ mt: 0 }}
                                                 // error={!!errors.title}
                                                 // helperText={errors.title}
                                                 margin="dense"
+                                                disabled={!isEditMode}
                                             />
                                         </Grid>
                                         <Grid  size={{ xs: 12, md: 6}}>
@@ -349,6 +417,7 @@ function ProfileManager (){
                                                 error={!!errors.phone_number}
                                                 helperText={errors.phone_number}
                                                 margin="dense"
+                                                disabled={!isEditMode}
                                             />
                                         </Grid>
                                         <Grid  size={{ xs: 12, md: 6}}>
@@ -364,6 +433,7 @@ function ProfileManager (){
                                                 // error={!!errors.title}
                                                 // helperText={errors.title}
                                                 margin="dense"
+                                                disabled={!isEditMode}
                                             />
                                         </Grid>
                                         <Grid  size={{ xs: 12}}>
@@ -379,6 +449,7 @@ function ProfileManager (){
                                                 // error={!!errors.title}
                                                 // helperText={errors.title}
                                                 margin="dense"
+                                                disabled={!isEditMode}
                                             />
                                         </Grid>
                                         <Grid size={{ xs: 12}}>
@@ -386,10 +457,21 @@ function ProfileManager (){
                                                 <Button
                                                     type="submit"
                                                     variant="contained"
-                                                    sx={{ backgroundColor: '#00C7BE', width: '150px'}}
-                                                    
+                                                    sx={{ backgroundColor: '#00C7BE', width: '150px', position: 'relative'}}
+                                                    disabled={!isEditMode}
                                                 >
-                                                    Lưu
+                                                    {isSubmitting ? 'Đang lưu...' : 'Lưu'}
+                                                    {isSubmitting && (
+                                                        <CircularProgress
+                                                            size={24}
+                                                            sx={{
+                                                            color: 'primary.contrastText',
+                                                            position: 'absolute',
+                                                            top: '50%', left: '50%',
+                                                            marginTop: '-12px', marginLeft: '-12px',
+                                                            }}
+                                                        />
+                                                    )}
                                                 </Button>
                                             </Box>
                                         </Grid>
@@ -400,6 +482,10 @@ function ProfileManager (){
                     </Paper>
                 </Grid>
             </Grid>
+            <DialogUpdatedProfile
+                open={submitSuccess}
+                handleClose={() => setSubmitSuccess(false)}
+            />
         </Box>
     )
 }

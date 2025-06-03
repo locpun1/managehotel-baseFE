@@ -20,20 +20,20 @@ import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
 import { useTheme } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
-
-import avatar1 from '@/assets/images/users/avatar-1.png';
 import { ROUTE_PATH } from '@/constants/routes';
 import { signOut } from '@/services/auth-service';
 import { setIsAuth, setProfile } from '@/slices/auth';
-import { useAppDispatch, useAppSelector } from '@/store';
+import { useAppDispatch } from '@/store';
 import { getStorageToken, removeStorageToken } from '@/utils/AuthHelper';
+import useAuth from '@/hooks/useAuth';
+import { getPathImage } from '@/utils/url';
 
 // ==============================|| PROFILE COMPONENT ||============================== //
 
 const Profile = () => {
   const theme = useTheme();
   const dispatch = useAppDispatch();
-  const profile = useAppSelector((state) => state.auth.profile);
+  const { profile } = useAuth();
   const navigate = useNavigate();
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -53,6 +53,7 @@ const Profile = () => {
   };
 
   const open = Boolean(anchorEl);
+  const avataSrc = profile?.avatar_url && getPathImage(profile.avatar_url);
 
   return (
     <Box sx={{ flexShrink: 0, ml: 0.75 }}>
@@ -74,7 +75,7 @@ const Profile = () => {
         <Stack direction='row' spacing={1.25} alignItems='center' sx={{ p: 0.5 }}>
           <Avatar
             alt='profile user'
-            src={avatar1}
+            src={avataSrc}
             sx={{ width: 32, height: 32, borderRadius: '100%' }}
           />
           <Typography variant='subtitle1'>{profile?.full_name}</Typography>

@@ -15,6 +15,7 @@ import ForgotPassword from '@/views/Auth/ForgotPassword';
 import Login from '@/views/Auth/Login';
 import Registration from '@/views/Auth/Registration';
 import Manager from './Manager';
+import Staff from './Staff';
 
 // Home
 const Home = Loadable(lazy(() => import('@/views/Home')));
@@ -34,7 +35,7 @@ const routes: RouteObject[] = [
         <DashboardLayout />
       </ProtectedRoute>
     ),
-    children: [{ index: true, element: <Home /> }, Manager, Customers],
+    children: [{ index: true, element: <Home /> }, Manager,Staff, Customers],
   },
   {
     path: 'auth',
