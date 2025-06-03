@@ -81,7 +81,9 @@ export default function Login() {
                   severity: 'success',
                 });
                 
-                let route = respUser.data?.role === "manager" ? `/${ROUTE_PATH.MANAGE}/${ROUTE_PATH.MANAGE_HOME}` :  ROUTE_PATH.HOME;
+                let route = respUser.data?.role === "manager" ? `/${ROUTE_PATH.MANAGE}/${ROUTE_PATH.MANAGE_HOME}` : 
+                   respUser.data?.role === "staff" ? `/${ROUTE_PATH.STAFF}/${ROUTE_PATH.STAFF_HOME}` :
+                ROUTE_PATH.HOME;
                 
                 if (!_.isNull(location.state) && location.state !== ROUTE_PATH.LOGIN) {
                   route = location.state;

@@ -24,7 +24,7 @@ import Tooltip from '@mui/material/Tooltip';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import Logo from './Logo';
 import type { SectionItem } from './Sections';
-import Sections from './Sections';
+import Sections, { AdminSections, UserSection } from './Sections';
 import SubMenu from './SubMenu';
 import Scrollbar from '@/components/Scrollbar';
 
@@ -33,6 +33,8 @@ import useDerivedState from '@/hooks/useDerivedState';
 import usePrevious from '@/hooks/usePrevious';
 import type { MouseEvent } from '@/types/react';
 import { useSidebarTitle } from '@/contexts/SidebarTitleContext';
+import useAuth from '@/hooks/useAuth';
+import { ROLE } from '@/constants/roles';
 
 export const CollapseContext = createContext<boolean | null>(null);
 export const SidebarContext = createContext<boolean | null>(null);
@@ -46,8 +48,13 @@ interface Props {
 const Sidebar = (props: Props) => {
   const { openSidebar, collapsed, onCloseSidebar, onToggleCollapsed } = props;
   const { pathname } = useLocation();
-  const { t } = useTranslation('section');
-  const sections = useMemo(() => Sections(t), [t]);
+  const { profile } = useAuth()
+  const sections = useMemo(() => {
+  return profile?.role === ROLE.MANAGER
+    ? AdminSections()
+    : UserSection();
+  },[profile?.role]);
+
   const theme = useTheme();
   const prevPathName = usePrevious(pathname);
 

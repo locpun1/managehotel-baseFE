@@ -9,13 +9,12 @@ interface DialogConformLinkProps{
     handleClose: () => void,
     title?: string
     displayedRooms: Rooms[], 
-    room: Rooms | null,
     generateRoomId: number | string,
     handleCopy: () => void,
-    link: string | undefined
+    link: string
 }
 const DialogConformLink: React.FC<DialogConformLinkProps> = (props) => {
-    const { open, handleClose, title, displayedRooms, room, generateRoomId,link, handleCopy} = props;
+    const { open, handleClose, title, displayedRooms, generateRoomId,link, handleCopy} = props;
     return(
         <DialogComponent
             dialogKey={open}
@@ -23,55 +22,28 @@ const DialogConformLink: React.FC<DialogConformLinkProps> = (props) => {
             isActiveFooter={false}
         >
             <Typography fontWeight={500}>
-                {title ? `Đường link Phòng: ${displayedRooms.find(r => r.id === generateRoomId)?.room_number}` : `Tạo đường link thành công, Phòng: ${room?.room_number}`}
+                {title ? `Đường link Phòng: ${displayedRooms.find(r => r.id === generateRoomId)?.room_number}` : `Tạo đường link thành công, Phòng: ${displayedRooms.find(r => r.id === generateRoomId)?.room_number}`}
             </Typography>
-            {room?.link_web ? (
-                <>
-                <Box sx={{ border: "1px solid rgb(164, 165, 165)", borderRadius: "5px", padding: 2, mt: 2 }} >
-                    <Typography variant="body2" sx={{ wordBreak: "break-all" }}>
-                    {convertRoomPathToDisplayRemoteUrl(room?.link_web)}
-                    </Typography>
-                </Box>
-                <Button
-                    variant="contained"
-                    startIcon={<ContentCopy />}
-                    onClick={handleCopy}
-                    sx={{ mt: 2, backgroundColor: "#00C7BE" }}
-                >
-                    Sao chép link
-                </Button>
-                <Button
-                    variant="outlined"
-                    onClick={handleClose}
-                    sx={{ mt: 2, ml: 2 }}
-                >
-                    Đóng
-                </Button>
-                </>
-            ) : (
-                <>
-                <Box sx={{ border: "1px solid rgb(164, 165, 165)", borderRadius: "5px", padding: 2, mt: 2 }} >
-                    <Typography variant="body2" sx={{ wordBreak: "break-all" }}>
+            <Box sx={{ border: "1px solid rgb(164, 165, 165)", borderRadius: "5px", padding: 2, mt: 2 }} >
+                <Typography variant="body2" sx={{ wordBreak: "break-all" }}>
                     {link !== undefined && convertRoomPathToDisplayRemoteUrl(link)}
-                    </Typography>
-                </Box>
-                <Button
-                    variant="contained"
-                    startIcon={<ContentCopy />}
-                    onClick={handleCopy}
-                    sx={{ mt: 2, backgroundColor: "#00C7BE" }}
-                >
-                    Sao chép link
-                </Button>
-                <Button
-                    variant="outlined"
-                    onClick={handleClose}
-                    sx={{ mt: 2, ml: 2 }}
-                >
-                    Đóng
-                </Button>
-                </>
-            )}
+                </Typography>
+            </Box>
+            <Button
+                variant="contained"
+                startIcon={<ContentCopy />}
+                onClick={handleCopy}
+                sx={{ mt: 2, backgroundColor: "#00C7BE" }}
+            >
+                Sao chép link
+            </Button>
+            <Button
+                variant="outlined"
+                onClick={handleClose}
+                sx={{ mt: 2, ml: 2 }}
+            >
+                Đóng
+            </Button>
         </DialogComponent>
     )
 }

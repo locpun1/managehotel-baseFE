@@ -4,6 +4,8 @@ import InputSearch from "./InputSearch";
 import Button from "../Button/Button";
 import { AddCircleOutlineOutlined, Cached, FilterAltOutlined, NotificationsNone } from "@mui/icons-material";
 import IconButton from "../IconButton/IconButton";
+import useAuth from "@/hooks/useAuth";
+import { ROLE } from "@/constants/roles";
 
 interface SearchBarProps{
     onSearch: (searchTerm: string) => void;
@@ -13,6 +15,8 @@ interface SearchBarProps{
     isCheckOpenCreate?:boolean
 }
 const SearchBar: React.FC<SearchBarProps> = (props) => {
+    const { profile } = useAuth();
+    const isRole = profile?.role === ROLE.STAFF
     const { placeholder,onSearch, initialValue,onOpenDialogCreate, isCheckOpenCreate=false } = props;
     return (
         <Grid sx={{backgroundColor:"white", px:1}} container>
@@ -49,7 +53,7 @@ const SearchBar: React.FC<SearchBarProps> = (props) => {
                         borderRadius={1}
                         tooltip="Refresh"
                     />
-                    {!isCheckOpenCreate &&
+                    {!isCheckOpenCreate && !isRole &&
                         <Button
                             handleFunt={() => onOpenDialogCreate && onOpenDialogCreate()}
                             leadingIcon={<AddCircleOutlineOutlined sx={{color: 'white', width: "28px", height:"28px"}}/>}

@@ -33,7 +33,7 @@ export const getStatusChipColor = (status: TaskStatus | null | undefined): "defa
 const TableTask: React.FC<TableTaskProps> = (props) => {
     const { listTask, titleTypo, from, total, page, rowsPerPage, handlePageChange } = props;
     return (
-        <Box>
+        <Box sx={{ m: from ? 2 : 0}}>
             <Typography fontWeight={500}>{titleTypo}</Typography>
             <TableContainer component={Paper}>
                 <Table stickyHeader aria-label="task">

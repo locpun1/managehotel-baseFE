@@ -7,7 +7,14 @@ import {
   DateTimePicker,
   DateTimePickerProps,
 } from '@mui/x-date-pickers';
-import { Dayjs } from 'dayjs';
+import dayjs, { Dayjs } from 'dayjs';
+import weekday from 'dayjs/plugin/weekday';
+import localeData from 'dayjs/plugin/localeData';
+
+dayjs.extend(weekday);
+dayjs.extend(localeData);
+
+dayjs.locale('en'); 
 
 type CustomInputType =
   | 'text'
@@ -24,6 +31,7 @@ interface CustomInputProps {
   name: string;
   label: string;
   value: string | Dayjs | null | number;
+  maxDate?: Dayjs | undefined;
   onChange: (name: string, value: string | Dayjs | null | number) => void;
   error?: boolean;
   helperText?: React.ReactNode;
@@ -42,7 +50,7 @@ interface CustomInputProps {
   >;
   datePickerProps?: Omit<
     DatePickerProps<Dayjs>,
-    | 'value' | 'onChange' | 'label' | 'disabled' | 'slotProps' | 'sx' 
+    | 'value' | 'onChange' | 'label' | 'disabled' | 'slotProps' | 'sx' | 'maxDate'
   >;
   dateTimePickerProps?: Omit<
     DateTimePickerProps<Dayjs>,
@@ -72,6 +80,7 @@ const InputText: React.FC<CustomInputProps> = ({
   datePickerProps = {},
   dateTimePickerProps = {},
   onlyPositiveNumber = false,
+  maxDate
 }) => {
 
   const commonSlotTextFieldProps = {
@@ -82,6 +91,8 @@ const InputText: React.FC<CustomInputProps> = ({
     name, label, required, error, helperText, fullWidth, margin, variant, disabled,
   };
 
+  
+
 
   if (type === 'date') {
     return (
@@ -90,9 +101,63 @@ const InputText: React.FC<CustomInputProps> = ({
         value={value as Dayjs | null}
         onChange={(newValue: Dayjs | null) => onChange(name, newValue)}
         disabled={disabled}
+        maxDate={maxDate}
         sx={sx}
         slotProps={{
-          textField: { ...commonSlotTextFieldProps },
+          textField: {
+            sx:{
+                mt: 0,
+                "& .MuiOutlinedInput-notchedOutline":{
+                    border:"1px solid rgb(82, 81, 81)",
+                    borderRadius:"8px",
+                },
+                "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                    border:"1px solid rgb(82, 81, 81)"
+                },
+            },
+            ...commonSlotTextFieldProps
+           },
+           popper: {
+              modifiers: [
+                {
+                  name: 'offset',
+                  options: {
+                    offset: [0, 10],
+                  },
+                },
+                {
+                  name: 'sameWidth',
+                  enabled:  true,
+                  phase: 'beforeWrite',
+                  requires: ['commonSlotTextFieldProps'],
+                  fn({ state }){
+                    state.styles.popper.width = `${state.rects.reference.width}px`;
+                  }
+                }
+              ],
+            },
+            layout: {
+              sx: {
+                borderRadius: 2,
+              },
+            },
+            day: {
+              sx: {
+                borderRadius: '6px',
+                fontSize: '14px',
+                '&.Mui-selected': {
+                  backgroundColor: '#1976d2',
+                },
+              },
+            },
+            calendarHeader: {
+              sx: {
+                '& .MuiPickersCalendarHeader-label': {
+                  fontWeight: 500,
+                  textTransform: 'capitalize',
+                },
+              },
+            },
         }}
         format="DD/MM/YYYY"
         {...datePickerProps}
