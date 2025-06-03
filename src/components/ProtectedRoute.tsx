@@ -31,6 +31,9 @@ const ProtectedRoute = ({ children, requiredRoles, requiredPermissions }: Props)
     if (role === 'manager') {
       return <Navigate to={`/${ROUTE_PATH.MANAGE}/${ROUTE_PATH.MANAGE_HOME}`} replace />;
     } 
+    if (role === 'staff') {
+      return <Navigate to={`/${ROUTE_PATH.STAFF}/${ROUTE_PATH.STAFF_HOME}`} replace />;
+    } 
   }
 
   // if (

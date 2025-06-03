@@ -1,19 +1,16 @@
 import SearchBar from '@/components/SearchBar';
 import { ROUTE_PATH } from '@/constants/routes';
-import { Alert, Box, Button, Chip, CircularProgress, Collapse, Dialog, DialogContent, Grid, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from '@mui/material';
+import { Alert, Box, CircularProgress, Collapse, Grid, Typography } from '@mui/material';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import CardInfo from '../components/CardInfoOfRoom';
 import { DataRoomsProps, DataTaskProps, generateLink, getListRoom, getListTask } from '@/services/manager.service';
 import { Rooms, Tasks } from '@/types/manager';
 import IconButton from '@/components/IconButton/IconButton';
-import { ContentCopy, NavigateBefore, NavigateNext } from '@mui/icons-material';
-import { getStatusChipColor, getStatusLabel } from '../ManagementWork';
+import { NavigateBefore, NavigateNext } from '@mui/icons-material';
 import CustomPagination from '@/components/Pagination/CustomPagination';
 import { convertRoomPathToDisplayRemoteUrl } from '@/utils/url';
-import useNotification from '@/hooks/useNotification';
 import TableTask from '../components/TableTask';
-import DialogComponent from '@/components/DialogComponent';
 import DialogConformLink from '../components/DialogConformLink';
 import DialogOpenGenerateCode from '../components/DialogOpenGenerateCode';
 import DialogCopyLink from '../components/DialogCopyLink';
@@ -47,13 +44,8 @@ const ManagementHome = () => {
   const [openDialogGenerate, setOpenDialogGenerate] = useState(false);
   const [openDialogCopy, setOpenDialogCopy] = useState(false);
 
-
-  const [room, setRoom] = useState<Rooms | null>(null);
   const [title, setTitle] = useState<string>('');
   const [generateRoomId, setGenerateRoomId] = useState<string | number>('');
-
-  const notify = useNotification()
-
 
   const handleSearch = () => {
   }
@@ -123,45 +115,34 @@ const ManagementHome = () => {
     setPage(newPage)
   }
 
-  const handleOpenGenerateCode = (id: number | string) => {
-    if(listRooms.find(r => r.id === id)?.link_web){
-      setOpen(true)
-      setTitle("Bạn đã tạo link web cho phòng này rồi");
-    }else{
-      setOpenDialogGenerate(true)
-      setGenerateRoomId(id)
-    }
-
-  }
-
   const handleGenerate = async () => {
-    if (room?.link_web || listRooms.find(r => r.id === generateRoomId)?.link_web) {
-      setOpen(true)
-      setTitle("Bạn đã tạo link web cho phòng này rồi");
-      return
-    }
     try {
       const data = {
         roomId: generateRoomId
       }
       const res = await generateLink(data);
+      console.log(res)
       const room = res.data as any as Rooms;
-      setRoom(room)
+      setListRooms(currentRooms =>
+        currentRooms.map(prev =>
+            prev.id === room.id
+                ? { ...prev, link_web: room.link_web } 
+                : prev 
+        )
+    );
       setOpen(true)
       setOpenDialogGenerate(false)
     } catch (error: any) {
       setError(error.message || "Tạo link thất bại");
     }
   }
+  
   const link = listRooms.find(r => r.id === generateRoomId)?.link_web;
-  const handleCopy = () => {
-    if (room?.link_web !== undefined) {
-      navigator.clipboard.writeText(convertRoomPathToDisplayRemoteUrl(room?.link_web));
-      setOpenDialogCopy(true)
-      setOpen(false)
-    };
-    if (link !== undefined) {
-      navigator.clipboard.writeText(convertRoomPathToDisplayRemoteUrl(link));
+  
+  const handleCopy = async() => {
+    if (link) {
+      const urlLink = convertRoomPathToDisplayRemoteUrl(link);
+      navigator.clipboard.writeText(urlLink)
       setOpenDialogCopy(true)
       setOpen(false)
     };
@@ -266,7 +247,7 @@ const ManagementHome = () => {
               <Grid sx={{ display: 'flex', flexGrow: 1 }} container spacing={3}>
                 {displayedRooms?.map((room) => {
                   return (
-                    <Grid item xs={12} sm={6} lg={4}>
+                    <Grid key={room.id} item xs={12} sm={6} lg={4}>
                       <CardInfo handleOpenTable={handleOpenTable} handleGenerate={handleOpenGenerateCode} data={room} />
                     </Grid>
                   )
@@ -307,16 +288,17 @@ const ManagementHome = () => {
         handleClose={() => setOpenDialogGenerate(false)}
         handleGenerate={handleGenerate}
       />
+      {link  &&
       <DialogConformLink
         open={open}
         handleClose={() => setOpen(false)}
         title={title}
         displayedRooms={displayedRooms}
-        room={room}
         generateRoomId={generateRoomId}
         handleCopy={handleCopy}
         link={link}
       />
+      }
       <DialogCopyLink
         open={openDialogCopy}
         handleClose={() => setOpenDialogCopy(false)}
