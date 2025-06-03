@@ -12,7 +12,8 @@ interface IconButtonProps extends MuiIconButtonProps{
     backgroundColor?: string ,
     color?: 'inherit' | 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning',
     disabled?:boolean,
-    handleFunt: Function
+    handleFunt: Function,
+    children?: React.ReactNode;
 }
 
 const IconButton: React.FC<IconButtonProps> = ({
@@ -27,6 +28,7 @@ const IconButton: React.FC<IconButtonProps> = ({
     color = '',
     disabled,
     handleFunt,
+    children,
     ...props
 }) => {
     const handleClick = () => {
@@ -51,9 +53,10 @@ const IconButton: React.FC<IconButtonProps> = ({
                     disabled={disabled}
                 >
                     {icon}
-                </MuiIconButton> 
+                </MuiIconButton>
+                {children} 
             </span>
-
+            
         </Tooltip>
     )
 }

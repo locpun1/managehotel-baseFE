@@ -17,6 +17,7 @@ export const DateTimeLocaleText = (): Partial<PickersLocaleText<any>> => ({
   clearButtonLabel: t('clear_button_label'),
   okButtonLabel: t('ok_button_label'),
   todayButtonLabel: t('today_button_label'),
+  
 
   // Additional translations
   start: t('start'),

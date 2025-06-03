@@ -12,7 +12,7 @@ const config: AxiosRequestConfig = {
 
   baseURL: __BASEURL__,
   headers: {
-    'Content-Type': 'application/json',
+    // 'Content-Type': 'application/json',
     TimeZone: DateTime.TimeZone(),
     ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
   },
