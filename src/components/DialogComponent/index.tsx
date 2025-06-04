@@ -1,5 +1,4 @@
 import { ReactNode } from 'react';
-import { useTranslation } from 'react-i18next';
 
 import { Box, DialogProps } from '@mui/material';
 import ActionButton from '@/components/ProButton/ActionButton';
@@ -37,7 +36,7 @@ const DialogComponent = ({
     <DialogContainer {...rest} open={!!dialogKey} onClose={handleClose}>
       {isActiveFooter && <DialogHeader onClose={handleClose} title={dialogTitle || ''} marginTop={2} />}
       <DialogContent sx={{ textAlign: isActiveFooter ? "" : "center"}}>
-        <Box sx={{ height: {xs: hasError ? 480 : 400, md: hasError ? 400 : 330}, padding: 2, maxHeight:"fit-content" }}>{children}</Box>
+        <Box sx={{ height: {xs: hasError ? 480 : 480, md: hasError ? 400 : 330}, padding: 2, maxHeight:"fit-content" }}>{children}</Box>
       </DialogContent>
       {isActiveFooter &&<DialogFooter>
         {customButtons}
