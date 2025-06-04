@@ -115,24 +115,13 @@ const ManagementHome = () => {
     setPage(newPage)
   }
 
-  const handleOpenGenerateCode = (id: number | string) => {
-    if(listRooms.find(r => r.id === id)?.link_web){
-      setOpen(true)
-      setGenerateRoomId(id)
-      setTitle("Bạn đã tạo link web cho phòng này rồi");
-    }else{
-      setOpenDialogGenerate(true)
-      setGenerateRoomId(id)
-    }
-
-  }
-
   const handleGenerate = async () => {
     try {
       const data = {
         roomId: generateRoomId
       }
       const res = await generateLink(data);
+      console.log(res)
       const room = res.data as any as Rooms;
       setListRooms(currentRooms =>
         currentRooms.map(prev =>
