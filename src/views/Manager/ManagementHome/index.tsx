@@ -46,6 +46,7 @@ const ManagementHome = () => {
 
   const [title, setTitle] = useState<string>('');
   const [generateRoomId, setGenerateRoomId] = useState<string | number>('');
+  const [existLink, setExistLink] = useState<string>('');
 
   const handleSearch = () => {
   }
@@ -115,6 +116,23 @@ const ManagementHome = () => {
     setPage(newPage)
   }
 
+  const link = listRooms.find(r => r.id === generateRoomId)?.link_web;
+  
+
+  const handleOpenGenerateCode = (id: string | number) => {
+    const linkWeb = listRooms.find(r => r.id === id)?.link_web;
+    if(linkWeb){
+      setTitle("Bạn đã tạo link phòng này rồi")
+      setGenerateRoomId(id)
+      setExistLink(linkWeb)
+      setOpen(true)
+    }else{  
+      setGenerateRoomId(id)
+      setOpenDialogGenerate(true)
+    }
+  }
+  
+
   const handleGenerate = async () => {
     try {
       const data = {
@@ -137,7 +155,6 @@ const ManagementHome = () => {
     }
   }
   
-  const link = listRooms.find(r => r.id === generateRoomId)?.link_web;
   
   const handleCopy = async() => {
     if (link) {
@@ -145,7 +162,7 @@ const ManagementHome = () => {
       navigator.clipboard.writeText(urlLink)
       setOpenDialogCopy(true)
       setOpen(false)
-    };
+    }
   };
 
   
@@ -297,6 +314,17 @@ const ManagementHome = () => {
         generateRoomId={generateRoomId}
         handleCopy={handleCopy}
         link={link}
+      />
+      }
+      {existLink  &&
+      <DialogConformLink
+        open={open}
+        handleClose={() => setOpen(false)}
+        title={title}
+        displayedRooms={displayedRooms}
+        generateRoomId={generateRoomId}
+        handleCopy={handleCopy}
+        link={existLink}
       />
       }
       <DialogCopyLink

@@ -1,12 +1,9 @@
 import SearchBar from "@/components/SearchBar";
-import { Alert, Box, Chip, CircularProgress, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography, useTheme } from "@mui/material"
+import { Alert, Box, CircularProgress } from "@mui/material"
 import { useCallback, useEffect, useState } from "react";
 import DialogCreateTask from "../components/DialogCreateTask";
 import { Tasks } from "@/types/manager";
 import { DataTaskProps, getListTask } from "@/services/manager.service";
-import IconButton from "@/components/IconButton/IconButton";
-import { Delete, Edit } from "@mui/icons-material";
-import CustomPagination from "@/components/Pagination/CustomPagination";
 import { STATUS_LABELS, TaskStatus } from "@/constants/taskStatus";
 import TableTask from "../components/TableTask";
 

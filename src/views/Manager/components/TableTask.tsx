@@ -39,7 +39,7 @@ const TableTask: React.FC<TableTaskProps> = (props) => {
                 <Table stickyHeader aria-label="task">
                     <TableHead>
                         <TableRow sx={{ height: "50px"}}>
-                            {[ 'Tầng', 'Phòng', 'Công việc', 'Số lượng',' Tiến độ',' Bắt đầu', 'Kết thúc'].map((header) => (
+                            {[ 'Tầng', 'Phòng', 'Công việc', 'Số lượng','Thứ tự',' Tiến độ',' Bắt đầu', 'Kết thúc'].map((header) => (
                                 <TableCell key={header} align="center" sx={{ fontWeight: 'bolid', backgroundColor: '#00C7BE'}}>
                                     {header}
                                 </TableCell>
@@ -64,6 +64,7 @@ const TableTask: React.FC<TableTaskProps> = (props) => {
                                         <TableCell align="center">{task.roomName}</TableCell>
                                         <TableCell align="center">{task.title}</TableCell>
                                         <TableCell align="center">{task.quantity}</TableCell>
+                                        <TableCell align="center">{task.order_in_process}</TableCell>
                                         <TableCell align="center">
                                             <Chip label={statusLabel} size="small" color={statusColor}/>
                                         </TableCell>
