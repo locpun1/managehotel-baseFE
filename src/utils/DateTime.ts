@@ -61,3 +61,15 @@ class DateTime {
 }
 
 export default new DateTime();
+
+export function getAgeFromDateOfBirth(dob: string | Date | Dayjs |null): number {
+  if(!dob) return 0;
+  const birthDate = dayjs(dob);
+  const today = dayjs();
+  let age = today.year() - birthDate.year();
+  if(today.month() < birthDate.month() ||
+    (today.month() === birthDate.month() && today.date() < birthDate.date())) {
+      age--;
+  }
+  return age;
+}
