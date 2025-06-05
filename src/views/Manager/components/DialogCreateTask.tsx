@@ -5,7 +5,7 @@ import React, { useEffect, useState,FormEvent, useMemo } from "react";
 import InputText from "./InputText";
 import { createTask, getAllListFloor, getRoomByFloor } from "@/services/manager.service";
 import { Floors, Rooms, Tasks } from "@/types/manager";
-import { Dayjs } from "dayjs";
+import dayjs, { Dayjs } from "dayjs";
 import useAuth from "@/hooks/useAuth";
 import { UserProfile } from "@/types/users";
 import { Hotel, Layers } from "@mui/icons-material";
@@ -36,14 +36,14 @@ interface IconRoom extends Rooms{
 }
 
 interface TaskFormData {
-  title: string;
-  notes: string;
-  quantity: number;
-  status: TaskStatus;
-  assigned_by_id: string | number;
-  room_id: number | string,
-  floor_id: number | string,
-
+    title: string;
+    notes: string;
+    quantity: number;
+    status: TaskStatus;
+    assigned_by_id: string | number;
+    room_id: number | string,
+    floor_id: number | string,
+    order_in_process: number,
 }
 
 interface DataTask{
@@ -86,23 +86,22 @@ const MenuProps = {
 const DialogCreateTask: React.FC<DialogCreateTaskProps> = (props) => {
     const {open, title, onClose, handleLoadList} = props;
     const [formData, setFormData] = useState<TaskFormData>({
-        title: '', notes: '', quantity: 0, status: TaskStatus.PENDING, assigned_by_id: '', room_id: '', floor_id: ''
+        title: '', notes: '', quantity: 0, status: TaskStatus.PENDING, assigned_by_id: '', room_id: '', floor_id: '', order_in_process: 0
     })
 
     const [listFloors, setListFloors] = useState<IconFloor[]>([]);
     const [listRooms, setListRooms] = useState<IconRoom[]>([])
     const [loading, setLoading] = useState(false);
-    const [errors, setErrors] = useState<Partial<Record<'title' | 'notes' | 'quantity' | 'floor_id' | 'room_id', string>>>({});
+    const [errors, setErrors] = useState<Partial<Record<'title' | 'notes' | 'quantity' | 'floor_id' | 'room_id' | 'order_in_process', string>>>({});
     const [infoCurrentUser, setInfoCurrentUser] = useState<UserProfile | null>(null)
     const { profile} = useAuth();
 
     const notify = useNotification();
-    
 
     const handleClose = () => {
         onClose()
         setFormData({
-            title: '', notes: '', quantity: 0, status: TaskStatus.PENDING, assigned_by_id: '', room_id: '', floor_id: ""
+            title: '', notes: '', quantity: 0, status: TaskStatus.PENDING, assigned_by_id: '', room_id: '', floor_id: "", order_in_process: 0
         })
         setErrors({})
     }
@@ -161,11 +160,11 @@ const DialogCreateTask: React.FC<DialogCreateTaskProps> = (props) => {
         [validName]: name === 'quantity' ? Number(value) : value, 
       }));
 
-      if (validName === 'title' || validName === 'notes' || validName === 'quantity' || validName === 'floor_id' || validName === 'room_id') {
-          if (errors[validName as 'title' | 'notes' | 'quantity' | 'floor_id' | 'room_id']) {
+      if (validName === 'title' || validName === 'notes' || validName === 'quantity' || validName === 'floor_id' || validName === 'room_id' || validName === 'order_in_process') {
+          if (errors[validName as 'title' | 'notes' | 'quantity' | 'floor_id' | 'room_id' | 'order_in_process']) {
               setErrors(prev => {
                   const newErrors = { ...prev };
-                  delete newErrors[validName as 'title' | 'notes' | 'quantity' | 'floor_id' | 'room_id'];
+                  delete newErrors[validName as 'title' | 'notes' | 'quantity' | 'floor_id' | 'room_id' | 'order_in_process'];
                   return newErrors;
               });
           }
@@ -176,7 +175,7 @@ const DialogCreateTask: React.FC<DialogCreateTaskProps> = (props) => {
     }
 
   const validateForm = (): boolean => {
-      const newErrors: Partial<Record<'title' | 'notes' | 'quantity' | 'floor_id' | 'room_id', string>> = {};
+      const newErrors: Partial<Record<'title' | 'notes' | 'quantity' | 'floor_id' | 'room_id' | 'order_in_process', string>> = {};
       if (!formData.title.trim()) newErrors.title = 'Tên công việc là bắt buộc';
       if (!formData.notes.trim()) {
           newErrors.notes = 'Yêu cầu là bắt buộc';
@@ -184,6 +183,7 @@ const DialogCreateTask: React.FC<DialogCreateTaskProps> = (props) => {
       if (!formData.quantity) newErrors.quantity = 'Số lượng là bắt buộc';
       if (!formData.floor_id) newErrors.floor_id = 'Số tầng là bắt buộc';
       if (!formData.room_id) newErrors.room_id = 'Số phòng là bắt buộc';
+      if (!formData.order_in_process) newErrors.order_in_process = 'Số thứ tự là bắt buộc'
       // Thêm validation khác nếu cần
 
       setErrors(newErrors);
@@ -199,7 +199,8 @@ const DialogCreateTask: React.FC<DialogCreateTaskProps> = (props) => {
         
         const data = {
             ...formData,
-            "assigned_by_id": id,    
+            "assigned_by_id": id,
+            'due_date': dayjs().toISOString()    
         }
         const { floor_id, ...payload} = data;
         try {
@@ -267,20 +268,40 @@ const DialogCreateTask: React.FC<DialogCreateTaskProps> = (props) => {
                         />
                     </Grid>
                     <Grid item xs={12}>
-                        <Typography variant="body2" fontWeight={600} gutterBottom>Số lượng</Typography>
-                        <InputText
-                            label=""
-                            type="text"
-                            name="quantity"
-                            value={formData.quantity}
-                            onChange={handleCustomInputChange}
-                            placeholder="Số lượng"
-                            sx={{ mt: 0 }}
-                            onlyPositiveNumber
-                            error={!!errors.quantity}
-                            helperText={errors.quantity}
-                            margin="dense"
-                        />
+                        <Grid container spacing={1}>
+                            <Grid item xs={12} md={6}>
+                                <Typography variant="body2" fontWeight={600} gutterBottom>Số lượng</Typography>
+                                <InputText
+                                    label=""
+                                    type="text"
+                                    name="quantity"
+                                    value={formData.quantity}
+                                    onChange={handleCustomInputChange}
+                                    placeholder="Số lượng"
+                                    sx={{ mt: 0 }}
+                                    onlyPositiveNumber
+                                    error={!!errors.quantity}
+                                    helperText={errors.quantity}
+                                    margin="dense"
+                                />
+                            </Grid>
+                            <Grid item xs={12} md={6}>
+                                <Typography variant="body2" fontWeight={600} gutterBottom>Thứ tự</Typography>
+                                <InputText
+                                    label=""
+                                    type="text"
+                                    name="order_in_process"
+                                    value={formData.order_in_process}
+                                    onChange={handleCustomInputChange}
+                                    placeholder="Thứ tự"
+                                    sx={{ mt: 0 }}
+                                    onlyPositiveNumber
+                                    error={!!errors.order_in_process}
+                                    helperText={errors.order_in_process}
+                                    margin="dense"
+                                />
+                            </Grid>
+                        </Grid>
                     </Grid>
                     <Grid item xs={12}>
                         <Grid container spacing={1}>

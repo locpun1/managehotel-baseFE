@@ -11,12 +11,13 @@ import DateTime from "@/utils/DateTime";
 import { useAppDispatch } from "@/store";
 import { setProfile } from "@/slices/user";
 import { UserProfile } from "@/types/users";
-// import DialogUpdatedProfile from "../components/DialogUpdatedProfile";
 import { getPathImage } from "@/utils/url";
 import IconButton from "@/components/IconButton/IconButton";
 import InputText from "@/views/Manager/components/InputText";
 import DialogUpdatedProfile from "@/views/Manager/components/DialogUpdatedProfile";
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL_IMAGE
+import avatar from "@/assets/images/users/default-avatar.jpg"
+import { getRoleLabel } from "@/utils/labelEnToVni";
 
 interface DetailItemProps {
     label: string;
@@ -41,10 +42,6 @@ const DetailItem: React.FC<DetailItemProps> = ({ label, value }) => (
     </Grid>
 );
 
-const getRoleLabel = (role: RoleUser | null | undefined): string => {
-    if(!role) return "Chưa xác định";
-    return ROLE_LABELS[role] || role;
-}
 
 interface ProfileFormData {
   full_name: string;
@@ -269,7 +266,7 @@ const StaffProfile = () => {
                         <Box sx={{my: 1 }}>
                             <Stack direction="column" spacing={1} alignItems="center" justifyContent="center" sx={{ py:2}}>
                                 <Avatar
-                                    src={profile?.avatar_url ? getPathImage(profile?.avatar_url) : ""}
+                                    src={profile?.avatar_url ? getPathImage(profile?.avatar_url) : avatar}
                                     sx={{ width: 120, height: 120, bgcolor: 'grey.300', borderRadius:'50%', mb:2 }}
                                 >
                                 </Avatar>

@@ -46,6 +46,7 @@ const ManagementHome = () => {
 
   const [title, setTitle] = useState<string>('');
   const [generateRoomId, setGenerateRoomId] = useState<string | number>('');
+  const [existLink, setExistLink] = useState<string>('');
 
   const handleSearch = () => {
   }
@@ -115,17 +116,22 @@ const ManagementHome = () => {
     setPage(newPage)
   }
 
-  const handleOpenGenerateCode = (id: number | string) => {
-    if(listRooms.find(r => r.id === id)?.link_web){
-      setOpen(true)
-      setGenerateRoomId(id)
-      setTitle("Bạn đã tạo link web cho phòng này rồi");
-    }else{
-      setOpenDialogGenerate(true)
-      setGenerateRoomId(id)
-    }
+  const link = listRooms.find(r => r.id === generateRoomId)?.link_web;
+  
 
+  const handleOpenGenerateCode = (id: string | number) => {
+    const linkWeb = listRooms.find(r => r.id === id)?.link_web;
+    if(linkWeb){
+      setTitle("Bạn đã tạo link phòng này rồi")
+      setGenerateRoomId(id)
+      setExistLink(linkWeb)
+      setOpen(true)
+    }else{  
+      setGenerateRoomId(id)
+      setOpenDialogGenerate(true)
+    }
   }
+  
 
   const handleGenerate = async () => {
     try {
@@ -133,6 +139,7 @@ const ManagementHome = () => {
         roomId: generateRoomId
       }
       const res = await generateLink(data);
+      console.log(res)
       const room = res.data as any as Rooms;
       setListRooms(currentRooms =>
         currentRooms.map(prev =>
@@ -148,7 +155,6 @@ const ManagementHome = () => {
     }
   }
   
-  const link = listRooms.find(r => r.id === generateRoomId)?.link_web;
   
   const handleCopy = async() => {
     if (link) {
@@ -156,7 +162,7 @@ const ManagementHome = () => {
       navigator.clipboard.writeText(urlLink)
       setOpenDialogCopy(true)
       setOpen(false)
-    };
+    }
   };
 
   
@@ -308,6 +314,17 @@ const ManagementHome = () => {
         generateRoomId={generateRoomId}
         handleCopy={handleCopy}
         link={link}
+      />
+      }
+      {existLink  &&
+      <DialogConformLink
+        open={open}
+        handleClose={() => setOpen(false)}
+        title={title}
+        displayedRooms={displayedRooms}
+        generateRoomId={generateRoomId}
+        handleCopy={handleCopy}
+        link={existLink}
       />
       }
       <DialogCopyLink

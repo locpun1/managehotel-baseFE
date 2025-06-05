@@ -47,4 +47,5 @@ export interface Tasks {
     updatedAt?:string,
     roomName?:string,
     floorName?:string,
+    order_in_process: number
 }
