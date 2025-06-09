@@ -6,7 +6,7 @@ import timezone from 'dayjs/plugin/timezone';
 import updateLocale from 'dayjs/plugin/updateLocale';
 import utc from 'dayjs/plugin/utc';
 
-import { DateFormat, DateTimeFormat, ISOFormat } from '@/constants/locale';
+import { DateFormat, DateTimeFormat, HourFormat, ISOFormat } from '@/constants/locale';
 // Dayjs locale
 import 'dayjs/locale/en';
 import 'dayjs/locale/vi';
@@ -56,6 +56,9 @@ class DateTime {
     return this.IsValid(value) ? dayjs(value).format(pattern) : null;
   }
   public FormatDate(value: Date | string | Dayjs | null = dayjs(), pattern: string = DateFormat) {
+    return this.IsValid(value) ? dayjs(value).format(pattern) : null;
+  }
+  public FormatHour(value: Date | string | Dayjs | null = dayjs(), pattern: string = HourFormat) {
     return this.IsValid(value) ? dayjs(value).format(pattern) : null;
   }
 }

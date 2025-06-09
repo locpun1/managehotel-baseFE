@@ -4,7 +4,7 @@ import { Alert, Box, CircularProgress, Collapse, Grid, Typography } from '@mui/m
 import React, { useCallback, useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import CardInfo from '../components/CardInfoOfRoom';
-import { DataRoomsProps, DataTaskProps, generateLink, getListRoom, getListTask } from '@/services/manager.service';
+import { DataRoomsProps, generateLink, getListRoom } from '@/services/manager.service';
 import { Rooms, Tasks } from '@/types/manager';
 import IconButton from '@/components/IconButton/IconButton';
 import { NavigateBefore, NavigateNext } from '@mui/icons-material';
@@ -47,6 +47,7 @@ const ManagementHome = () => {
   const [title, setTitle] = useState<string>('');
   const [generateRoomId, setGenerateRoomId] = useState<string | number>('');
   const [existLink, setExistLink] = useState<string>('');
+  
 
   const handleSearch = () => {
   }
@@ -73,35 +74,15 @@ const ManagementHome = () => {
 
   const displayedRooms = showAll ? listRooms : listRooms.slice(0, 3);
   useEffect(() => {
-    if ((displayedRooms.length > 0 && displayedRooms[0]) && !showAll) {
+    if (displayedRooms.length > 0 &&  displayedRooms[0].id && !showAll) {
       setExpandedRoomId(displayedRooms[0].id)
     }
-  }, [displayedRooms[0], showAll])
+  }, [displayedRooms[0]?.id, showAll])
 
   const handleOpenTable = (id: string | number) => {
     setExpandedRoomId(prev => (prev === id ? '' : id))
   }
-
-  const fetchListTask = useCallback(async (currentPage: number, currentLimit: number, roomId?: number | string) => {
-    setErrorTask(null)
-    try {
-      const res = await getListTask(currentPage, currentLimit, roomId)
-      const data = res.data as any as DataTaskProps
-      setListTask(data.result.data)
-      setTotalTask(data.result.totalCount)
-    } catch (error: any) {
-      setErrorTask(error.message);
-      setListTask([])
-    }
-  }, [])
   const pageSize = showAll ? 5 : 8
-
-  useEffect(() => {
-    if (expandedRoomId) {
-
-      fetchListTask(pageTask, pageSize, expandedRoomId)
-    }
-  }, [expandedRoomId, pageTask, pageSize])
 
   const handleShow = () => {
     setShowAll(!showAll)
@@ -165,7 +146,7 @@ const ManagementHome = () => {
     }
   };
 
-  
+
 
   return (
     <Box>
@@ -220,7 +201,7 @@ const ManagementHome = () => {
                                 total={totalTask}
                                 rowsPerPage={pageSize}
                                 handlePageChange={handlePageTask}
-                                listTask={listTasks}
+                                listTask={[]}
                               />
                             )}
                           </Collapse>
@@ -288,7 +269,7 @@ const ManagementHome = () => {
             {!errorTask && !loading && expandedRoomId && (
               <TableTask
                 titleTypo={`Danh sách công việc phòng ${displayedRooms.find(r => r.id === expandedRoomId)?.room_number}, ${displayedRooms.find(r => r.id === expandedRoomId)?.floorName}`}
-                listTask={listTasks}
+                listTask={[]}
                 page={pageTask}
                 rowsPerPage={pageSize}
                 total={totalTask}

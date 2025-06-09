@@ -2,8 +2,8 @@ import SearchBar from "@/components/SearchBar";
 import { Alert, Box, CircularProgress } from "@mui/material"
 import { useCallback, useEffect, useState } from "react";
 import DialogCreateTask from "../components/DialogCreateTask";
-import { Tasks } from "@/types/manager";
-import { DataTaskProps, getListTask } from "@/services/manager.service";
+import { GroupTasks } from "@/types/manager";
+import { DataGroupTaskProps, getListGroupTask } from "@/services/manager.service";
 import { STATUS_LABELS, TaskStatus } from "@/constants/taskStatus";
 import TableTask from "../components/TableTask";
 
@@ -24,24 +24,26 @@ export const getStatusChipColor = (status: TaskStatus | null | undefined): "defa
 function ManagementWork (){
     const [searchTerm, setSearchTerm] = useState<string>('');
     const [openCreateDialog, setOpenCreateDialog] = useState<boolean>(false);
+    const [openUpdateDialog, setOpenUpdateDialog] = useState<boolean>(false);
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState(null);
-    const [listTasks, setListTask] = useState<Tasks[]>([]);
+    const [listGroupTask, setListGroupTask] = useState<GroupTasks[]>([]);
     const [page, setPage] = useState(0)
     const [rowPerPgae, setRowPerPage] = useState<number>(10)
     const [total, setTotal] = useState(0)
+    const [taskId, setTaskId] = useState<string | number>('');
 
-    const fetchListTask = useCallback(async (currentPage: number, currentLimit: number, roomId?: number) => {
+    const fetchListTask = useCallback(async (currentPage: number, currentLimit: number) => {
         setLoading(true)
         setError(null)
         try {
-            const res = await getListTask(currentPage, currentLimit,roomId)
-            const data = res.data as any as DataTaskProps
-            setListTask(data.result.data)
+            const res = await getListGroupTask(currentPage, currentLimit)
+            const data = res.data as any as DataGroupTaskProps
+            setListGroupTask(data.result.data)
             setTotal(data.result.totalCount)
         } catch (error: any) {
             setError(error.message);
-            setListTask([])
+            setListGroupTask([])
         } finally {
             setLoading(false)
         }
@@ -63,9 +65,14 @@ function ManagementWork (){
         setOpenCreateDialog(true)
     }
 
-    const handleLoadList = (newTask: Tasks) => {
-        setListTask(prev => [newTask, ...prev])
-    }
+    const handleLoadList = (newTask: GroupTasks) => {
+        setListGroupTask(prev => [newTask, ...prev])
+    } 
+
+    const handleOpenEditTask = (id: string | number) => {
+        setTaskId(id)
+        setOpenUpdateDialog(true)
+    }  
     return (
         <Box>
             <SearchBar
@@ -85,23 +92,37 @@ function ManagementWork (){
                 )}
                 {!loading && !error && (
                     <TableTask
-                        listTask={listTasks}
+                        listGroupTask={listGroupTask}
                         total={total}
                         page={page}
                         rowsPerPage={rowPerPgae}
                         handlePageChange={handlePageChange}
                         from="from-manage-task"
+                        handleOpenEditTask={handleOpenEditTask}
                     />
                 )}
             </Box>
-            <DialogCreateTask
-                open={openCreateDialog}
-                onClose={() => {
-                    setOpenCreateDialog(false)
-                }}
-                title="Tạo công việc mới"
-                handleLoadList={handleLoadList}
-            />
+            {openCreateDialog &&
+                <DialogCreateTask
+                    open={openCreateDialog}
+                    onClose={() => {
+                        setOpenCreateDialog(false)
+                    }}
+                    title="Tạo công việc mới"
+                    handleLoadList={handleLoadList}
+                />
+            }
+            {openUpdateDialog &&
+                <DialogCreateTask
+                    open={openUpdateDialog}
+                    onClose={() => {
+                        setOpenUpdateDialog(false)
+                    }}
+                    title="Chỉnh sửa công việc"
+                    taskId={taskId}
+                    from="updateTask"
+                />
+            }
         </Box>
     );
 }

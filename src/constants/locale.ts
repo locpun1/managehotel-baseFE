@@ -4,6 +4,7 @@ import { PickersLocaleText } from '@mui/x-date-pickers/locales';
 import { getTranslation } from '@/utils/getTranslation';
 
 export const DateFormat = 'DD/MM/YYYY';
+export const HourFormat = 'HH:mm';
 export const DateTimeFormat = 'DD/MM/YYYY, HH:mm';
 export const ISOFormat = 'YYYY-MM-DDTHH:mm:ss[Z]';
 
