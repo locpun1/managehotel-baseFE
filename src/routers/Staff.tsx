@@ -8,14 +8,11 @@ const StaffWork = Loadable(lazy(() => import('@/views/Staff/TaskList/index')));
 const StaffReport = Loadable(lazy(() => import('@/views/Staff/Report/index')));
 const StaffProfile= Loadable(lazy(() => import('@/views/Staff/Profile/index')));
 
-
-
-
 const Staff: RouteObject = {
     path:ROUTE_PATH.STAFF,
     element:<Outlet/>,
     children: [
-        { path: ROUTE_PATH.STAFF_HOME, element:<StaffHome />},
+        { path: `${ROUTE_PATH.STAFF_HOME}/:roomId`, element:<StaffHome />},
         { path: ROUTE_PATH.STAFF_WORK, element:<StaffWork />},
         { path: ROUTE_PATH.STAFF_REPORT, element:<StaffReport />},
         { path: ROUTE_PATH.STAFF_PROFILE, element:<StaffProfile />}

@@ -22,7 +22,8 @@ export interface Rooms{
     due_date: string,
     started_at: string,
     completed_at: string,
-    statusTask: TaskStatus
+    statusTask: TaskStatus,
+    idGroupTask: string | number
 }
 
 interface TaskItemData {

@@ -118,7 +118,7 @@ const DialogCreateTask: React.FC<DialogCreateTaskProps> = (props) => {
     const [taskSlots, setTaskSlots] = useState<TaskItemData[]>([
         {
             'title': '',
-            'order_in_process': 0,
+            'order_in_process': 1,
             'status': TaskStatus.PENDING,
         }
     ]);
@@ -135,7 +135,7 @@ const DialogCreateTask: React.FC<DialogCreateTaskProps> = (props) => {
                     setTaskSlots([
                         {
                             'title': '',
-                            'order_in_process': 0,
+                            'order_in_process': 1,
                             'status': TaskStatus.PENDING,
                         }
                     ])
@@ -243,7 +243,7 @@ const DialogCreateTask: React.FC<DialogCreateTaskProps> = (props) => {
         setTaskSlots(prevSlots => {
             const newSlot: TaskItemData = {
                 title: '',
-                order_in_process: 0,
+                order_in_process: indexToAdd + 1,
                 status: TaskStatus.PENDING,
             };
             const updated = [...prevSlots];
@@ -304,10 +304,8 @@ const DialogCreateTask: React.FC<DialogCreateTaskProps> = (props) => {
             "groupTask": newtaskSlots 
         }
         const { floor_id, ...payload} = data;
-        console.log("payload: ",payload);
         try {
             const res = await createTask(payload)
-            console.log("res: ", res);
             notify({
                 message:res.message,
                 severity:"success"
@@ -513,16 +511,18 @@ const DialogCreateTask: React.FC<DialogCreateTaskProps> = (props) => {
                                                 borderRadius={1}
                                                 tooltip="Thêm hạng mục"
                                                 sx={{ mt: 0, mr: 1}}
+                                                disabled={taskSlots.length >= formData.quantity}
                                             />
-                                                <IconButton
-                                                    aria-label={`Remove slot ${index + 1}`}
-                                                    handleFunt={() => handleRemoveTaskSlot(index)}
-                                                    icon={<RemoveCircleOutline sx={{color: 'white', width: "28px", height:"28px"}}/>}
-                                                    backgroundColor="red"
-                                                    borderRadius={1}
-                                                    tooltip="Xóa hạng mục"
-                                                    sx={{ mt: 0}}
-                                                />
+                                            <IconButton
+                                                aria-label={`Remove slot ${index + 1}`}
+                                                handleFunt={() => handleRemoveTaskSlot(index)}
+                                                icon={<RemoveCircleOutline sx={{color: 'white', width: "28px", height:"28px"}}/>}
+                                                backgroundColor="red"
+                                                borderRadius={1}
+                                                tooltip="Xóa hạng mục"
+                                                sx={{ mt: 0}}
+                                                disabled={taskSlots.length == 1}
+                                            />
                                         </Grid>
                                     </React.Fragment>
                                 )

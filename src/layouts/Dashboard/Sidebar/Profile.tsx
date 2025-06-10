@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 
 import { LogoutOutlined } from '@mui/icons-material';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
@@ -35,7 +35,7 @@ const Profile = () => {
   const dispatch = useAppDispatch();
   const { profile } = useAuth();
   const navigate = useNavigate();
-
+  
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
   const handleClick = (event: any) => {

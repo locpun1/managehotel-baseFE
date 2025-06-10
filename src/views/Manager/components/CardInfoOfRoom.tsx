@@ -11,7 +11,7 @@ import { TaskStatus } from "@/constants/taskStatus";
 interface InfoProps{
     data?: Rooms,
     personalPhoto?: string | null,
-    handleOpenTable: (id: string | number) => void,
+    handleOpenTable: (id: string | number, idGroupTask: string | number) => void,
     handleGenerate: (id: string | number) => void,
 }
 
@@ -75,7 +75,7 @@ const CardInfo: React.FC<InfoProps> = (props) => {
     return (
         <ObjectCardStyled variant="outlined">
             <Grid container spacing={1}>
-                <Grid item xs={12} md={5} onClick={() => data !== undefined && handleOpenTable(data.id)}>
+                <Grid item xs={12} md={5} onClick={() => data !== undefined && handleOpenTable(data.id, data.idGroupTask)}>
                     <CardMedia
                         component='img'
                         image={imgSrc}
@@ -96,7 +96,7 @@ const CardInfo: React.FC<InfoProps> = (props) => {
                 </Grid>
                 <Grid sx={{ mt: 2}} item xs={12} md={7}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                        <Box onClick={() => data !== undefined && handleOpenTable(data.id)}>
+                        <Box onClick={() => data !== undefined && handleOpenTable(data.id, data.idGroupTask)}>
                             <Typography variant="body2" component="span">Số phòng: </Typography>
                             <Typography variant="body2" component="span" fontWeight="bold">{data?.room_number}</Typography>
                         </Box>
@@ -131,16 +131,16 @@ const CardInfo: React.FC<InfoProps> = (props) => {
                             />
                         </Box>
                     </Box>
-                    <Box sx={{ mb:1}} onClick={() => data !== undefined && handleOpenTable(data.id)}>
+                    <Box sx={{ mb:1}} onClick={() => data !== undefined && handleOpenTable(data.id, data.idGroupTask)}>
                         <Typography variant="body2">{`Số tầng: ${data?.floorName}`}</Typography>
                     </Box>
-                    <Box sx={{ mb:1}} onClick={() => data !== undefined && handleOpenTable(data.id)}>
+                    <Box sx={{ mb:1}} onClick={() => data !== undefined && handleOpenTable(data.id, data.idGroupTask)}>
                         <Typography variant="body2">{`Công việc: ${data?.taskName}`}</Typography>
                     </Box>
-                    <Box sx={{ mb:1}} onClick={() => data !== undefined && handleOpenTable(data.id)}>
+                    <Box sx={{ mb:1}} onClick={() => data !== undefined && handleOpenTable(data.id, data.idGroupTask)}>
                         <Typography variant="body2">{`Thời gian: ${date}`}</Typography>
                     </Box>
-                    <Box onClick={() => data !== undefined && handleOpenTable(data.id)}>
+                    <Box onClick={() => data !== undefined && handleOpenTable(data.id, data.idGroupTask)}>
                         {status && <Chip sx={{ width: 150, my:1.5 }} label={status} color={getStatusColor(status)}/>}
                     </Box>
                 </Grid>
