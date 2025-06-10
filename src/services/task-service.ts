@@ -35,7 +35,7 @@ interface ApiResponse {
 }
 
 export interface UpdateTaskPayload {
-  status?: 'pending' | 'in_progress' | 'completed' | 'cancelled' | 'waiting'; // Trạng thái mới trực tiếp
+  status?: 'pending' | 'in_progress' | 'completed' | 'cancelled' | 'waiting';
   action?: TaskListAction 
 }
 
@@ -53,7 +53,6 @@ export const getRoomProcessSteps = async (
   if (response && response.success && response.data) {
       return response.data;
   } else {
-      console.error("API response error or unexpected structure in getRoomProcessSteps:", response);
       const errorMessage = response?.message || (response as any)?.message || 'Failed to fetch room process steps or invalid data structure';
       throw new Error(errorMessage);
   }
@@ -79,7 +78,6 @@ export const getRoomDetailedDailyTasks = async (
   if (response.data && response.success && response.data) {
       return response.data; 
   } else {
-      console.error("API response error in getRoomDetailedDailyTasks:", response);
       throw new Error(response?.message || 'Failed to fetch detailed daily tasks');
   }
 };

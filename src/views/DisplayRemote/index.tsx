@@ -12,7 +12,6 @@ import { DetailedTasksApiResponse, getRoomDetailedDailyTasks, getRoomProcessStep
 import useNotification from '@/hooks/useNotification';
 import { TaskItemData } from '@/types/task-types';
 import { TASK_STATUS_API } from '@/constants/task';
-import CardInfoManager from '@/components/CardInfo/CardInfoManager';
 import { QRCodeCanvas } from 'qrcode.react';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -66,7 +65,6 @@ const RoomDisplayPageStatic = () => {
     try {
       const todayForAPI = new Date().toISOString().split('T')[0];
       const responseData = await getRoomProcessSteps(roomId, todayForAPI);
-      console.log(responseData)
       if (responseData) {
         setStepperData(responseData);
       } else {
@@ -87,7 +85,6 @@ const RoomDisplayPageStatic = () => {
     try {
       const todayForAPI = new Date().toISOString().split('T')[0];
       const responseData = await getRoomDetailedDailyTasks(roomId, todayForAPI);
-      console.log(responseData)
       setDetailedTasksResponse(responseData);
     } catch (err: any) {
       setError(prevError => prevError || (err.message || "Lỗi tải công việc chi tiết."));
@@ -109,15 +106,10 @@ const RoomDisplayPageStatic = () => {
       return;
     }
 
-    // Xác định URL cho WebSocket server
-    // Ví dụ: ws://localhost:3002/ws (nếu backend HTTP và WS cùng port)
-    // Hoặc ws://your-ws-server.com (nếu WS server riêng)
     const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    // Mặc định là cùng hostname với frontend, nhưng port có thể là của backend
     let wsHost = window.location.hostname;
-    let wsPort = window.location.port; // Port của frontend
+    let wsPort = window.location.port; 
 
-    // Nếu VITE_API_BASE_URL được định nghĩa và khác với origin hiện tại, dùng nó
     if (import.meta.env.VITE_API_BASE_URL && import.meta.env.VITE_API_BASE_URL !== window.location.origin) {
       try {
         const backendUrl = new URL(import.meta.env.VITE_API_BASE_URL);
@@ -135,21 +127,28 @@ const RoomDisplayPageStatic = () => {
     // }
 
     const wsUrl = `${wsProtocol}//${wsHost}:${wsPort}/ws?deviceId=${deviceId}&roomId=${roomId}`;
-    console.log(`[WebSocket] Attempting to connect to: ${wsUrl}`);
-
 
     let socket: WebSocket | null = null;
     let reconnectIntervalId: NodeJS.Timeout | null = null;
+    let isComponentMounted = true;
 
     const connect = () => {
+      if (!isComponentMounted) return; 
       if (socket && (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING)) {
-        return; // Đã kết nối hoặc đang kết nối
+        return;
       }
 
       socket = new WebSocket(wsUrl);
+      const currentSocket = socket;
+
+      currentSocket.onopen = () => {
+        if (!isComponentMounted || currentSocket !== socket) return;
+        console.log(`[WebSocket] Connected: ${deviceId}, room: ${roomId}`);
+        setIsSocketConnected(true);
+        if (reconnectIntervalId) clearTimeout(reconnectIntervalId);
+      };
 
       socket.onopen = () => {
-        console.log(`[WebSocket] Connected for device: ${deviceId}, room: ${roomId}`);
         setIsSocketConnected(true);
         if (reconnectIntervalId) clearTimeout(reconnectIntervalId);
       };
@@ -157,9 +156,7 @@ const RoomDisplayPageStatic = () => {
       socket.onmessage = (event) => {
         try {
           const messageData = JSON.parse(event.data as string);
-          console.log("[WebSocket] Message received:", messageData);
           if (messageData.action === 'REFRESH_DETAILED_TASKS' && messageData.targetRoomId === roomId) {
-            console.log(`[WebSocket] Command REFRESH_DETAILED_TASKS received for current room. Fetching tasks...`);
             fetchDetailedTaskData();
           }
         } catch (e) {
@@ -169,30 +166,31 @@ const RoomDisplayPageStatic = () => {
 
       socket.onerror = (errorEvent) => {
         console.error(`[WebSocket] Error for ${deviceId}:`, errorEvent);
-        // onclose sẽ thường được gọi sau onerror
       };
 
       socket.onclose = (event) => {
-        console.log(`[WebSocket] Disconnected for ${deviceId}. Code: ${event.code}, Reason: '${event.reason}'.`);
         setIsSocketConnected(false);
         if (reconnectIntervalId) clearTimeout(reconnectIntervalId);
-        // Chỉ thử kết nối lại nếu không phải là đóng chủ động từ client (ví dụ, component unmount)
-        // và không phải lỗi quá nghiêm trọng (một số mã lỗi đóng có thể không nên reconnect)
         if (event.code !== 1000 && event.code !== 1001 /* Going Away */) {
-          console.log("[WebSocket] Attempting to reconnect in 5-8 seconds...");
-          reconnectIntervalId = setTimeout(connect, 5000 + Math.random() * 3000); // Thêm jitter
+          reconnectIntervalId = setTimeout(connect, 5000 + Math.random() * 3000);
         }
       };
     };
 
-    connect(); // Bắt đầu kết nối
+    connect(); 
 
-    return () => { // Cleanup khi component unmount
+    return () => { 
+      isComponentMounted = false;
       if (reconnectIntervalId) clearTimeout(reconnectIntervalId);
       if (socket) {
-        console.log(`[WebSocket] Closing connection on unmount for ${deviceId}`);
-        socket.onclose = null; // Ngăn chặn việc tự động reconnect khi unmount
-        socket.close(1000, "Component unmounting"); // Mã 1000 là Normal Closure
+        socket.onopen = null;
+        socket.onmessage = null;
+        socket.onerror = null;
+        socket.onclose = null;
+        if (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING) {
+          socket.close(1000, "Component unmounting");
+        }
+        socket = null;
       }
     };
   }, [roomId, deviceId, fetchDetailedTaskData]);
@@ -234,8 +232,6 @@ const RoomDisplayPageStatic = () => {
       }
     } catch (err: any) {
       notify({ message: err.message || `Lỗi khi cập nhật task #${taskId}.`, severity: 'error' });
-      console.error("Error updating task status:", err);
-      // Rollback TaskList
       setDetailedTasksResponse(prev => prev ? { ...prev, tasks: originalTasks } : null);
       // TODO: Rollback cả StepperData nếu đã cập nhật lạc quan
       // await fetchStepperData(false); // Hoặc fetch lại stepper để lấy trạng thái đúng từ server
