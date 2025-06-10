@@ -9,15 +9,8 @@ import { Alert, Box, Chip, CircularProgress, Collapse, Paper, Table, TableBody, 
 import dayjs, { Dayjs } from "dayjs";
 import React, { useEffect, useState } from "react";
 
-interface TableTaskProps{
-    listGroupTask: GroupTasks[],
-    titleTypo?:string,
-    from?: string,
-    total: number,
-    page: number,
-    rowsPerPage: number,
-    handlePageChange: (page: number) => void,
-    handleOpenEditTask?: (id: string | number) => void;
+interface TableTaskByGroupTaskProps{
+    id: string| number,
 }
 export const getStatusLabel = (status: TaskStatus | null | undefined): string => {
     if(!status) return "Chưa xác định";
@@ -41,8 +34,8 @@ export const checkDay = (today:Dayjs |string, dueDate: Dayjs | string) : boolean
         return false;
 }
 
-const TableTask: React.FC<TableTaskProps> = (props) => {
-    const { listGroupTask, from, total, page, rowsPerPage, handlePageChange, handleOpenEditTask } = props;
+const TableTaskByGroupTask: React.FC<TableTaskByGroupTaskProps> = (props) => {
+    const { id } = props;
 
     const [selectedTaskId, setSelectedTaskId] = useState<string | number | null>(null);
     const [pageTask, setPageTask] = useState(0);
@@ -55,6 +48,12 @@ const TableTask: React.FC<TableTaskProps> = (props) => {
     const handleToggle = (id: string | number) => {
         setSelectedTaskId((prevId) => (prevId === id ? null : id))
     }
+
+    useEffect(() => {
+        if(id){
+            setSelectedTaskId(id)
+        }
+    },[id])
 
     useEffect(() => {
         if(selectedTaskId){
@@ -83,81 +82,7 @@ const TableTask: React.FC<TableTaskProps> = (props) => {
     
 
     return (
-        <Box sx={{ m: from ? 2 : 0}}>
-            <Typography fontWeight={500}>Danh sách nhóm công việc theo phòng</Typography>
-            <TableContainer component={Paper}>
-                <Table stickyHeader aria-label="group-task">
-                    <TableHead>
-                        <TableRow sx={{ height: "50px"}}>
-                            {[ 'Tầng', 'Phòng', 'Công việc', 'Số lượng',' Tiến độ','Thời hạn dọn phòng',' Bắt đầu', 'Kết thúc'].map((header) => (
-                                <TableCell key={header} align="center" sx={{ fontWeight: 'bold', backgroundColor: '#00C7BE'}}>
-                                    {header}
-                                </TableCell>
-                            ))}
-                            <TableCell align="center" sx={{ fontWeight: 'bolid', backgroundColor: '#00C7BE'}}>Hành động</TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {listGroupTask?.length === 0 ? (
-                            <TableRow>
-                                <TableCell colSpan={8} align="center">
-                                    Không tìm thấy công việc nào cả
-                                </TableCell>
-                            </TableRow>
-                        ) : (
-                            listGroupTask?.map((task) => {
-                                // const isDay = task.due_date && checkDay(dayjs(), task.due_date);
-                                const statusLabel = getStatusLabel(task.status);
-                                const statusColor = getStatusChipColor(task.status);
-                                
-                                return(
-                                    <React.Fragment key={task.id}>
-                                        <TableRow hover onClick={() => handleToggle(task.id)}>
-                                            <TableCell align="center">{task.floorName}</TableCell>
-                                            <TableCell align="center">{task.roomName}</TableCell>
-                                            <TableCell align="center">{task.name}</TableCell>
-                                            <TableCell align="center">{task.quantity}</TableCell>
-                                            <TableCell align="center">
-                                                <Chip label={statusLabel} size="small" color={statusColor}/>
-                                            </TableCell>
-                                            <TableCell align="center">{DateTime.FormatDate(task.due_date) || " "}</TableCell>
-                                            <TableCell align="center">{DateTime.Format(task.started_at) || " "}</TableCell>
-                                            <TableCell align="center">{DateTime.Format(task.completed_at) || " "}</TableCell>
-                                            {from && <TableCell align="center">
-                                                <IconButtonBtn
-                                                    handleFunt={() => {
-                                                        if (task.id && handleOpenEditTask) {
-                                                            handleOpenEditTask(task.id);
-                                                        }
-                                                    }}
-                                                    icon={<Edit color="primary"/>}
-                                                    tooltip="Sửa"
-                                                    height={22}
-                                                    width={22}
-                                                />
-                                                <IconButtonBtn
-                                                    handleFunt={() => {}}
-                                                    icon={<Delete color="primary"/>}
-                                                    tooltip="Xóa"
-                                                    height={22}
-                                                    width={22}
-                                                />  
-                                            </TableCell>}
-                                        </TableRow>
-                                    </React.Fragment>
-                                )
-                            })
-                        )}
-                    </TableBody>
-                </Table>
-            </TableContainer>
-            <CustomPagination
-                count={total}
-                page={page}
-                rowsPerPage={rowsPerPage}
-                sx={{ mt: 2, mb: 1}}
-                onPageChange={handlePageChange}
-            />
+        <Box>
             {loading && (
                 <Box sx={{ display: 'flex', justifyContent: 'center', my: 3 }}>
                     <CircularProgress/>
@@ -167,8 +92,8 @@ const TableTask: React.FC<TableTaskProps> = (props) => {
                 <Alert severity="error" sx={{ my:2 }}>{error}</Alert>
             )}
             {!loading && !error && (
-                <Collapse in={selectedTaskId === listGroupTask?.find(el => el.id === selectedTaskId)?.id} timeout='auto' unmountOnExit>
-                    <Typography fontWeight={500} sx={{ mt:3}}>{`Danh sách chi tiết theo nhóm công việc: ${listGroupTask?.find(el => el.id === selectedTaskId)?.name}, ${listGroupTask?.find(el => el.id === selectedTaskId)?.roomName}`} </Typography>
+                <Collapse in={selectedTaskId === id} timeout='auto' unmountOnExit>
+                    <Typography fontWeight={500} sx={{ mt:3}}>{`Danh sách công việc theo phòng`} </Typography>
                     <TableContainer component={Paper}>
                         <Table>
                             <TableHead>
@@ -221,4 +146,4 @@ const TableTask: React.FC<TableTaskProps> = (props) => {
     )
 }
 
-export default TableTask;
+export default TableTaskByGroupTask;

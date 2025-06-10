@@ -1,9 +1,18 @@
 import type { HttpResponse } from '@/types/common';
-import { Floors, Rooms, TaskData, Tasks } from '@/types/manager';
+import { Floors, GroupTasks, Rooms, TaskData, Tasks } from '@/types/manager';
 import HttpClient from '@/utils/HttpClient';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api'; 
 const prefix = `${API_BASE_URL}/api/v1`;
+
+export interface DataGroupTaskProps{
+    result:{
+      data: GroupTasks[],
+      totalCount: number;   
+      totalPages?: number;
+      number?: number;
+    }
+}
 
 export interface DataTaskProps{
     result:{
@@ -44,19 +53,30 @@ export const generateLink =  (params: LinkRequest) => {
   return HttpClient.post<typeof params, HttpResponse<Rooms>>(`${prefix}/rooms/generate-link`, params);
 }
 
-export const getListTask = (
+export const getListGroupTask = (
     page: number,
     size: number,
-    roomId?:number | string
-): Promise<HttpResponse<Tasks>> => {
-    const endpoint = `${prefix}/tasks/list-task`;
+): Promise<HttpResponse<GroupTasks>> => {
+    const endpoint = `${prefix}/tasks/list-group-task`;
     const params: Record<string, any> = {
         page: page,
         size: size,
-        roomId: roomId
+    }
+    return HttpClient.get<HttpResponse<GroupTasks>>(endpoint,{params})
+}
+export const getTaskByGroupTask = (
+    page: number,
+    size: number,
+    groupTaskId:number | string
+): Promise<HttpResponse<Tasks>> => {
+    const endpoint = `${prefix}/tasks/list-task-by-group-task`;
+    const params: Record<string, any> = {
+        page: page,
+        size: size,
+        groupTaskId: groupTaskId
     }
     return HttpClient.get<HttpResponse<Tasks>>(endpoint,{params})
-} 
+}  
 
 export const getListRoom = (
   page: number,

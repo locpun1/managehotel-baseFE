@@ -1,5 +1,6 @@
 // src/services/task.service.ts
 import { HttpResponse } from '@/types/common';
+import { GroupTasks } from '@/types/manager';
 import { TaskItemData } from '@/types/task-types';
 import HttpClient from '@/utils/HttpClient';
 import { TaskListAction } from '@/views/DisplayRemote/components/TaskList';
@@ -38,6 +39,24 @@ export interface UpdateTaskPayload {
   status?: 'pending' | 'in_progress' | 'completed' | 'cancelled' | 'waiting';
   action?: TaskListAction 
 }
+
+export const getDetailTask = async (
+  id: string | number,
+): Promise<GroupTasks> => { // Hàm này trả về trực tiếp object data từ response API
+  let url = `${prefix}/get-detail-task?id=${id}`;
+  const response = await HttpClient.get<{ // Kiểu của toàn bộ body JSON từ backend
+      success: boolean;
+      message: string;
+      data: GroupTasks; // data từ backend chính là DetailedTasksApiResponse
+  }>(url);
+
+  if (response.data && response.success && response.data) {
+      return response.data; 
+  } else {
+      console.error("API response error in getDetailTask:", response);
+      throw new Error(response?.message || 'Failed to fetch detailed daily tasks');
+  }
+};
 
 export const getRoomProcessSteps = async (
   roomId: string,

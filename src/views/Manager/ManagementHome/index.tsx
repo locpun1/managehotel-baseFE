@@ -1,19 +1,19 @@
 import SearchBar from '@/components/SearchBar';
 import { ROUTE_PATH } from '@/constants/routes';
 import { Alert, Box, CircularProgress, Collapse, Grid, Typography } from '@mui/material';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import CardInfo from '../components/CardInfoOfRoom';
-import { DataRoomsProps, DataTaskProps, generateLink, getListRoom, getListTask } from '@/services/manager.service';
-import { Rooms, Tasks } from '@/types/manager';
+import { DataRoomsProps, generateLink, getListRoom } from '@/services/manager.service';
+import { Rooms } from '@/types/manager';
 import IconButton from '@/components/IconButton/IconButton';
 import { NavigateBefore, NavigateNext } from '@mui/icons-material';
 import CustomPagination from '@/components/Pagination/CustomPagination';
 import { convertRoomPathToDisplayRemoteUrl } from '@/utils/url';
-import TableTask from '../components/TableTask';
 import DialogConformLink from '../components/DialogConformLink';
 import DialogOpenGenerateCode from '../components/DialogOpenGenerateCode';
 import DialogCopyLink from '../components/DialogCopyLink';
+import TableTaskByGroupTask from '../components/TableTaskByGroupTask';
 
 
 const ManagementHome = () => {
@@ -23,21 +23,19 @@ const ManagementHome = () => {
   const [loading, setLoading] = useState<boolean>(false);
 
   const [error, setError] = useState(null);
-  const [errorTask, setErrorTask] = useState(null);
 
   const [listRooms, setListRooms] = useState<Rooms[]>([]);
-  const [listTasks, setListTask] = useState<Tasks[]>([]);
 
   const [page, setPage] = useState(0)
-  const [pageTask, setPageTask] = useState(0)
 
   const [rowPerPage, setRowPerPage] = useState(9)
 
   const [total, setTotal] = useState(0)
-  const [totalTask, setTotalTask] = useState(0)
 
   const [showAll, setShowAll] = useState(false);
   const [expandedRoomId, setExpandedRoomId] = useState<string | number>('');
+  const [groupTaskId, setGroupTaskId] = useState<string | number>('');
+
   const bufferRooms: Rooms[] = [];
 
   const [open, setOpen] = useState(false);
@@ -47,6 +45,7 @@ const ManagementHome = () => {
   const [title, setTitle] = useState<string>('');
   const [generateRoomId, setGenerateRoomId] = useState<string | number>('');
   const [existLink, setExistLink] = useState<string>('');
+  
 
   const handleSearch = () => {
   }
@@ -71,45 +70,28 @@ const ManagementHome = () => {
     loadList(page, rowPerPage);
   }, [page, rowPerPage])
 
-  const displayedRooms = showAll ? listRooms : listRooms.slice(0, 3);
   useEffect(() => {
-    if ((displayedRooms.length > 0 && displayedRooms[0]) && !showAll) {
-      setExpandedRoomId(displayedRooms[0].id)
+    if (!loading && listRooms.length > 0 && !showAll) {
+      setExpandedRoomId(prev => prev || listRooms[0].id)
     }
-  }, [displayedRooms[0], showAll])
+  }, [loading,listRooms, showAll])
 
-  const handleOpenTable = (id: string | number) => {
+  // Tính toán danh sách hiển thị
+  const displayedRooms = useMemo(() => {
+    if (listRooms.length === 0) return [];
+    return showAll ? listRooms : listRooms.slice(0, 3);
+  }, [listRooms, showAll]);
+
+  const handleOpenTable = (id: string | number, idGroupTask: string | number) => {
     setExpandedRoomId(prev => (prev === id ? '' : id))
+    setGroupTaskId(idGroupTask)
   }
-
-  const fetchListTask = useCallback(async (currentPage: number, currentLimit: number, roomId?: number | string) => {
-    setErrorTask(null)
-    try {
-      const res = await getListTask(currentPage, currentLimit, roomId)
-      const data = res.data as any as DataTaskProps
-      setListTask(data.result.data)
-      setTotalTask(data.result.totalCount)
-    } catch (error: any) {
-      setErrorTask(error.message);
-      setListTask([])
-    }
-  }, [])
-  const pageSize = showAll ? 5 : 8
-
-  useEffect(() => {
-    if (expandedRoomId) {
-
-      fetchListTask(pageTask, pageSize, expandedRoomId)
-    }
-  }, [expandedRoomId, pageTask, pageSize])
 
   const handleShow = () => {
-    setShowAll(!showAll)
-    setExpandedRoomId('')
-  }
-
-  const handlePageTask = (newPageTask: number) => {
-    setPageTask(newPageTask)
+    setShowAll(prev => {
+      if (prev) setExpandedRoomId('');
+      return !prev;
+    });
   }
 
   const handlePage = (newPage: number) => {
@@ -164,9 +146,7 @@ const ManagementHome = () => {
       setOpen(false)
     }
   };
-
   
-
   return (
     <Box>
       {loading && (
@@ -210,17 +190,9 @@ const ManagementHome = () => {
                       <>
                         <Grid item xs={12} >
                           <Collapse in={true} timeout='auto' unmountOnExit>
-                            {errorTask && (
-                              <Alert severity='error' sx={{ my: 2 }}>{errorTask}</Alert>
-                            )}
-                            {!errorTask && !loading && expandedRoomId && (
-                              <TableTask
-                                titleTypo={`Danh sách công việc phòng ${displayedRooms.find(r => r.id === expandedRoomId)?.room_number}, ${displayedRooms.find(r => r.id === expandedRoomId)?.floorName}`}
-                                page={pageTask}
-                                total={totalTask}
-                                rowsPerPage={pageSize}
-                                handlePageChange={handlePageTask}
-                                listTask={listTasks}
+                            {!loading && expandedRoomId && (
+                              <TableTaskByGroupTask
+                                id={groupTaskId}
                               />
                             )}
                           </Collapse>
@@ -264,9 +236,11 @@ const ManagementHome = () => {
               <Grid sx={{ display: 'flex', flexGrow: 1 }} container spacing={3}>
                 {displayedRooms?.map((room) => {
                   return (
-                    <Grid key={room.id} item xs={12} sm={6} lg={4}>
-                      <CardInfo handleOpenTable={handleOpenTable} handleGenerate={handleOpenGenerateCode} data={room} />
-                    </Grid>
+                    <React.Fragment key={room.id}>
+                      <Grid key={room.id} item xs={12} sm={6} lg={4}>
+                        <CardInfo handleOpenTable={handleOpenTable} handleGenerate={handleOpenGenerateCode} data={room} />
+                      </Grid>
+                    </React.Fragment>
                   )
                 })}
               </Grid>
@@ -280,23 +254,15 @@ const ManagementHome = () => {
               />
             </Box>
           )}
-          {!showAll && (
-          <Collapse in={!!expandedRoomId} timeout='auto' unmountOnExit>
-            {errorTask && (
-              <Alert severity='error' sx={{ my: 2 }}>{errorTask}</Alert>
-            )}
-            {!errorTask && !loading && expandedRoomId && (
-              <TableTask
-                titleTypo={`Danh sách công việc phòng ${displayedRooms.find(r => r.id === expandedRoomId)?.room_number}, ${displayedRooms.find(r => r.id === expandedRoomId)?.floorName}`}
-                listTask={listTasks}
-                page={pageTask}
-                rowsPerPage={pageSize}
-                total={totalTask}
-                handlePageChange={handlePageTask}
-              />
-            )}
-          </Collapse>
-        )}
+          {!showAll && expandedRoomId && (
+            <Collapse in={!!expandedRoomId} timeout='auto' unmountOnExit>
+              {!loading && expandedRoomId && (
+                <TableTaskByGroupTask
+                  id={groupTaskId}
+                />
+              )}
+            </Collapse>
+          )}
           </Box>
         </>
       }

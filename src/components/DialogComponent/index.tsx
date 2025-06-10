@@ -35,8 +35,9 @@ const DialogComponent = ({
   return (
     <DialogContainer {...rest} open={!!dialogKey} onClose={handleClose}>
       {isActiveFooter && <DialogHeader onClose={handleClose} title={dialogTitle || ''} marginTop={2} />}
-      <DialogContent sx={{ textAlign: isActiveFooter ? "" : "center"}}>
-        <Box sx={{ height: {xs: hasError ? 480 : 480, md: hasError ? 400 : 330}, padding: 2, maxHeight:"fit-content" }}>{children}</Box>
+      <DialogContent sx={{ textAlign: isActiveFooter ? "" : "center", maxHeight: 'fit-content'}}>
+        {/* <Box sx={{ height: {xs: hasError ? 800 : 500, md: hasError ? 420 : 350}, padding: 2, maxHeight:"fit-content" }}>{children}</Box> */}
+        <Box sx={{ padding: 2}}>{children}</Box>
       </DialogContent>
       {isActiveFooter &&<DialogFooter>
         {customButtons}

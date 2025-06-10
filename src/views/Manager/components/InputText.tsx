@@ -80,7 +80,7 @@ const InputText: React.FC<CustomInputProps> = ({
   datePickerProps = {},
   dateTimePickerProps = {},
   onlyPositiveNumber = false,
-  maxDate
+  maxDate,
 }) => {
 
   const commonSlotTextFieldProps = {
