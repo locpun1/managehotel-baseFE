@@ -1,4 +1,4 @@
-import { Box, Paper, Typography} from '@mui/material';
+import { Alert, Box, Paper, Typography} from '@mui/material';
 import SearchBar from '@/components/SearchBar';
 import { useCallback, useEffect, useState } from 'react';
 import Grid from '@mui/material/Grid2';
@@ -12,13 +12,16 @@ import { useParams } from 'react-router-dom';
 import { TaskItemData } from '@/types/task-types';
 import { TASK_STATUS_API } from '@/constants/task';
 import useNotification from '@/hooks/useNotification';
+import { getProfileUserCreateTaskAttachedRoom } from '@/services/user-service';
+import { UserProfile } from '@/types/users';
 
-interface StepperData {
+export interface StepperData {
   roomNumber: string;
   taskTitlePrefix?: string;
   status: string;
   currentDate: string;
   steps?: StepProps[];
+  groupTaskName?: string;
 }
 
 export const ID_ROOM = 'id_room';
@@ -35,7 +38,9 @@ const StaffHome = () => {
   const [error, setError] = useState<string | null>(null);
   const [loadingStepper, setLoadingStepper] = useState<boolean>(true);
   const [loading, setLoading] = useState<boolean>(true);
-   const notify = useNotification();
+  const notify = useNotification();
+  const [profileUser, setProfileUser] = useState<UserProfile | null>(null);
+  const [errorProfile, setErrorProfile] = useState<string | null>(null)
 
   const fetchStepperData = useCallback(async (showLoading = true) => {
       if (!roomId) {
@@ -62,10 +67,26 @@ const StaffHome = () => {
       }
     }, [roomId]);
 
+  const fetchProfileUserCreatedTask = useCallback(async() => {
+    if (!roomId) {
+      setError("Room ID không hợp lệ.");
+      return;
+    }
+    setErrorProfile(null)
+    try {
+      const res = await getProfileUserCreateTaskAttachedRoom(roomId);
+      setProfileUser(res)
+    } catch (error: any) {
+      setErrorProfile(error.message)
+      setProfileUser(null)
+    }
+  }, [roomId])
+
   useEffect(() => {
     setError(null);
     fetchStepperData();
     fetchDetailedTaskData();
+    fetchProfileUserCreatedTask();
   }, [fetchStepperData]);
 
   const fetchDetailedTaskData = useCallback(async (showLoading = true) => {
@@ -136,73 +157,77 @@ const StaffHome = () => {
     };
 
   return (
-    <Box>
+    <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <SearchBar
         onSearch={handleSearch}
         placeholder="Tìm kiếm"
         initialValue={searchTerm}
 
       />
-      <Grid container spacing={2} sx={{ m:2}}>
-        <Grid size={{ xs:12, md: 9.5}}>
-            <Grid container spacing={1}>
-              <Grid size={{ xs: 12}}>
-                <Box>
-                  <Paper elevation={2} sx={{ padding: 1, borderRadius: '8px', border: '1px solid #e0e0e0',height: '20%' }}>
-                    {stepperData ? (
-                      <TaskProgressStepper
-                        roomNumber={stepperData.roomNumber}
-                        taskTitlePrefix={stepperData.taskTitlePrefix}
-                        status={stepperData.status}
-                        currentDate={stepperData.currentDate}
-                        steps={stepperData.steps}
-                      />
-                    ): (
-                      <Typography sx={{ mb: 4}}>Không có thông tin quy trình cho phòng này</Typography>
-                    )}
-                  </Paper>
-                </Box>
+      <Box sx={{ flex: 1, overflow: 'auto' }}>
+        <Grid container spacing={2} sx={{ m:2}}>
+          <Grid size={{ xs:12, md: 9.5}}>
+              <Grid container spacing={1}>
+                <Grid size={{ xs: 12}}>
+                    <Paper elevation={2} sx={{ padding: 1, borderRadius: '8px', border: '1px solid #e0e0e0' }}>
+                      {stepperData ? (
+                        <TaskProgressStepper
+                          roomNumber={stepperData.roomNumber}
+                          taskTitlePrefix={stepperData.taskTitlePrefix}
+                          status={stepperData.status}
+                          currentDate={stepperData.currentDate}
+                          steps={stepperData.steps}
+                        />
+                      ): (
+                        <Typography sx={{ mb: 4}}>Không có thông tin quy trình cho phòng này</Typography>
+                      )}
+                    </Paper>
+                </Grid>
+                <Grid size={{ xs: 12, md:4}}>
+                  <Box>
+                    <Paper elevation={2} sx={{ padding: 1, borderRadius: '8px', border: '1px solid #e0e0e0' }}>
+                      Mã QR của bạn
+                    </Paper>
+                  </Box>
+                </Grid>
+                <Grid size={{ xs: 12, md: 8}}>
+                  <Box>
+                    <Paper elevation={2} sx={{ padding: 1, borderRadius: '8px', border: '1px solid #e0e0e0' }}>
+                      <Typography variant="h6" component="h2" gutterBottom sx={{ fontWeight: 'bold', mb: 2 }}>
+                        Danh sách công việc
+                      </Typography>
+                      {detailedTasksResponse && detailedTasksResponse.tasks.length > 0 ? (
+                        <TaskList
+                          tasks={detailedTasksResponse.tasks}
+                          onTaskAction={handleTaskAction}
+                          onCompleteAll={handleCompleteAll}
+                        />
+                      ) : (
+                        !loadingTaskList && <Typography color="text.secondary">Không có công việc chi tiết nào được tìm thấy.</Typography>
+                      )}
+                    </Paper>
+                  </Box>
+                </Grid>
               </Grid>
-              <Grid size={{ xs: 12, md:4}}>
-                <Box>
-                  <Paper elevation={2} sx={{ padding: 1, borderRadius: '8px', border: '1px solid #e0e0e0',height: '50%' }}>
-                    Mã QR của bạn
-                  </Paper>
-                </Box>
-              </Grid>
-              <Grid size={{ xs: 12, md: 8}}>
-                <Box>
-                  <Paper elevation={2} sx={{ padding: 1, borderRadius: '8px', border: '1px solid #e0e0e0',height: '50%' }}>
-                    <Typography variant="h6" component="h2" gutterBottom sx={{ fontWeight: 'bold', mb: 2 }}>
-                      Danh sách công việc
-                    </Typography>
-                    {detailedTasksResponse && detailedTasksResponse.tasks.length > 0 ? (
-                      <TaskList
-                        tasks={detailedTasksResponse.tasks}
-                        onTaskAction={handleTaskAction}
-                        onCompleteAll={handleCompleteAll}
-                      />
-                    ) : (
-                      !loadingTaskList && <Typography color="text.secondary">Không có công việc chi tiết nào được tìm thấy.</Typography>
-                    )}
-                  </Paper>
-                </Box>
-              </Grid>
-            </Grid>
+          </Grid>
+          <Grid size={{ xs:12, md: 2.5}}>
+              {errorProfile && (
+                <Alert severity='error' sx={{ my: 2 }}>{errorProfile}</Alert>
+              )}
+              {!errorProfile && profileUser &&
+                <CardInfoManager
+                  data={profileUser}
+                />
+              }
+              {profile && stepperData &&
+                <CardInfoStaff
+                  data={profile}
+                  stepperData={stepperData}
+                />
+              }
+          </Grid>
         </Grid>
-        <Grid size={{ xs:12, md: 2.5}}>
-            {profile &&
-              <CardInfoManager
-                data={profile}
-              />
-            }
-            {profile &&
-              <CardInfoStaff
-                data={profile}
-              />
-            }
-        </Grid>
-      </Grid>
+      </Box>
     </Box>
   );
 };

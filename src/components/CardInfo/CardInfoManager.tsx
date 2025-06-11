@@ -32,7 +32,7 @@ const CardInfoManager = ({data} : CardInfoManagerProps) => {
                     <Grid size={{ xs: 5}}>
                         <Typography variant="body2" component='span'>Số điện thoại: </Typography>
                     </Grid>
-                    <Grid size={{ xs:7}}>
+                    <Grid size={{ xs:7}} sx={{mt: 0.5}}>
                         <Typography sx={{ display: 'flex', justifyContent: 'start'}} variant="body2" component='span'>
                             {data.phone_number || ' - '}
                         </Typography>

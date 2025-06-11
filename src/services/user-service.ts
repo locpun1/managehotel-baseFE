@@ -16,3 +16,20 @@ export const updateUserProfile = (
   const endpoint = `${prefix}/users/update-profile/${id}`;
   return HttpClient.post<FormData, HttpResponse<UserProfile>>(endpoint, formData);
 };
+
+export const getProfileUserCreateTaskAttachedRoom = async(
+  roomId: string,
+): Promise<UserProfile> => {
+    let url = `${prefix}/users/profile-user?roomId=${roomId}`;
+    const response = await HttpClient.get<{
+        success:boolean;
+        message: string;
+        data: UserProfile;
+    }>(url);
+    if (response.data && response.success && response.data) {
+      return response.data; 
+    } else {
+      console.error("API response error in getProfileUserCreateTaskAttachedRoom:", response);
+      throw new Error(response?.message || 'Failed to fetch profle user');
+    }
+}

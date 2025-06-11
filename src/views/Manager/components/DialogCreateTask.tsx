@@ -103,7 +103,7 @@ const MenuProps = {
 const DialogCreateTask: React.FC<DialogCreateTaskProps> = (props) => {
     const {open, title, onClose, handleLoadList, taskId, from} = props;
     const [formData, setFormData] = useState<TaskFormData>({
-        name: '', notes: '', quantity: 0, status: TaskStatus.PENDING, assigned_by_id: '', room_id: '', floor_id: ''
+        name: 'Dọn dẹp phòng', notes: '', quantity: 0, status: TaskStatus.PENDING, assigned_by_id: '', room_id: '', floor_id: ''
     })
 
     const [listFloors, setListFloors] = useState<IconFloor[]>([]);
@@ -151,7 +151,7 @@ const DialogCreateTask: React.FC<DialogCreateTaskProps> = (props) => {
     const handleClose = () => {
         onClose()
         setFormData({
-            name: '', notes: '', quantity: 0, status: TaskStatus.PENDING, assigned_by_id: '', room_id: '', floor_id: ""
+            name: 'Dọn dẹp phòng', notes: '', quantity: 0, status: TaskStatus.PENDING, assigned_by_id: '', room_id: '', floor_id: ""
         })
         setTaskSlots([])
         setErrors({})
@@ -201,6 +201,14 @@ const DialogCreateTask: React.FC<DialogCreateTaskProps> = (props) => {
             setListRooms([]);
         }
     },[selectedFloor])
+
+    useEffect(() => {
+    const newQuantity = taskSlots.length;
+    setFormData(prev => ({
+        ...prev,
+        quantity: newQuantity
+    }));
+    }, [taskSlots]);
 
 
     const handleCustomInputChange = (name: string, value: string | number| null | Dayjs) => {
@@ -324,6 +332,7 @@ const DialogCreateTask: React.FC<DialogCreateTaskProps> = (props) => {
 
     }
 
+
     return (
         <DialogComponent
             hasError={Object.keys(errors).length > 0}
@@ -387,18 +396,19 @@ const DialogCreateTask: React.FC<DialogCreateTaskProps> = (props) => {
                         </Grid>
                     </Grid>
                     <Grid item xs={12}>
-                        <Typography variant="body2" fontWeight={600} gutterBottom>Công việc</Typography>
+                        <Typography variant="body2" fontWeight={600} gutterBottom>Công việc chính</Typography>
                         <InputText
                             label=""
                             type="text"
                             name="name"
                             value={from && detailTask ? detailTask.name : formData.name}
                             onChange={handleCustomInputChange}
-                            placeholder="Công việc"
+                            placeholder="Công việc chính"
                             sx={{ mt: 0 }}
                             error={!!errors.name}
                             helperText={errors.name}
                             margin="dense"
+                            disabled
                         />
                     </Grid>
                     <Grid item xs={12}>
@@ -432,6 +442,7 @@ const DialogCreateTask: React.FC<DialogCreateTaskProps> = (props) => {
                                     error={!!errors.quantity}
                                     helperText={errors.quantity}
                                     margin="dense"
+                                    disabled
                                 />
                             </Grid>
                         </Grid>
@@ -439,7 +450,7 @@ const DialogCreateTask: React.FC<DialogCreateTaskProps> = (props) => {
                     <Grid item xs={12}>
                         <Grid container spacing={1}>
                             <Grid item xs={7}>
-                                <Typography variant="body2" fontWeight={600} gutterBottom>Hạng mục dọn dẹp</Typography>
+                                <Typography variant="body2" fontWeight={600} gutterBottom>Các công việc nhỏ bên trong</Typography>
                             </Grid>
                             <Grid item xs={3}>
                                 <Typography variant="body2" fontWeight={600} gutterBottom>Thứ tự</Typography>
@@ -511,7 +522,6 @@ const DialogCreateTask: React.FC<DialogCreateTaskProps> = (props) => {
                                                 borderRadius={1}
                                                 tooltip="Thêm hạng mục"
                                                 sx={{ mt: 0, mr: 1}}
-                                                disabled={taskSlots.length >= formData.quantity}
                                             />
                                             <IconButton
                                                 aria-label={`Remove slot ${index + 1}`}
