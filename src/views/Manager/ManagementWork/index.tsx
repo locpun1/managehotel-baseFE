@@ -67,7 +67,15 @@ function ManagementWork (){
     }
 
     const handleLoadList = (newTask: GroupTasks) => {
-        setListGroupTask(prev => [newTask, ...prev])
+        setListGroupTask(prev => {
+            const index = prev.findIndex(task => task.id === newTask.id);
+            if (index !== -1) {
+                const updated = [...prev];
+                updated[index] = newTask;
+                return updated;
+            }
+            return [newTask, ...prev]
+        })
     } 
 
     const handleOpenEditTask = (id: string | number) => {
