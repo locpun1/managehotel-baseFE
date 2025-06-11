@@ -3,7 +3,7 @@ import ActionButton from "@/components/ProButton/ActionButton";
 import { Box, Grid, TextField, Typography } from "@mui/material";
 import React, { useEffect, useState,FormEvent, useMemo } from "react";
 import InputText from "./InputText";
-import { createTask, DataTaskProps, getAllListFloor, getRoomByFloor } from "@/services/manager.service";
+import { createTask, DataTaskProps, getAllListFloor, getRoomByFloor, updateTask } from "@/services/manager.service";
 import { Floors, GroupTasks, Rooms, Tasks } from "@/types/manager";
 import dayjs, { Dayjs } from "dayjs";
 import useAuth from "@/hooks/useAuth";
@@ -59,9 +59,6 @@ interface DateTask extends TaskItemData{
     due_date: string
 }
 
-interface TaskData {
-    result: GroupTasks
-}
 
 interface DataTask{
     task: GroupTasks
@@ -108,7 +105,6 @@ const DialogCreateTask: React.FC<DialogCreateTaskProps> = (props) => {
 
     const [listFloors, setListFloors] = useState<IconFloor[]>([]);
     const [listRooms, setListRooms] = useState<IconRoom[]>([])
-    const [detailTask, setDetailTask] = useState<GroupTasks | null>(null)
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState<Partial<Record<'name' | 'notes' | 'quantity' | 'floor_id' | 'room_id', string>>>({});
     type TaskSlotError = Partial<Record<'title' | 'order_in_process', string>>;
@@ -129,9 +125,8 @@ const DialogCreateTask: React.FC<DialogCreateTaskProps> = (props) => {
         if(from && open && taskId){
             const getDetail = async(id: string | number) =>{
                 const res = await getDetailTask(id);
-                const data = res as any as TaskData;
-                setDetailTask(data.result)
-                if(data.result.groupTask && data.result.groupTask.length === 0){
+                setFormData(res)
+                if(res.groupTask && res.groupTask.length === 0){
                     setTaskSlots([
                         {
                             'title': '',
@@ -140,7 +135,7 @@ const DialogCreateTask: React.FC<DialogCreateTaskProps> = (props) => {
                         }
                     ])
                 }else{
-                    data.result.groupTask && setTaskSlots(data.result.groupTask)
+                    res.groupTask && setTaskSlots(res.groupTask)
                 }
             }
 
@@ -176,7 +171,7 @@ const DialogCreateTask: React.FC<DialogCreateTaskProps> = (props) => {
         }
     }, [open, profile])
     
-    const selectedFloor = from ? useMemo(() => detailTask && detailTask.floor_id, [detailTask?.floor_id]) : useMemo(() => formData.floor_id, [formData.floor_id]);
+    const selectedFloor = useMemo(() => formData.floor_id, [formData.floor_id]);
     useEffect(() => {
         if(selectedFloor){
             const getRooms = async() => {
@@ -291,7 +286,7 @@ const DialogCreateTask: React.FC<DialogCreateTaskProps> = (props) => {
         return Object.keys(newErrors).length === 0; // True nếu không có lỗi
     };
 
-      const handleSubmit = async(event: FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async(event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         if(!validateForm()){
             return;
@@ -313,7 +308,15 @@ const DialogCreateTask: React.FC<DialogCreateTaskProps> = (props) => {
         }
         const { floor_id, ...payload} = data;
         try {
-            const res = await createTask(payload)
+            let res;
+            if(taskId){
+                //update GroupTask
+                res = await updateTask(taskId, payload)
+            }else{
+                //create GroupTask
+                res = await createTask(payload)
+            }
+
             notify({
                 message:res.message,
                 severity:"success"
@@ -354,7 +357,7 @@ const DialogCreateTask: React.FC<DialogCreateTaskProps> = (props) => {
                                 <InputSelect
                                     name="floor_id"
                                     label=""
-                                    value={from && detailTask ? detailTask.floor_id : formData.floor_id}
+                                    value={formData.floor_id}
                                     onChange={handleCustomInputChange}
                                     options={listFloors}
                                     transformOptions={(data) =>
@@ -377,7 +380,7 @@ const DialogCreateTask: React.FC<DialogCreateTaskProps> = (props) => {
                                     loading={loading}
                                     label=""
                                     name="room_id"
-                                    value={from && detailTask ? detailTask.room_id : formData.room_id}
+                                    value={formData.room_id}
                                     onChange={handleCustomInputChange}
                                     options={listRooms}
                                     MenuProps={MenuProps}
@@ -401,7 +404,7 @@ const DialogCreateTask: React.FC<DialogCreateTaskProps> = (props) => {
                             label=""
                             type="text"
                             name="name"
-                            value={from && detailTask ? detailTask.name : formData.name}
+                            value={formData.name}
                             onChange={handleCustomInputChange}
                             placeholder="Công việc chính"
                             sx={{ mt: 0 }}
@@ -419,7 +422,7 @@ const DialogCreateTask: React.FC<DialogCreateTaskProps> = (props) => {
                                     label=""
                                     type="text"
                                     name="notes"
-                                    value={from && detailTask ? detailTask.notes : formData.notes}
+                                    value={formData.notes}
                                     onChange={handleCustomInputChange}
                                     placeholder="Yêu cầu"
                                     sx={{ mt: 0 }}
@@ -434,7 +437,7 @@ const DialogCreateTask: React.FC<DialogCreateTaskProps> = (props) => {
                                     label=""
                                     type="text"
                                     name="quantity"
-                                    value={from && detailTask ? detailTask.quantity : formData.quantity}
+                                    value={formData.quantity}
                                     onChange={handleCustomInputChange}
                                     placeholder="Số lượng"
                                     sx={{ mt: 0 }}

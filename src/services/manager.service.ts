@@ -49,6 +49,14 @@ export const createTask =  (params: TaskData) => {
   return HttpClient.post<typeof params, HttpResponse<Tasks>>(`${prefix}/tasks/create-task`, params);
 }
 
+export const updateTask = async (
+  groupTaskId: string | number,
+  payload: TaskData
+): Promise<HttpResponse<TaskData>> => {
+  const url = `${prefix}/tasks/${groupTaskId}/update-task`; 
+  return HttpClient.put<TaskData>(url, payload as any);
+};
+
 export const generateLink =  (params: LinkRequest) => {
   return HttpClient.post<typeof params, HttpResponse<Rooms>>(`${prefix}/rooms/generate-link`, params);
 }
