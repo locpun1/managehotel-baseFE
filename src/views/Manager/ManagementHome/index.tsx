@@ -54,7 +54,8 @@ const ManagementHome = () => {
     setLoading(true)
     setError(null)
     try {
-      const res = await getListRoom(currentPage, currentLimit);
+      const date = new Date().toISOString().split('T')[0];
+      const res = await getListRoom(currentPage, currentLimit, date);
       const data = res.data as any as DataRoomsProps;
       setListRooms(data.data)
       setTotal(data.totalCount)
@@ -73,6 +74,7 @@ const ManagementHome = () => {
   useEffect(() => {
     if (!loading && listRooms.length > 0 && !showAll) {
       setExpandedRoomId(prev => prev || listRooms[0].id)
+      setGroupTaskId(prev => prev || listRooms[0].idGroupTask)
     }
   }, [loading,listRooms, showAll])
 

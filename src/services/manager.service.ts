@@ -67,13 +67,15 @@ export const getListGroupTask = (
 export const getTaskByGroupTask = (
     page: number,
     size: number,
-    groupTaskId:number | string
+    groupTaskId:number | string,
+    dueDate?:string,
 ): Promise<HttpResponse<Tasks>> => {
     const endpoint = `${prefix}/tasks/list-task-by-group-task`;
     const params: Record<string, any> = {
         page: page,
         size: size,
-        groupTaskId: groupTaskId
+        groupTaskId: groupTaskId,
+        dueDate: dueDate
     }
     return HttpClient.get<HttpResponse<Tasks>>(endpoint,{params})
 }  
@@ -81,11 +83,13 @@ export const getTaskByGroupTask = (
 export const getListRoom = (
   page: number,
   size: number,
+  dueDate?: string,
 ): Promise<HttpResponse<Tasks>> => {
   const endpoint = `${prefix}/rooms/get-list-room`;
   const params: Record<string, any> = {
       page: page,
       size: size,
+      dueDate:dueDate
   }
   return HttpClient.get<HttpResponse<Tasks>>(endpoint,{params})
 } 

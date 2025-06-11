@@ -45,10 +45,6 @@ const TableTaskByGroupTask: React.FC<TableTaskByGroupTaskProps> = (props) => {
     const [error, setError] = useState(null);
     const [totalTask, setTotalTask] = useState(0)
 
-    const handleToggle = (id: string | number) => {
-        setSelectedTaskId((prevId) => (prevId === id ? null : id))
-    }
-
     useEffect(() => {
         if(id){
             setSelectedTaskId(id)
@@ -92,7 +88,7 @@ const TableTaskByGroupTask: React.FC<TableTaskByGroupTaskProps> = (props) => {
                 <Alert severity="error" sx={{ my:2 }}>{error}</Alert>
             )}
             {!loading && !error && (
-                <Collapse in={selectedTaskId === id} timeout='auto' unmountOnExit>
+                <>
                     <Typography fontWeight={500} sx={{ mt:3}}>{`Danh sách công việc theo phòng`} </Typography>
                     <TableContainer component={Paper}>
                         <Table>
@@ -108,7 +104,7 @@ const TableTaskByGroupTask: React.FC<TableTaskByGroupTaskProps> = (props) => {
                             <TableBody>
                                 {listTaskByGroupTask?.length === 0 ? (
                                     <TableRow>
-                                        <TableCell colSpan={6}>
+                                        <TableCell align="center" colSpan={6}>
                                             <Typography variant="body2">Không tôn tại bản ghi nào cả</Typography>
                                         </TableCell>
                                     </TableRow>
@@ -140,7 +136,7 @@ const TableTaskByGroupTask: React.FC<TableTaskByGroupTaskProps> = (props) => {
                         sx={{ mt: 2, mb: 1}}
                         onPageChange={handlePageChangeTask}
                     />
-                </Collapse>
+                </>
             )}
         </Box>
     )

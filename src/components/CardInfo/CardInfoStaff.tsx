@@ -5,12 +5,16 @@ import { getPathImage } from "@/utils/url";
 import { getRoleLabel } from "@/utils/labelEnToVni";
 import { getAgeFromDateOfBirth } from "@/utils/DateTime";
 import Grid from '@mui/material/Grid2';
+import { StepperData } from "@/views/Staff/Home";
 
 interface CardInfoStaffProps{
-    data: UserProfile
+    data: UserProfile,
+    stepperData?: StepperData
 }
 
-const CardInfoStaff = ({ data }: CardInfoStaffProps) => {
+const CardInfoStaff = ({ data, stepperData }: CardInfoStaffProps) => {
+    const floor = stepperData?.roomNumber.charAt(0);
+    
     return (
         <Card sx={{ border: '1px solid #e0e0e0'}}>
             <CardContent>
@@ -31,7 +35,7 @@ const CardInfoStaff = ({ data }: CardInfoStaffProps) => {
                         <Typography variant="body2" component="span">Tầng: </Typography>
                         </Grid>
                         <Grid size={{ xs: 7.5}}>
-                        <Typography sx={{ display:'flex', justifyContent:'start'}} variant="body2" component="span"> Tầng 02</Typography>
+                        <Typography sx={{ display:'flex', justifyContent:'start'}} variant="body2" component="span"> {`Tầng ${floor}`}</Typography>
                         </Grid>
                     </Grid>
                     <Grid container spacing={2}>
@@ -39,7 +43,7 @@ const CardInfoStaff = ({ data }: CardInfoStaffProps) => {
                         <Typography variant="body2" component="span">Phòng: </Typography>
                         </Grid>
                         <Grid size={{ xs: 7.5}}>
-                        <Typography sx={{ display:'flex', justifyContent:'start'}} variant="body2" component="span"> Phòng 201</Typography>
+                        <Typography sx={{ display:'flex', justifyContent:'start'}} variant="body2" component="span"> {`Phòng ${stepperData?.roomNumber}`}</Typography>
                         </Grid>
                     </Grid>
                     <Grid container spacing={2}>
@@ -47,7 +51,7 @@ const CardInfoStaff = ({ data }: CardInfoStaffProps) => {
                         <Typography variant="body2" component="span">Công việc: </Typography>
                         </Grid>
                         <Grid size={{ xs: 7.5}}>
-                        <Typography sx={{ display:'flex', justifyContent:'start'}} variant="body2" component="span"> Dọn vệ sinh phòng</Typography>
+                        <Typography sx={{ display:'flex', justifyContent:'start'}} variant="body2" component="span"> {stepperData?.groupTaskName}</Typography>
                         </Grid>
                     </Grid>
                     <Grid container spacing={2}>

@@ -44,7 +44,10 @@ export const checkDay = (today:Dayjs |string, dueDate: Dayjs | string) : boolean
 const TableTask: React.FC<TableTaskProps> = (props) => {
     const { listGroupTask, from, total, page, rowsPerPage, handlePageChange, handleOpenEditTask } = props;
 
-    const [selectedTaskId, setSelectedTaskId] = useState<string | number | null>(null);
+    const [selectedGroupTask, setSelectedGroupTask] = useState<{
+        id: string | number;
+        due_date: string;
+        } | null>(null);
     const [pageTask, setPageTask] = useState(0);
     const [rowsPerPageTask, setRowPerPageTask] = useState(6);
     const [listTaskByGroupTask, setListTaskByGroupTask] = useState<Tasks[]>([]);
@@ -52,16 +55,19 @@ const TableTask: React.FC<TableTaskProps> = (props) => {
     const [error, setError] = useState(null);
     const [totalTask, setTotalTask] = useState(0)
 
-    const handleToggle = (id: string | number) => {
-        setSelectedTaskId((prevId) => (prevId === id ? null : id))
+    const handleToggle = (id: string | number, date: string) => {
+        setSelectedGroupTask({
+            id: id,
+            due_date: date
+        });
     }
 
     useEffect(() => {
-        if(selectedTaskId){
+        if(selectedGroupTask){
             const fetchTaskByGroupTask = async() => {
                 setLoading(true)
                     try {
-                        const res = await getTaskByGroupTask(pageTask, rowsPerPageTask, selectedTaskId);
+                        const res = await getTaskByGroupTask(pageTask, rowsPerPageTask, selectedGroupTask.id,selectedGroupTask.due_date);
                         const data = res.data as any as DataTaskProps
                         setListTaskByGroupTask(data.result.data);
                         setTotalTask(data.result.totalCount)
@@ -75,7 +81,7 @@ const TableTask: React.FC<TableTaskProps> = (props) => {
             }
             fetchTaskByGroupTask()
         }
-    }, [selectedTaskId])
+    }, [selectedGroupTask])
 
     const handlePageChangeTask = (newPage: number) => {
         setPageTask(newPage)
@@ -106,13 +112,12 @@ const TableTask: React.FC<TableTaskProps> = (props) => {
                             </TableRow>
                         ) : (
                             listGroupTask?.map((task) => {
-                                // const isDay = task.due_date && checkDay(dayjs(), task.due_date);
-                                const statusLabel = getStatusLabel(task.status);
-                                const statusColor = getStatusChipColor(task.status);
-                                
-                                return(
+                                const isDay = task.due_date && checkDay(dayjs(), task.due_date);
+                                const statusLabel = isDay? getStatusLabel("cancelled") : getStatusLabel(task.status);
+                                const statusColor = isDay? getStatusChipColor("cancelled") : getStatusChipColor(task.status);
+                                return( 
                                     <React.Fragment key={task.id}>
-                                        <TableRow hover onClick={() => handleToggle(task.id)}>
+                                        <TableRow hover onClick={() => handleToggle(task.id, task.due_date)}>
                                             <TableCell align="center">{task.floorName}</TableCell>
                                             <TableCell align="center">{task.roomName}</TableCell>
                                             <TableCell align="center">{task.name}</TableCell>
@@ -123,26 +128,28 @@ const TableTask: React.FC<TableTaskProps> = (props) => {
                                             <TableCell align="center">{DateTime.FormatDate(task.due_date) || " "}</TableCell>
                                             <TableCell align="center">{DateTime.Format(task.started_at) || " "}</TableCell>
                                             <TableCell align="center">{DateTime.Format(task.completed_at) || " "}</TableCell>
-                                            {from && <TableCell align="center">
-                                                <IconButtonBtn
-                                                    handleFunt={() => {
-                                                        if (task.id && handleOpenEditTask) {
-                                                            handleOpenEditTask(task.id);
-                                                        }
-                                                    }}
-                                                    icon={<Edit color="primary"/>}
-                                                    tooltip="Sửa"
-                                                    height={22}
-                                                    width={22}
-                                                />
+                                            <TableCell align="center">
+                                                {!isDay && (
+                                                    <IconButtonBtn
+                                                        handleFunt={() => {
+                                                            if (task.id && handleOpenEditTask) {
+                                                                handleOpenEditTask(task.id);
+                                                            }
+                                                        }}
+                                                        icon={<Edit color="primary"/>}
+                                                        tooltip="Sửa"
+                                                        height={22}
+                                                        width={22}
+                                                    />
+                                                )}
                                                 <IconButtonBtn
                                                     handleFunt={() => {}}
-                                                    icon={<Delete color="primary"/>}
+                                                    icon={<Delete color="error"/>}
                                                     tooltip="Xóa"
                                                     height={22}
                                                     width={22}
                                                 />  
-                                            </TableCell>}
+                                            </TableCell>
                                         </TableRow>
                                     </React.Fragment>
                                 )
@@ -166,9 +173,9 @@ const TableTask: React.FC<TableTaskProps> = (props) => {
             {error && !loading && (
                 <Alert severity="error" sx={{ my:2 }}>{error}</Alert>
             )}
-            {!loading && !error && (
-                <Collapse in={selectedTaskId === listGroupTask?.find(el => el.id === selectedTaskId)?.id} timeout='auto' unmountOnExit>
-                    <Typography fontWeight={500} sx={{ mt:3}}>{`Danh sách chi tiết theo nhóm công việc: ${listGroupTask?.find(el => el.id === selectedTaskId)?.name}, ${listGroupTask?.find(el => el.id === selectedTaskId)?.roomName}`} </Typography>
+            {!loading && !error && selectedGroupTask && (
+                <Collapse in={selectedGroupTask.id === listGroupTask?.find(el => el.id === selectedGroupTask.id)?.id} timeout='auto' unmountOnExit>
+                    <Typography fontWeight={500} sx={{ mt:3}}>{`Danh sách chi tiết theo nhóm công việc: ${listGroupTask?.find(el => el.id === selectedGroupTask.id)?.name}, ${listGroupTask?.find(el => el.id === selectedGroupTask.id)?.roomName}`} </Typography>
                     <TableContainer component={Paper}>
                         <Table>
                             <TableHead>
@@ -190,12 +197,15 @@ const TableTask: React.FC<TableTaskProps> = (props) => {
                                 ) : (
                                     listTaskByGroupTask
                                         ?.map((listTask, index)=> {
+                                            const isDay = listTask.due_date && checkDay(dayjs(), listTask.due_date);
+                                            const statusLabel = isDay? getStatusLabel("cancelled") : getStatusLabel(listTask.status);
+                                            const statusColor = isDay? getStatusChipColor("cancelled") : getStatusChipColor(listTask.status);
                                             return (
                                                 <TableRow key={index}>
                                                     <TableCell align="center">{listTask.title}</TableCell>
                                                     <TableCell align="center">{listTask.order_in_process}</TableCell>
                                                     <TableCell align="center">
-                                                        <Chip label={getStatusLabel(listTask.status)} color={getStatusChipColor(listTask.status)} ></Chip>
+                                                        <Chip label={statusLabel} color={statusColor} ></Chip>
                                                     </TableCell>
                                                     <TableCell align="center">{DateTime.FormatDate(listTask.due_date) || " "}</TableCell>
                                                     <TableCell align="center">{DateTime.Format(listTask.started_at) || " "}</TableCell>
