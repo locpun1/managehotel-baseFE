@@ -3,7 +3,7 @@ import _ from 'lodash';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
-import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
+import { Link as RouterLink, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 
 import { AccountCircle, Lock, Visibility, VisibilityOff } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
@@ -35,6 +35,7 @@ interface LoginFormInputs {
   identifier: string;
   password: string;
 }
+export const PATH_STAFF_WITH_ROOM = 'path_staff_with_room';
 
 export default function Login() {
   const {
@@ -54,6 +55,11 @@ export default function Login() {
   const [_error, setError] = useState('');
   const [showPassword, setShowPassword] = useBoolean(false);
   const [remember, setRemember] = useState(true);
+  const [searchParams] = useSearchParams();
+
+  const redirectPath = searchParams.get('redirect') || '/staff/home';
+  
+  localStorage.setItem(PATH_STAFF_WITH_ROOM, redirectPath);
 
   useEffect(() => {
     setFocus('identifier');
@@ -80,14 +86,15 @@ export default function Login() {
                   message: t('login_success'),
                   severity: 'success',
                 });
-                
                 let route = respUser.data?.role === "manager" ? `/${ROUTE_PATH.MANAGE}/${ROUTE_PATH.MANAGE_HOME}` : 
-                   respUser.data?.role === "staff" ? `/${ROUTE_PATH.STAFF}/${ROUTE_PATH.STAFF_HOME}` :
+                   respUser.data?.role === "staff" ? `${redirectPath}` :
                 ROUTE_PATH.HOME;
                 
                 if (!_.isNull(location.state) && location.state !== ROUTE_PATH.LOGIN) {
                   route = location.state;
                 }
+                console.log("route: ",route);
+                
                 navigate(route);
               } 
       }else {

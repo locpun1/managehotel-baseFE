@@ -2,6 +2,7 @@ import type { SvgIconComponent } from '@mui/icons-material';
 import { Assignment, Badge, ConnectedTv, EventNote, HomeOutlined } from '@mui/icons-material';
 
 import { ROUTE_PATH } from '@/constants/routes';
+import { ID_ROOM } from '@/views/Staff/Home';
 
 export interface SectionItem {
   title: string;
@@ -61,13 +62,15 @@ export const AdminSections = () : Section[] => [
     ],
   },
 ]
+const roomId = localStorage.getItem(ID_ROOM);
+
 export const UserSection = (): Section[] => [
   {
     section: null,
     items: [
       {
         title: 'Trang chủ',
-        path:  `${ROUTE_PATH.STAFF}/${ROUTE_PATH.STAFF_HOME}`,
+        path:  `${ROUTE_PATH.STAFF}/${ROUTE_PATH.STAFF_HOME}/${roomId}`,
         icon: HomeOutlined,
       },
     ],

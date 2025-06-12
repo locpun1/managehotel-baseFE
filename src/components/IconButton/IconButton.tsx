@@ -35,7 +35,7 @@ const IconButton: React.FC<IconButtonProps> = ({
         handleFunt()
     }
     return(
-        <Tooltip title={tooltip} placement={tooltipPlacement}>
+        <Tooltip title={tooltip} placement={tooltipPlacement} arrow disableFocusListener disableHoverListener>
             <span>
                  {/* span wrapper để Tooltip hoạt động với disabled button */}
                 <MuiIconButton
@@ -48,6 +48,15 @@ const IconButton: React.FC<IconButtonProps> = ({
                         borderRadius,
                         backgroundColor,
                         color,
+                        '&:hover': {
+                            color: 'white',
+                            backgroundColor: backgroundColor, // hoặc 'transparent' nếu không muốn nền
+                        },
+                        '&.Mui-disabled':{
+                            backgroundColor:"gray",
+                            color: 'white',
+                            opacity: 0.5, // hoặc giữ nguyên 1 nếu không muốn bị mờ
+                        },
                         ...props.sx
                     }}
                     disabled={disabled}

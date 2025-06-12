@@ -76,7 +76,7 @@ const InputSelect: React.FC<InputSelectProps> = ({
   }, [options, optionGroups, transformOptions]);
 
   const renderOptions = () => {
-    if ( Array.isArray(finalOptions) && finalOptions.length > 0 && 'options' in finalOptions[0]) {
+    if ( Array.isArray(finalOptions) && finalOptions.length > 0 && finalOptions[0] && 'options' in finalOptions[0]) {
       return (finalOptions as OptionGroup[]).map((group, i) => [
         <ListSubheader key={`group-${i}`}>{group.label}</ListSubheader>,
         ...group.options.map((option) => (
@@ -112,7 +112,7 @@ const InputSelect: React.FC<InputSelectProps> = ({
 
   const getSelectedLabel = () => {
     const allOptions =
-    Array.isArray(finalOptions) && 'options' in finalOptions[0]
+    Array.isArray(finalOptions) && finalOptions[0] && 'options' in finalOptions[0]
       ? (finalOptions as OptionGroup[]).flatMap((g) => g.options)
       : (finalOptions as Option[]);
 

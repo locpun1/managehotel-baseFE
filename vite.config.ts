@@ -20,6 +20,7 @@ export default defineConfig({
     },
   },
   optimizeDeps: {
+    include: ['@mui/icons-material'],
     exclude: ['js-big-decimal'],
     esbuildOptions: {
       target: 'esnext',

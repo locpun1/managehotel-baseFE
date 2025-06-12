@@ -1,7 +1,8 @@
 import React from 'react';
 import { Stack, IconButton, Button, Typography, useTheme, Box, BoxProps } from '@mui/material';
-import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore';
-import NavigateNextIcon from '@mui/icons-material/NavigateNext';
+// import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore';
+// import NavigateNextIcon from '@mui/icons-material/NavigateNext';
+import { NavigateBefore, NavigateNext } from '@mui/icons-material';
 
 interface CustomPaginationProps {
   count: number;
@@ -93,7 +94,7 @@ const CustomPagination: React.FC<CustomPaginationProps> = ({
           size="small"
           sx={{ mr: 1 }}
         >
-          <NavigateBeforeIcon />
+          <NavigateBefore />
         </IconButton>
 
         {pageItems.map((item, index) => {
@@ -146,7 +147,7 @@ const CustomPagination: React.FC<CustomPaginationProps> = ({
           size="small"
           sx={{ ml: 1 }}
         >
-          <NavigateNextIcon />
+          <NavigateNext />
         </IconButton>
       </Stack>
     </Box>

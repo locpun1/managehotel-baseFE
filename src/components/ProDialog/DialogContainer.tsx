@@ -5,7 +5,7 @@ const DialogContainer = (props: DialogProps) => {
   const { children, open, onClose, ...rest } = props;
 
   return (
-    <Dialog open={open} onClose={onClose} scroll='paper' fullWidth {...rest}>
+    <Dialog open={open} onClose={onClose} scroll='paper' fullWidth={false} {...rest}>
       {children}
     </Dialog>
   );

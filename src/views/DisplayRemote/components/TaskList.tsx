@@ -1,11 +1,12 @@
 import React from 'react';
 import { Box, Typography, Paper, IconButton, Button, useTheme, Theme } from '@mui/material';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle'; // Icon hoàn thành (full xanh)
-import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked'; // Icon chờ (vòng tròn)
-import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline'; // Icon đang chờ (play vàng)
-import CloseIcon from '@mui/icons-material/Close';
+// import CheckCircleIcon from '@mui/icons-material/CheckCircle'; // Icon hoàn thành (full xanh)
+// import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked'; // Icon chờ (vòng tròn)
+// import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline'; // Icon đang chờ (play vàng)
+// import CloseIcon from '@mui/icons-material/Close';
 import { TaskItemData } from '@/types/task-types';
 import { ApiTaskStatus, TASK_ACTIONS, TASK_STATUS_API, TASK_STATUS_LABEL } from '@/constants/task';
+import { CheckCircle, Close, PlayCircleOutline, RadioButtonUnchecked } from '@mui/icons-material';
 
 export const translateTaskStatus = (apiStatus: ApiTaskStatus | string): string => {
   return TASK_STATUS_LABEL[apiStatus as ApiTaskStatus] || apiStatus;
@@ -26,21 +27,21 @@ const getTaskStatusPresentation = (status: TaskItemData['status'], theme: Theme)
       return {
         borderColor: theme.palette.success.main, // Xanh lá
         statusColor: theme.palette.success.main,
-        ActionIcon: CheckCircleIcon,
+        ActionIcon: CheckCircle,
         actionIconColor: theme.palette.primary.main, // Màu xanh dương cho icon tick
       };
     case 'hoạt động':
       return {
         borderColor: theme.palette.warning.main, // Vàng
         statusColor: theme.palette.warning.main,
-        ActionIcon: RadioButtonUncheckedIcon,
+        ActionIcon: RadioButtonUnchecked,
         actionIconColor: theme.palette.primary.main, // Vòng tròn xanh dương viền ngoài
       };
     case 'đang chờ':
       return {
         borderColor: theme.palette.error.main, // Màu đỏ cho thanh bên trái
         statusColor: theme.palette.text.secondary, // Màu chữ trạng thái có thể là xám
-        ActionIcon: PlayCircleOutlineIcon,
+        ActionIcon: PlayCircleOutline,
         actionIconColor: theme.palette.warning.light, // Màu vàng cho icon play
       };
     case 'chưa làm':
@@ -48,7 +49,7 @@ const getTaskStatusPresentation = (status: TaskItemData['status'], theme: Theme)
       return {
         borderColor: theme.palette.error.main,
         statusColor: theme.palette.error.main,
-        ActionIcon: CloseIcon,
+        ActionIcon: Close,
         actionIconColor: theme.palette.error.main,
       };
   }
@@ -129,7 +130,7 @@ const TaskList: React.FC<TaskListProps> = ({
 
               <Box sx={{ ml: 'auto', display: 'flex', alignItems: 'center', gap: 0.5 }}>
                 {task.status.toLowerCase() === TASK_STATUS_API.COMPLETED.toLowerCase() && (
-                  <CheckCircleIcon sx={{ color: actionIconColor, fontSize: '28px' }} />
+                  <CheckCircle sx={{ color: actionIconColor, fontSize: '28px' }} />
                 )}
                 {task.status.toLowerCase()  === TASK_STATUS_API.IN_PROGRESS.toLowerCase() && onTaskAction && (
                   <>
@@ -139,7 +140,7 @@ const TaskList: React.FC<TaskListProps> = ({
                       sx={{ color: theme.palette.error.main, border: `1px solid ${theme.palette.error.light}`, borderRadius: '50%', p: 0.3 }}
                       title="Hủy/Đặt lại"
                     >
-                      <CloseIcon fontSize="small" />
+                      <Close fontSize="small" />
                     </IconButton>
                     <IconButton
                       size="small"
@@ -147,7 +148,7 @@ const TaskList: React.FC<TaskListProps> = ({
                       sx={{ color: theme.palette.success.main, border: `1px solid ${theme.palette.success.light}`, borderRadius: '50%', p: 0.3, ml: 0.5 }}
                       title="Hoàn thành"
                     >
-                      <CheckCircleIcon fontSize="medium" />
+                      <CheckCircle fontSize="medium" />
                     </IconButton>
                   </>
                 )}
@@ -155,13 +156,13 @@ const TaskList: React.FC<TaskListProps> = ({
                   <>
                     {task.status.toLowerCase() === TASK_STATUS_API.PENDING.toLowerCase() && onTaskAction && (
                       <IconButton size="small" onClick={() => onTaskAction(task.id, TASK_ACTIONS.CANCEL)} sx={{ color: theme.palette.error.main, border: `1px solid ${theme.palette.error.light}`, borderRadius: '50%', p: 0.3 }}>
-                        <CloseIcon fontSize="small" />
+                        <Close fontSize="small" />
                       </IconButton>
                     )}
                     <IconButton size="small"
                      onClick={() => onTaskAction && onTaskAction(task.id, TASK_ACTIONS.START)} 
                      sx={{ color: theme.palette.warning.main, border: `1px solid ${theme.palette.warning.light}`, borderRadius: '50%', p: 0.3 }}>
-                      <PlayCircleOutlineIcon />
+                      <PlayCircleOutline/>
                     </IconButton>
                   </>
                 )}
