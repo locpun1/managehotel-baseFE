@@ -54,7 +54,7 @@ const RoomDisplayPageStatic = () => {
       return;
     }
     if (showLoading) setLoadingStepper(true);
-    if(showLoading) setError(null);
+    if (showLoading) setError(null);
     try {
       const todayForAPI = new Date().toISOString().split('T')[0];
       const responseData = await getRoomProcessSteps(roomId, todayForAPI);
@@ -90,10 +90,10 @@ const RoomDisplayPageStatic = () => {
 
   useEffect(() => {
     if (roomId) {
-        setError(null); 
-        fetchStepperData(true); 
+      setError(null);
+      fetchStepperData(true);
     }
-  }, [roomId, fetchStepperData]);
+  }, [roomId, fetchStepperData, fetchDetailedTaskData]);
 
   useEffect(() => {
     if (!roomId || !deviceId) {
@@ -103,7 +103,7 @@ const RoomDisplayPageStatic = () => {
 
     const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     let wsHost = window.location.hostname;
-    let wsPort = window.location.port; 
+    let wsPort = window.location.port;
 
     if (import.meta.env.VITE_API_BASE_URL && import.meta.env.VITE_API_BASE_URL !== window.location.origin) {
       try {
@@ -128,7 +128,7 @@ const RoomDisplayPageStatic = () => {
     let isComponentMounted = true;
 
     const connect = () => {
-      if (!isComponentMounted) return; 
+      if (!isComponentMounted) return;
       if (socket && (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING)) {
         return;
       }
@@ -153,7 +153,7 @@ const RoomDisplayPageStatic = () => {
           const messageData = JSON.parse(event.data as string);
           if (messageData.action === 'REFRESH_DETAILED_TASKS' && messageData.targetRoomId === roomId) {
             fetchDetailedTaskData(true);
-            fetchStepperData(false); 
+            fetchStepperData(false);
           }
         } catch (e) {
           console.error("[WebSocket] Error parsing message or invalid message format:", e);
@@ -173,9 +173,9 @@ const RoomDisplayPageStatic = () => {
       };
     };
 
-    connect(); 
+    connect();
 
-    return () => { 
+    return () => {
       isComponentMounted = false;
       if (reconnectIntervalId) clearTimeout(reconnectIntervalId);
       if (socket) {
@@ -194,7 +194,7 @@ const RoomDisplayPageStatic = () => {
   return (
     <Container sx={{ py: { xs: 2, md: 3 }, backgroundColor: '#f9f9f9', minHeight: '100vh' }}>
       <Box>
-        {isSocketConnected && !error && ( 
+        {isSocketConnected && !error && (
           <Paper elevation={1} sx={{ p: 3, textAlign: 'center', borderRadius: '12px', mt: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <Typography color="text.secondary" sx={{ mb: 2 }}>
               Quét mã này để tải hoặc làm mới danh sách công việc chi tiết.
@@ -202,7 +202,7 @@ const RoomDisplayPageStatic = () => {
             <QRCodeCanvas value={staffRoomLink} size={180} level="H" />
           </Paper>
         )}
-        {!isSocketConnected && !error && ( 
+        {!isSocketConnected && !error && (
           <Typography color="text.secondary" sx={{ textAlign: 'center', mt: 2 }}>
             Đang chờ kết nối tới máy chủ để có thể làm mới công việc qua QR...
           </Typography>
