@@ -169,7 +169,7 @@ const StaffHome = () => {
           <Grid size={{ xs:12, md: 9.5}}>
               <Grid container spacing={1}>
                 <Grid size={{ xs: 12}}>
-                    <Paper elevation={2} sx={{ padding: 1, borderRadius: '8px', border: '1px solid #e0e0e0' }}>
+                    <>
                       {stepperData ? (
                         <TaskProgressStepper
                           roomNumber={stepperData.roomNumber}
@@ -181,7 +181,7 @@ const StaffHome = () => {
                       ): (
                         <Typography sx={{ mb: 4}}>Không có thông tin quy trình cho phòng này</Typography>
                       )}
-                    </Paper>
+                    </>
                 </Grid>
                 <Grid size={{ xs: 12, md:4}}>
                   <Box>
