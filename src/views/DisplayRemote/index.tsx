@@ -6,12 +6,10 @@ import {
 } from '@mui/material';
 import TaskProgressStepper, { StepProps } from './components/TaskProgressStepper';
 import { useParams } from 'react-router-dom';
-import TaskList, { TaskListAction } from './components/TaskList';
+import TaskList from './components/TaskList';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { DetailedTasksApiResponse, getRoomDetailedDailyTasks, getRoomProcessSteps, UpdateTaskPayload, updateTaskStatusAPI } from '@/services/task-service';
+import { DetailedTasksApiResponse, getRoomDetailedDailyTasks, getRoomProcessSteps } from '@/services/task-service';
 import useNotification from '@/hooks/useNotification';
-import { TaskListDataItem } from '@/types/task-types';
-import { TASK_STATUS_API } from '@/constants/task';
 import { QRCodeCanvas } from 'qrcode.react';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -24,10 +22,6 @@ interface StepperData {
   currentDate: string;
   steps?: StepProps[];
 }
-
-const handleCompleteAll = () => {
-  console.log("Complete all tasks");
-};
 
 const RoomDisplayPageStatic = () => {
 
@@ -157,7 +151,8 @@ const RoomDisplayPageStatic = () => {
         try {
           const messageData = JSON.parse(event.data as string);
           if (messageData.action === 'REFRESH_DETAILED_TASKS' && messageData.targetRoomId === roomId) {
-            fetchDetailedTaskData();
+            fetchDetailedTaskData(true);
+            fetchStepperData(false); 
           }
         } catch (e) {
           console.error("[WebSocket] Error parsing message or invalid message format:", e);
@@ -194,49 +189,6 @@ const RoomDisplayPageStatic = () => {
       }
     };
   }, [roomId, deviceId, fetchDetailedTaskData]);
-
-  const handleTaskAction = async (
-    taskId: string | number,
-    action: TaskListAction
-  ) => {
-    if (!roomId || !detailedTasksResponse) return;
-
-    const originalTasks = [...detailedTasksResponse.tasks];
-    const taskIndex = originalTasks.findIndex(t => t.id === taskId);
-    if (taskIndex === -1) return;
-    const originalTask = { ...originalTasks[taskIndex] };
-
-    let newStatusForOptimisticUpdate: TaskListDataItem['status'] = originalTask.status;
-    let newStartTimeForOptimisticUpdate: string | undefined = originalTask.startTime;
-    switch (action) {
-      case 'start': newStatusForOptimisticUpdate = TASK_STATUS_API.IN_PROGRESS; newStartTimeForOptimisticUpdate = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', hour12: false }); break;
-      case 'completed': newStatusForOptimisticUpdate = TASK_STATUS_API.COMPLETED; break;
-      case 'cancel': newStatusForOptimisticUpdate = TASK_STATUS_API.PENDING; newStartTimeForOptimisticUpdate = "00:00"; break;
-    }
-
-    const optimisticallyUpdatedTasks = originalTasks.map(t =>
-      t.id === taskId ? { ...t, status: newStatusForOptimisticUpdate, startTime: newStartTimeForOptimisticUpdate } : t
-    );
-    setDetailedTasksResponse(prev => prev ? { ...prev, tasks: optimisticallyUpdatedTasks } : null);
-
-    setError(null);
-    const payload: UpdateTaskPayload = { action };
-    try {
-      const response = await updateTaskStatusAPI(taskId, payload);
-      if (response && response.success && response.data) {
-        notify({ message: `Task #${taskId} được cập nhật thành công.`, severity: 'success' });
-        await fetchStepperData(false);
-        await fetchDetailedTaskData(false);
-      } else {
-        throw new Error(response?.message || `Cập nhật task #${taskId} thất bại.`);
-      }
-    } catch (err: any) {
-      notify({ message: err.message || `Lỗi khi cập nhật task #${taskId}.`, severity: 'error' });
-      setDetailedTasksResponse(prev => prev ? { ...prev, tasks: originalTasks } : null);
-      // TODO: Rollback cả StepperData nếu đã cập nhật lạc quan
-      // await fetchStepperData(false); // Hoặc fetch lại stepper để lấy trạng thái đúng từ server
-    }
-  };
 
   return (
     <Container sx={{ py: { xs: 2, md: 3 }, backgroundColor: '#f9f9f9', minHeight: '100vh' }}>
@@ -277,8 +229,6 @@ const RoomDisplayPageStatic = () => {
           <>
             <TaskList
               tasks={detailedTasksResponse.tasks}
-              onTaskAction={handleTaskAction}
-              onCompleteAll={handleCompleteAll}
             />
           </>
         ) : (
