@@ -54,7 +54,7 @@ const RoomDisplayPageStatic = () => {
       return;
     }
     if (showLoading) setLoadingStepper(true);
-    setError(null);
+    if(showLoading) setError(null);
     try {
       const todayForAPI = new Date().toISOString().split('T')[0];
       const responseData = await getRoomProcessSteps(roomId, todayForAPI);
@@ -67,7 +67,7 @@ const RoomDisplayPageStatic = () => {
       setError(err.message || "Lỗi không xác định khi tải dữ liệu phòng.");
       setStepperData(null);
     } finally {
-      setLoading(false);
+      if (showLoading) setLoadingTaskList(false);
     }
   }, [roomId]);
 
@@ -88,10 +88,12 @@ const RoomDisplayPageStatic = () => {
     }
   }, [roomId]);
 
-  // useEffect(() => {
-  //   setError(null);
-  //   fetchStepperData();
-  // }, [fetchStepperData]);
+  useEffect(() => {
+    if (roomId) {
+        setError(null); 
+        fetchStepperData(true); 
+    }
+  }, [roomId, fetchStepperData]);
 
   useEffect(() => {
     if (!roomId || !deviceId) {
