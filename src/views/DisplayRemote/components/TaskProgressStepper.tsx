@@ -6,6 +6,7 @@ export interface StepProps {
   name: string;
   completedTime?: string | null;
   isCurrent?: boolean;
+  order_in_process: number;
 }
 
 interface TaskProgressStepperProps {

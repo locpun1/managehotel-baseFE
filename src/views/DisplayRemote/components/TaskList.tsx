@@ -1,12 +1,9 @@
 import React from 'react';
 import { Box, Typography, Paper, IconButton, Button, useTheme, Theme } from '@mui/material';
-// import CheckCircleIcon from '@mui/icons-material/CheckCircle'; // Icon hoàn thành (full xanh)
-// import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked'; // Icon chờ (vòng tròn)
-// import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline'; // Icon đang chờ (play vàng)
-// import CloseIcon from '@mui/icons-material/Close';
-import { TaskItemData } from '@/types/task-types';
+import { TaskListDataItem } from '@/types/task-types';
 import { ApiTaskStatus, TASK_ACTIONS, TASK_STATUS_API, TASK_STATUS_LABEL } from '@/constants/task';
 import { CheckCircle, Close, PlayCircleOutline, RadioButtonUnchecked } from '@mui/icons-material';
+import { Tasks } from '@/types/manager';
 
 export const translateTaskStatus = (apiStatus: ApiTaskStatus | string): string => {
   return TASK_STATUS_LABEL[apiStatus as ApiTaskStatus] || apiStatus;
@@ -15,13 +12,13 @@ export const translateTaskStatus = (apiStatus: ApiTaskStatus | string): string =
 export type TaskListAction = typeof TASK_ACTIONS[keyof typeof TASK_ACTIONS]; 
 
 interface TaskListProps {
-  tasks: TaskItemData[];
+  tasks: Tasks[];
   onTaskAction?: (taskId: string | number, action: TaskListAction) => void;
   onCompleteAll?: () => void;
   title?: string;
 }
 
-const getTaskStatusPresentation = (status: TaskItemData['status'], theme: Theme) => {
+const getTaskStatusPresentation = (status: TaskListDataItem['status'], theme: Theme) => {
   switch (status.toLowerCase()) {
     case 'completed':
       return {

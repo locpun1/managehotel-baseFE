@@ -10,7 +10,7 @@ import TaskList, { TaskListAction } from './components/TaskList';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { DetailedTasksApiResponse, getRoomDetailedDailyTasks, getRoomProcessSteps, UpdateTaskPayload, updateTaskStatusAPI } from '@/services/task-service';
 import useNotification from '@/hooks/useNotification';
-import { TaskItemData } from '@/types/task-types';
+import { TaskListDataItem } from '@/types/task-types';
 import { TASK_STATUS_API } from '@/constants/task';
 import { QRCodeCanvas } from 'qrcode.react';
 import { v4 as uuidv4 } from 'uuid';
@@ -206,7 +206,7 @@ const RoomDisplayPageStatic = () => {
     if (taskIndex === -1) return;
     const originalTask = { ...originalTasks[taskIndex] };
 
-    let newStatusForOptimisticUpdate: TaskItemData['status'] = originalTask.status;
+    let newStatusForOptimisticUpdate: TaskListDataItem['status'] = originalTask.status;
     let newStartTimeForOptimisticUpdate: string | undefined = originalTask.startTime;
     switch (action) {
       case 'start': newStatusForOptimisticUpdate = TASK_STATUS_API.IN_PROGRESS; newStartTimeForOptimisticUpdate = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', hour12: false }); break;

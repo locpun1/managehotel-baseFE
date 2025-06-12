@@ -1,5 +1,5 @@
 // Có thể đặt ở file types.ts hoặc trực tiếp trong component nếu chỉ dùng ở đó
-export interface TaskItemData {
+export interface TaskListDataItem {
     id: string | number;
     startTime?: string; // Ví dụ: "08:30", "00:00" nếu chưa bắt đầu
     durationText: string; // Ví dụ: "Trong 30 phút", "Khoảng 25 phút"
