@@ -52,7 +52,7 @@ const RoomDisplayPageStatic = () => {
   const notify = useNotification();
 
   const backendHttpUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002';
-  const staffRoomLink = `${window.location.origin}/staff/home/${roomId}`;
+  const staffRoomLink = `${window.location.origin}/staff/home/${roomId}?triggeringDeviceId=${deviceId}`;
 
   const fetchStepperData = useCallback(async (showLoading = true) => {
     if (!roomId) {
