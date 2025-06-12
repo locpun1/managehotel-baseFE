@@ -6,11 +6,11 @@ import useAuth from '@/hooks/useAuth';
 import CardInfoManager from '@/components/CardInfo/CardInfoManager';
 import CardInfoStaff from '@/components/CardInfo/CardInfoStaff';
 import TaskProgressStepper, { StepProps } from '@/views/DisplayRemote/components/TaskProgressStepper';
-import { DetailedTasksApiResponse, getRoomDetailedDailyTasks, getRoomProcessSteps, UpdateTaskPayload, updateTaskStatusAPI } from '@/services/task-service';
+import { DetailedTasksApiResponse, getRoomDetailedDailyTasks, getRoomProcessSteps, StepperDataPayload, UpdateTaskPayload, updateTaskStatusAPI } from '@/services/task-service';
 import TaskList, { TaskListAction } from '@/views/DisplayRemote/components/TaskList';
 import { useParams, useSearchParams } from 'react-router-dom';
-import { TaskItemData } from '@/types/task-types';
-import { TASK_STATUS_API } from '@/constants/task';
+import { TaskListDataItem } from '@/types/task-types';
+import { ApiTaskStatus, TASK_STATUS_API } from '@/constants/task';
 import useNotification from '@/hooks/useNotification';
 import { getProfileUserCreateTaskAttachedRoom } from '@/services/user-service';
 import { UserProfile } from '@/types/users';
@@ -23,6 +23,7 @@ export interface StepperData {
   currentDate: string;
   steps?: StepProps[];
   groupTaskName?: string;
+  assignedTo?: string; 
 }
 
 export const ID_ROOM = 'id_room';
@@ -43,6 +44,7 @@ const StaffHome = () => {
   const notify = useNotification();
   const [profileUser, setProfileUser] = useState<UserProfile | null>(null);
   const [errorProfile, setErrorProfile] = useState<string | null>(null)
+  const [updatingTaskId, setUpdatingTaskId] = useState<string | number | null>(null);
 
   const backendHttpUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002';
 
@@ -52,7 +54,7 @@ const StaffHome = () => {
       setLoading(false);
       return;
     }
-    if(showLoading) setLoading(true);
+    if (showLoading) setLoading(true);
     setError(null);
     setErrorProfile(null); // Reset lỗi profile nữa
     try {
@@ -76,7 +78,7 @@ const StaffHome = () => {
       setDetailedTasksResponse(null);
       setProfileUser(null);
     } finally {
-      if(showLoading) setLoading(false);
+      if (showLoading) setLoading(false);
     }
   }, [roomId]);
 
@@ -88,17 +90,13 @@ const StaffHome = () => {
 
   useEffect(() => {
     if (triggeringDeviceId && roomId) {
-      console.log(`[StaffPage] Page loaded. Attempting to trigger refresh for TV device: ${triggeringDeviceId} for room ${roomId}`);
       const triggerUrl = `${backendHttpUrl}/api/v1/room-actions/trigger-task-refresh?deviceId=${triggeringDeviceId}&roomId=${roomId}`;
-      HttpClient.post(triggerUrl, {}) // Hoặc GET
+      HttpClient.post(triggerUrl, {})
         .then(() => {
           console.log(`[StaffPage] Refresh trigger sent to TV device ${triggeringDeviceId}.`);
-          // Không cần thông báo cho nhân viên ở đây, vì đây là hành động nền
         })
         .catch((triggerError: any) => {
           console.error("[StaffPage] Failed to send initial refresh trigger to TV:", triggerError);
-          // Có thể thông báo lỗi nhẹ nhàng nếu cần, nhưng không làm gián đoạn nhân viên
-          // notify({ message: `Không thể tự động làm mới màn hình TV: ${triggerError.message}`, severity: 'warning' });
         });
     }
   }, [triggeringDeviceId, roomId, backendHttpUrl]);
@@ -107,51 +105,161 @@ const StaffHome = () => {
     console.log("Complete all tasks");
   };
 
-  const handleTaskAction = async (
-    taskId: string | number,
-    action: TaskListAction
-  ) => {
-    if (!roomId || !detailedTasksResponse) return;
-
-    const originalTasks = [...detailedTasksResponse.tasks];
-    const taskIndex = originalTasks.findIndex(t => t.id === taskId);
-    if (taskIndex === -1) return;
-    const originalTask = { ...originalTasks[taskIndex] };
-
-    let newStatusForOptimisticUpdate: TaskItemData['status'] = originalTask.status;
-    let newStartTimeForOptimisticUpdate: string | undefined = originalTask.startTime;
-    switch (action) {
-      case 'start': newStatusForOptimisticUpdate = TASK_STATUS_API.IN_PROGRESS; newStartTimeForOptimisticUpdate = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', hour12: false }); break;
-      case 'completed': newStatusForOptimisticUpdate = TASK_STATUS_API.COMPLETED; break;
-      case 'cancel': newStatusForOptimisticUpdate = TASK_STATUS_API.PENDING; newStartTimeForOptimisticUpdate = "00:00"; break;
+  const handleTaskAction = async (taskId: string | number, action: TaskListAction) => {
+    if (!roomId || !profile?.id) {
+      notify({ message: !roomId ? "Room ID không hợp lệ." : "Không thể xác định người dùng. Vui lòng đăng nhập lại.", severity: 'error' });
+      return;
     }
 
-    const optimisticallyUpdatedTasks = originalTasks.map(t =>
-      t.id === taskId ? { ...t, status: newStatusForOptimisticUpdate, startTime: newStartTimeForOptimisticUpdate } : t
-    );
-    setDetailedTasksResponse(prev => prev ? { ...prev, tasks: optimisticallyUpdatedTasks } : null);
-
+    setUpdatingTaskId(taskId); // Đánh dấu task đang được update
     setError(null);
-    const payload: UpdateTaskPayload = { action };
+
+    // 1. LƯU TRẠNG THÁI GỐC ĐỂ ROLLBACK
+    const originalDetailedTasksState = detailedTasksResponse
+      ? (JSON.parse(JSON.stringify(detailedTasksResponse)) as DetailedTasksApiResponse)
+      : null;
+    const originalStepperDataState = stepperData
+      ? (JSON.parse(JSON.stringify(stepperData)) as StepperData)
+      : null;
+    const taskToUpdateInList = originalDetailedTasksState?.tasks?.find(t => t.id === taskId);
+
+    if (!taskToUpdateInList) {
+      console.error(`Task with id ${taskId} not found in detailedTasksResponse for optimistic update.`);
+      setUpdatingTaskId(null);
+      return;
+    }
+
+    // 2. OPTIMISTIC UPDATE CHO TASKLIST
+    let optimisticallyUpdatedTaskList = originalDetailedTasksState?.tasks || [];
+    let newStatusForOptimisticUpdate: TaskListDataItem['status'] = taskToUpdateInList.status;
+
+    const taskStatus = taskToUpdateInList.status.toLowerCase() as ApiTaskStatus;
+    switch (action) {
+      case 'start': {
+        const validStatuses: ApiTaskStatus[] = [TASK_STATUS_API.PENDING, TASK_STATUS_API.WAITING];
+        if (validStatuses.includes(taskStatus)) {
+          newStatusForOptimisticUpdate = TASK_STATUS_API.IN_PROGRESS;
+        }
+        break;
+      }
+      case 'completed': {
+        const validStatuses: ApiTaskStatus[] = [TASK_STATUS_API.PENDING, TASK_STATUS_API.IN_PROGRESS];
+        if (validStatuses.includes(taskStatus)) {
+          newStatusForOptimisticUpdate = TASK_STATUS_API.COMPLETED;
+        }
+        break;
+      }
+      case 'cancel': {
+        const validStatuses: ApiTaskStatus[] = [TASK_STATUS_API.IN_PROGRESS, TASK_STATUS_API.WAITING];
+        if (validStatuses.includes(taskStatus)) {
+          newStatusForOptimisticUpdate = TASK_STATUS_API.PENDING;
+        }
+        break;
+      }
+    }
+
+    if (newStatusForOptimisticUpdate !== taskToUpdateInList.status) {
+      optimisticallyUpdatedTaskList = optimisticallyUpdatedTaskList.map(t =>
+        t.id === taskId ? { ...t, status: newStatusForOptimisticUpdate } : t
+      );
+      setDetailedTasksResponse(prev => prev ? { ...prev, tasks: optimisticallyUpdatedTaskList } : null);
+    }
+
+
+    // 3. (TÙY CHỌN NHƯNG NÊN CÓ) OPTIMISTIC UPDATE CHO STEPPERDATA
+    const taskDefinitionInStepper = originalStepperDataState?.steps?.find(
+      (step: StepProps) => step.name === taskToUpdateInList.title && taskToUpdateInList.order_in_process === step.order_in_process
+    );
+
+    if (taskDefinitionInStepper && originalStepperDataState && originalStepperDataState.steps) {
+      let tempStepperSteps = [...originalStepperDataState.steps];
+      let newOverallStatus = originalStepperDataState.status;
+
+      tempStepperSteps = tempStepperSteps.map((step, index) => {
+        if (step.name === taskToUpdateInList.title && taskToUpdateInList.order_in_process === step.order_in_process) {
+          let newCompletedTime: string | null = step.completedTime ?? null;
+          let newIsCurrent = step.isCurrent;
+
+          if (action === 'start' && newStatusForOptimisticUpdate === TASK_STATUS_API.IN_PROGRESS) {
+            newCompletedTime = null;
+            newIsCurrent = true; 
+          } else if (action === 'completed' && newStatusForOptimisticUpdate === TASK_STATUS_API.COMPLETED) {
+            newCompletedTime = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', hour12: false });
+            newIsCurrent = false; 
+          } else if (action === 'cancel' && newStatusForOptimisticUpdate === TASK_STATUS_API.PENDING) {
+            newCompletedTime = null;
+            newIsCurrent = false; 
+          }
+          return { ...step, completedTime: newCompletedTime, isCurrent: newIsCurrent };
+        }
+        if (action === 'start' && newStatusForOptimisticUpdate === TASK_STATUS_API.IN_PROGRESS) {
+          return { ...step, isCurrent: false };
+        }
+        return step;
+      });
+
+      if (action === 'completed' || (action === 'cancel' && newStatusForOptimisticUpdate === TASK_STATUS_API.PENDING)) {
+        let foundNextCurrent = false;
+        for (let i = 0; i < tempStepperSteps.length; i++) {
+          if (!tempStepperSteps[i].completedTime) {
+            if (!foundNextCurrent) {
+              tempStepperSteps[i].isCurrent = true;
+              foundNextCurrent = true;
+            } else {
+              tempStepperSteps[i].isCurrent = false;
+            }
+          } else {
+            tempStepperSteps[i].isCurrent = false;
+          }
+        }
+        if (!foundNextCurrent && tempStepperSteps.length > 0) {
+          tempStepperSteps.forEach(s => s.isCurrent = false);
+        }
+      }
+
+      const completedCount = tempStepperSteps.filter(s => !!s.completedTime && s.completedTime !== "Hoàn thành").length;
+      const inProgressActive = tempStepperSteps.some(s => s.isCurrent);
+
+      if (inProgressActive) newOverallStatus = "Hoạt động";
+      else if (completedCount === tempStepperSteps.length && tempStepperSteps.length > 0) newOverallStatus = "Hoàn thành";
+      else if (completedCount > 0) newOverallStatus = "Hoạt động";
+      else newOverallStatus = "Chưa làm";
+
+      setStepperData(prev => prev ? { ...prev, steps: tempStepperSteps, status: newOverallStatus, assignedTo: profile?.full_name || prev.assignedTo } : null);
+    }
+
+    const payload: UpdateTaskPayload = { action, userId: profile.id };
     try {
       const response = await updateTaskStatusAPI(taskId, payload);
+      console.log(response)
       if (response && response.success && response.data) {
-        notify({ message: `Task #${taskId} được cập nhật thành công.`, severity: 'success' });
-        await fetchTasksForStaff(false);
+        notify({ message: `Công việc ${response.data.title} (đã được ${action})`, severity: 'success' });
+        await fetchTasksForStaff(false); 
+
+        // Trigger TV refresh
         if (triggeringDeviceId && roomId) {
           const triggerUrl = `${backendHttpUrl}/api/v1/room-actions/trigger-task-refresh?deviceId=${triggeringDeviceId}&roomId=${roomId}`;
-          HttpClient.post(triggerUrl, {}).catch(e => console.error("Error re-triggering TV refresh:", e));
-        }
+          HttpClient.post(triggerUrl, {})
+              .then(() => {
+                  console.log(`[StaffPage] Tín hiệu làm mới đã được gửi đến TV device ${triggeringDeviceId} sau khi cập nhật task.`);
+              })
+              .catch((triggerError: any) => {
+                  console.error("[StaffPage] Không thể gửi tín hiệu làm mới đến TV sau khi cập nhật task:", triggerError);
+              });
+      }
       } else {
         throw new Error(response?.message || `Cập nhật task #${taskId} thất bại.`);
       }
     } catch (err: any) {
       notify({ message: err.message || `Lỗi khi cập nhật task #${taskId}.`, severity: 'error' });
-      setDetailedTasksResponse(prev => prev ? { ...prev, tasks: originalTasks } : null);
-      // TODO: Rollback cả StepperData nếu đã cập nhật lạc quan
-      // await fetchStepperData(false); // Hoặc fetch lại stepper để lấy trạng thái đúng từ server
+      if (originalDetailedTasksState) setDetailedTasksResponse(originalDetailedTasksState);
+      if (originalStepperDataState) setStepperData(originalStepperDataState);
+    } finally {
+      setUpdatingTaskId(null);
     }
   };
+
+
 
   return (
     <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>

@@ -63,6 +63,8 @@ export interface Tasks {
     roomName?:string,
     floorName?:string,
     order_in_process: number
+    startTime?: string;    
+    durationText?: string; 
 }
 
 export interface GroupTasks {

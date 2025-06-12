@@ -1,7 +1,7 @@
 // src/services/task.service.ts
 import { HttpResponse } from '@/types/common';
-import { GroupTasks } from '@/types/manager';
-import { TaskItemData } from '@/types/task-types';
+import { GroupTasks, Tasks } from '@/types/manager';
+import { TaskListDataItem } from '@/types/task-types';
 import HttpClient from '@/utils/HttpClient';
 import { TaskListAction } from '@/views/DisplayRemote/components/TaskList';
 import type { StepProps } from '@/views/DisplayRemote/components/TaskProgressStepper';
@@ -23,7 +23,7 @@ export interface DetailedTasksApiResponse {
   totalPages: number;
   currentPage: number;
   pageSize: number;
-  tasks: TaskItemData[]; // Mảng các task mà TaskList sẽ dùng
+  tasks: Tasks[]; // Mảng các task mà TaskList sẽ dùng
   // Có thể thêm title hoặc roomInfo nếu API trả về ở cấp này
   // title?: string;
   // roomInfo?: { id: string; number: string; floorName: string; };
@@ -37,7 +37,8 @@ interface ApiResponse {
 
 export interface UpdateTaskPayload {
   status?: 'pending' | 'in_progress' | 'completed' | 'cancelled' | 'waiting';
-  action?: TaskListAction 
+  action?: TaskListAction
+  userId?: string | number;
 }
 
 export const getDetailTask = async (
@@ -45,23 +46,23 @@ export const getDetailTask = async (
 ): Promise<GroupTasks> => { // Hàm này trả về trực tiếp object data từ response API
   let url = `${prefix}/get-detail-task?id=${id}`;
   const response = await HttpClient.get<{ // Kiểu của toàn bộ body JSON từ backend
-      success: boolean;
-      message: string;
-      data: GroupTasks; // data từ backend chính là DetailedTasksApiResponse
+    success: boolean;
+    message: string;
+    data: GroupTasks; // data từ backend chính là DetailedTasksApiResponse
   }>(url);
-  
+
   if (response.data && response.success && response.data) {
-      return response.data; 
+    return response.data;
   } else {
-      console.error("API response error in getDetailTask:", response);
-      throw new Error(response?.message || 'Failed to fetch detailed daily tasks');
+    console.error("API response error in getDetailTask:", response);
+    throw new Error(response?.message || 'Failed to fetch detailed daily tasks');
   }
 };
 
 export const getRoomProcessSteps = async (
   roomId: string,
   date?: string
-): Promise<StepperDataPayload> => { 
+): Promise<StepperDataPayload> => {
   let url = `${prefix}/rooms/${roomId}/process-steps`;
   if (date) {
     url += `?date=${date}`;
@@ -70,10 +71,10 @@ export const getRoomProcessSteps = async (
   const response = await HttpClient.get<ApiResponse>(url);
 
   if (response && response.success && response.data) {
-      return response.data;
+    return response.data;
   } else {
-      const errorMessage = response?.message || (response as any)?.message || 'Failed to fetch room process steps or invalid data structure';
-      throw new Error(errorMessage);
+    const errorMessage = response?.message || (response as any)?.message || 'Failed to fetch room process steps or invalid data structure';
+    throw new Error(errorMessage);
   }
 };
 
@@ -89,19 +90,19 @@ export const getRoomDetailedDailyTasks = async (
   }
 
   const response = await HttpClient.get<{ // Kiểu của toàn bộ body JSON từ backend
-      success: boolean;
-      message: string;
-      data: DetailedTasksApiResponse; // data từ backend chính là DetailedTasksApiResponse
+    success: boolean;
+    message: string;
+    data: DetailedTasksApiResponse; // data từ backend chính là DetailedTasksApiResponse
   }>(url);
 
   if (response.data && response.success && response.data) {
-      return response.data; 
+    return response.data;
   } else {
-      throw new Error(response?.message || 'Failed to fetch detailed daily tasks');
+    throw new Error(response?.message || 'Failed to fetch detailed daily tasks');
   }
 };
 
-export const triggerDailyTaskRollover = async (): Promise<HttpResponse<any>> => { 
+export const triggerDailyTaskRollover = async (): Promise<HttpResponse<any>> => {
   const url = `${adminTaskPrefix}/trigger-rollover`;
   return HttpClient.post<any>(url, {});
 };
@@ -115,7 +116,7 @@ export const triggerDeleteOldTasks = async (daysToKeep?: number): Promise<HttpRe
 export const updateTaskStatusAPI = async (
   taskId: string | number,
   payload: UpdateTaskPayload
-): Promise<HttpResponse<TaskItemData>> => {
-  const url = `${prefix}/${taskId}/status`; 
-  return HttpClient.patch<TaskItemData>(url, payload as any);
+): Promise<HttpResponse<TaskListDataItem>> => {
+  const url = `${prefix}/${taskId}/status`;
+  return HttpClient.patch<TaskListDataItem>(url, payload as any);
 };
