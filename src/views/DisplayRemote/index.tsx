@@ -153,7 +153,7 @@ const RoomDisplayPageStatic = () => {
           const messageData = JSON.parse(event.data as string);
           if (messageData.action === 'REFRESH_DETAILED_TASKS' && messageData.targetRoomId === roomId) {
             fetchDetailedTaskData(true);
-            fetchStepperData(true); 
+            fetchStepperData(false); 
           }
         } catch (e) {
           console.error("[WebSocket] Error parsing message or invalid message format:", e);
