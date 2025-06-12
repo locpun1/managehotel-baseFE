@@ -45,7 +45,6 @@ const RoomDisplayPageStatic = () => {
   const [error, setError] = useState<string | null>(null);
   const notify = useNotification();
 
-  const backendHttpUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002';
   const staffRoomLink = `${window.location.origin}/staff/home/${roomId}?triggeringDeviceId=${deviceId}`;
 
   const fetchStepperData = useCallback(async (showLoading = true) => {
@@ -89,10 +88,10 @@ const RoomDisplayPageStatic = () => {
     }
   }, [roomId]);
 
-  useEffect(() => {
-    setError(null);
-    fetchStepperData();
-  }, [fetchStepperData]);
+  // useEffect(() => {
+  //   setError(null);
+  //   fetchStepperData();
+  // }, [fetchStepperData]);
 
   useEffect(() => {
     if (!roomId || !deviceId) {
@@ -152,7 +151,7 @@ const RoomDisplayPageStatic = () => {
           const messageData = JSON.parse(event.data as string);
           if (messageData.action === 'REFRESH_DETAILED_TASKS' && messageData.targetRoomId === roomId) {
             fetchDetailedTaskData(true);
-            fetchStepperData(false); 
+            fetchStepperData(true); 
           }
         } catch (e) {
           console.error("[WebSocket] Error parsing message or invalid message format:", e);
