@@ -52,7 +52,7 @@ const RoomDisplayPageStatic = () => {
   const notify = useNotification();
 
   const backendHttpUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002';
-  const qrTriggerUrl = `${backendHttpUrl}/api/v1/room-actions/trigger-task-refresh?deviceId=${deviceId}&roomId=${roomId}`;
+  const staffRoomLink = `${window.location.origin}/staff/home/${roomId}`;
 
   const fetchStepperData = useCallback(async (showLoading = true) => {
     if (!roomId) {
@@ -246,7 +246,7 @@ const RoomDisplayPageStatic = () => {
             <Typography color="text.secondary" sx={{ mb: 2 }}>
               Quét mã này để tải hoặc làm mới danh sách công việc chi tiết.
             </Typography>
-            <QRCodeCanvas value={qrTriggerUrl} size={180} level="H" />
+            <QRCodeCanvas value={staffRoomLink} size={180} level="H" />
           </Paper>
         )}
         {!isSocketConnected && !error && ( 
