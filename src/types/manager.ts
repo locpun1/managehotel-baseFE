@@ -64,7 +64,8 @@ export interface Tasks {
     floorName?:string,
     order_in_process: number
     startTime?: string;    
-    durationText?: string; 
+    durationText?: string;
+    is_reported:number
 }
 
 export interface GroupTasks {
