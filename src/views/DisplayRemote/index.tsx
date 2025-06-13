@@ -59,7 +59,14 @@ const RoomDisplayPageStatic = () => {
       const todayForAPI = new Date().toISOString().split('T')[0];
       const responseData = await getRoomProcessSteps(roomId, todayForAPI);
       if (responseData) {
-        setStepperData(responseData);
+        setStepperData(prevData => {
+          if (prevData && responseData && JSON.stringify(prevData) === JSON.stringify(responseData)) {
+              console.warn("[TV_STEPPER_FETCH] New stepper data is identical to current state. Returning previous data.");
+              return prevData; 
+          }
+          console.log("[TV_STEPPER_FETCH] New stepper data is different or no previous data. Updating state.");
+          return responseData;
+      });
       } else {
         throw new Error("Dữ liệu quy trình không hợp lệ từ API.");
       }
@@ -93,13 +100,13 @@ const RoomDisplayPageStatic = () => {
       setError(null);
       fetchStepperData(true);
     }
-  }, [roomId, fetchStepperData, fetchDetailedTaskData]);
+  }, [roomId, fetchStepperData]);
 
   useEffect(() => {
     if (!roomId || !deviceId) {
       console.warn("[WebSocket] Room ID or Device ID is missing, WebSocket connection not started.");
       return;
-    }
+    }   
 
     const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     let wsHost = window.location.hostname;
