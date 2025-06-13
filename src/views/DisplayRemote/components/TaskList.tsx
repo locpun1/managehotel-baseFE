@@ -27,14 +27,14 @@ const getTaskStatusPresentation = (status: TaskListDataItem['status'], theme: Th
         ActionIcon: CheckCircle,
         actionIconColor: theme.palette.primary.main, // Màu xanh dương cho icon tick
       };
-    case 'hoạt động':
+    case 'in_process':
       return {
         borderColor: theme.palette.warning.main, // Vàng
         statusColor: theme.palette.warning.main,
         ActionIcon: RadioButtonUnchecked,
         actionIconColor: theme.palette.primary.main, // Vòng tròn xanh dương viền ngoài
       };
-    case 'đang chờ':
+    case 'pending':
       return {
         borderColor: theme.palette.error.main, // Màu đỏ cho thanh bên trái
         statusColor: theme.palette.text.secondary, // Màu chữ trạng thái có thể là xám
