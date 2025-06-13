@@ -63,6 +63,8 @@ export const AdminSections = () : Section[] => [
   },
 ]
 const roomId = localStorage.getItem(ID_ROOM);
+console.log("roomId: ",roomId);
+
 
 export const UserSection = (): Section[] => [
   {

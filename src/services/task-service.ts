@@ -29,6 +29,14 @@ export interface DetailedTasksApiResponse {
   // roomInfo?: { id: string; number: string; floorName: string; };
 }
 
+export interface TasksApiResponse {
+  totalCount: number;
+  totalPages: number;
+  currentPage: number;
+  pageSize: number;
+  tasks: Tasks[]; 
+}
+
 interface ApiResponse {
   success: boolean;
   message: string;
@@ -102,7 +110,31 @@ export const getRoomDetailedDailyTasks = async (
   }
 };
 
-export const triggerDailyTaskRollover = async (): Promise<HttpResponse<any>> => {
+export const getTasksPerformedStaff = async (
+  page: number = 0,
+  size: number = 10, // Số lượng task mỗi trang, có thể điều chỉnh
+  roomId: string | number,
+  date?: string, // YYYY-MM-DD
+): Promise<TasksApiResponse> => { // Hàm này trả về trực tiếp object data từ response API
+  let url = `${prefix}/${roomId}/list-task-performed-staff?page=${page}&size=${size}`;
+  if (date) {
+    url += `&date=${date}`;
+  }
+
+  const response = await HttpClient.get<{ // Kiểu của toàn bộ body JSON từ backend
+      success: boolean;
+      message: string;
+      data: TasksApiResponse; // data từ backend chính là DetailedTasksApiResponse
+  }>(url);
+
+  if (response.data && response.success && response.data) {
+      return response.data; 
+  } else {
+      throw new Error(response?.message || 'Failed to fetch detailed daily tasks');
+  }
+};
+
+export const triggerDailyTaskRollover = async (): Promise<HttpResponse<any>> => { 
   const url = `${adminTaskPrefix}/trigger-rollover`;
   return HttpClient.post<any>(url, {});
 };

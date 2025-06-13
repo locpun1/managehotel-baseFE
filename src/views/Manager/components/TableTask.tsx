@@ -1,9 +1,9 @@
 import IconButtonBtn from "@/components/IconButton/IconButton";
 import CustomPagination from "@/components/Pagination/CustomPagination";
-import { STATUS_LABELS, TaskStatus } from "@/constants/taskStatus";
 import { DataTaskProps, getTaskByGroupTask } from "@/services/manager.service";
 import { GroupTasks, Tasks } from "@/types/manager";
 import DateTime from "@/utils/DateTime";
+import { getStatusChipColor, getStatusLabel } from "@/utils/status";
 import { Delete, Edit} from "@mui/icons-material";
 import { Alert, Box, Chip, CircularProgress, Collapse, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from "@mui/material";
 import dayjs, { Dayjs } from "dayjs";
@@ -19,20 +19,7 @@ interface TableTaskProps{
     handlePageChange: (page: number) => void,
     handleOpenEditTask?: (id: string | number) => void;
 }
-export const getStatusLabel = (status: TaskStatus | null | undefined): string => {
-    if(!status) return "Chưa xác định";
-    return STATUS_LABELS[status] || status;
-}
 
-export const getStatusChipColor = (status: TaskStatus | null | undefined): "default" | "primary" | "secondary" | "error" | "info" | "success" | "warning" => {
-    switch(status){
-        case TaskStatus.PENDING: return "primary";
-        case TaskStatus.PROGRESS: return "warning";
-        case TaskStatus.COMPLETED: return "success";
-        case TaskStatus.CANCELLED: return "error";
-        default: return "default";
-    }
-}
 
 export const checkDay = (today:Dayjs |string, dueDate: Dayjs | string) : boolean => {
         if(dayjs(dueDate).isBefore(today, 'day')){
