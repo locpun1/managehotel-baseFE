@@ -6,12 +6,10 @@ import {
 } from '@mui/material';
 import TaskProgressStepper, { StepProps } from './components/TaskProgressStepper';
 import { useParams } from 'react-router-dom';
-import TaskList, { TaskListAction } from './components/TaskList';
+import TaskList from './components/TaskList';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { DetailedTasksApiResponse, getRoomDetailedDailyTasks, getRoomProcessSteps, UpdateTaskPayload, updateTaskStatusAPI } from '@/services/task-service';
+import { DetailedTasksApiResponse, getRoomDetailedDailyTasks, getRoomProcessSteps } from '@/services/task-service';
 import useNotification from '@/hooks/useNotification';
-import { TaskListDataItem } from '@/types/task-types';
-import { TASK_STATUS_API } from '@/constants/task';
 import { QRCodeCanvas } from 'qrcode.react';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -24,10 +22,6 @@ interface StepperData {
   currentDate: string;
   steps?: StepProps[];
 }
-
-const handleCompleteAll = () => {
-  console.log("Complete all tasks");
-};
 
 const RoomDisplayPageStatic = () => {
 
@@ -51,7 +45,6 @@ const RoomDisplayPageStatic = () => {
   const [error, setError] = useState<string | null>(null);
   const notify = useNotification();
 
-  const backendHttpUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002';
   const staffRoomLink = `${window.location.origin}/staff/home/${roomId}?triggeringDeviceId=${deviceId}`;
 
   const fetchStepperData = useCallback(async (showLoading = true) => {
@@ -61,12 +54,19 @@ const RoomDisplayPageStatic = () => {
       return;
     }
     if (showLoading) setLoadingStepper(true);
-    setError(null);
+    if (showLoading) setError(null);
     try {
       const todayForAPI = new Date().toISOString().split('T')[0];
       const responseData = await getRoomProcessSteps(roomId, todayForAPI);
       if (responseData) {
-        setStepperData(responseData);
+        setStepperData(prevData => {
+          if (prevData && responseData && JSON.stringify(prevData) === JSON.stringify(responseData)) {
+              console.warn("[TV_STEPPER_FETCH] New stepper data is identical to current state. Returning previous data.");
+              return prevData; 
+          }
+          console.log("[TV_STEPPER_FETCH] New stepper data is different or no previous data. Updating state.");
+          return responseData;
+      });
       } else {
         throw new Error("Dữ liệu quy trình không hợp lệ từ API.");
       }
@@ -74,7 +74,7 @@ const RoomDisplayPageStatic = () => {
       setError(err.message || "Lỗi không xác định khi tải dữ liệu phòng.");
       setStepperData(null);
     } finally {
-      setLoading(false);
+      if (showLoading) setLoadingTaskList(false);
     }
   }, [roomId]);
 
@@ -96,19 +96,21 @@ const RoomDisplayPageStatic = () => {
   }, [roomId]);
 
   useEffect(() => {
-    setError(null);
-    fetchStepperData();
-  }, [fetchStepperData]);
+    if (roomId) {
+      setError(null);
+      fetchStepperData(true);
+    }
+  }, [roomId, fetchStepperData]);
 
   useEffect(() => {
     if (!roomId || !deviceId) {
       console.warn("[WebSocket] Room ID or Device ID is missing, WebSocket connection not started.");
       return;
-    }
+    }   
 
     const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     let wsHost = window.location.hostname;
-    let wsPort = window.location.port; 
+    let wsPort = window.location.port;
 
     if (import.meta.env.VITE_API_BASE_URL && import.meta.env.VITE_API_BASE_URL !== window.location.origin) {
       try {
@@ -133,7 +135,7 @@ const RoomDisplayPageStatic = () => {
     let isComponentMounted = true;
 
     const connect = () => {
-      if (!isComponentMounted) return; 
+      if (!isComponentMounted) return;
       if (socket && (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING)) {
         return;
       }
@@ -157,7 +159,8 @@ const RoomDisplayPageStatic = () => {
         try {
           const messageData = JSON.parse(event.data as string);
           if (messageData.action === 'REFRESH_DETAILED_TASKS' && messageData.targetRoomId === roomId) {
-            fetchDetailedTaskData();
+            fetchDetailedTaskData(true);
+            fetchStepperData(false);
           }
         } catch (e) {
           console.error("[WebSocket] Error parsing message or invalid message format:", e);
@@ -177,9 +180,9 @@ const RoomDisplayPageStatic = () => {
       };
     };
 
-    connect(); 
+    connect();
 
-    return () => { 
+    return () => {
       isComponentMounted = false;
       if (reconnectIntervalId) clearTimeout(reconnectIntervalId);
       if (socket) {
@@ -195,53 +198,10 @@ const RoomDisplayPageStatic = () => {
     };
   }, [roomId, deviceId, fetchDetailedTaskData]);
 
-  const handleTaskAction = async (
-    taskId: string | number,
-    action: TaskListAction
-  ) => {
-    if (!roomId || !detailedTasksResponse) return;
-
-    const originalTasks = [...detailedTasksResponse.tasks];
-    const taskIndex = originalTasks.findIndex(t => t.id === taskId);
-    if (taskIndex === -1) return;
-    const originalTask = { ...originalTasks[taskIndex] };
-
-    let newStatusForOptimisticUpdate: TaskListDataItem['status'] = originalTask.status;
-    let newStartTimeForOptimisticUpdate: string | undefined = originalTask.startTime;
-    switch (action) {
-      case 'start': newStatusForOptimisticUpdate = TASK_STATUS_API.IN_PROGRESS; newStartTimeForOptimisticUpdate = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', hour12: false }); break;
-      case 'completed': newStatusForOptimisticUpdate = TASK_STATUS_API.COMPLETED; break;
-      case 'cancel': newStatusForOptimisticUpdate = TASK_STATUS_API.PENDING; newStartTimeForOptimisticUpdate = "00:00"; break;
-    }
-
-    const optimisticallyUpdatedTasks = originalTasks.map(t =>
-      t.id === taskId ? { ...t, status: newStatusForOptimisticUpdate, startTime: newStartTimeForOptimisticUpdate } : t
-    );
-    setDetailedTasksResponse(prev => prev ? { ...prev, tasks: optimisticallyUpdatedTasks } : null);
-
-    setError(null);
-    const payload: UpdateTaskPayload = { action };
-    try {
-      const response = await updateTaskStatusAPI(taskId, payload);
-      if (response && response.success && response.data) {
-        notify({ message: `Task #${taskId} được cập nhật thành công.`, severity: 'success' });
-        await fetchStepperData(false);
-        await fetchDetailedTaskData(false);
-      } else {
-        throw new Error(response?.message || `Cập nhật task #${taskId} thất bại.`);
-      }
-    } catch (err: any) {
-      notify({ message: err.message || `Lỗi khi cập nhật task #${taskId}.`, severity: 'error' });
-      setDetailedTasksResponse(prev => prev ? { ...prev, tasks: originalTasks } : null);
-      // TODO: Rollback cả StepperData nếu đã cập nhật lạc quan
-      // await fetchStepperData(false); // Hoặc fetch lại stepper để lấy trạng thái đúng từ server
-    }
-  };
-
   return (
     <Container sx={{ py: { xs: 2, md: 3 }, backgroundColor: '#f9f9f9', minHeight: '100vh' }}>
       <Box>
-        {isSocketConnected && !error && ( 
+        {isSocketConnected && !error && (
           <Paper elevation={1} sx={{ p: 3, textAlign: 'center', borderRadius: '12px', mt: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <Typography color="text.secondary" sx={{ mb: 2 }}>
               Quét mã này để tải hoặc làm mới danh sách công việc chi tiết.
@@ -249,7 +209,7 @@ const RoomDisplayPageStatic = () => {
             <QRCodeCanvas value={staffRoomLink} size={180} level="H" />
           </Paper>
         )}
-        {!isSocketConnected && !error && ( 
+        {!isSocketConnected && !error && (
           <Typography color="text.secondary" sx={{ textAlign: 'center', mt: 2 }}>
             Đang chờ kết nối tới máy chủ để có thể làm mới công việc qua QR...
           </Typography>
@@ -277,8 +237,6 @@ const RoomDisplayPageStatic = () => {
           <>
             <TaskList
               tasks={detailedTasksResponse.tasks}
-              onTaskAction={handleTaskAction}
-              onCompleteAll={handleCompleteAll}
             />
           </>
         ) : (
