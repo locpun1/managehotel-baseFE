@@ -27,7 +27,7 @@ const getTaskStatusPresentation = (status: TaskListDataItem['status'], theme: Th
         ActionIcon: CheckCircle,
         actionIconColor: theme.palette.primary.main, // Màu xanh dương cho icon tick
       };
-    case 'in_process':
+    case 'in_progress':
       return {
         borderColor: theme.palette.warning.main, // Vàng
         statusColor: theme.palette.warning.main,
