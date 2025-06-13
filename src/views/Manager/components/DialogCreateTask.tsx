@@ -1,6 +1,6 @@
 import DialogComponent from "@/components/DialogComponent";
 import ActionButton from "@/components/ProButton/ActionButton";
-import { Box, Grid, TextField, Typography } from "@mui/material";
+import { Box, CircularProgress, Grid, TextField, Typography } from "@mui/material";
 import React, { useEffect, useState,FormEvent, useMemo } from "react";
 import InputText from "./InputText";
 import { createTask, DataTaskProps, getAllListFloor, getRoomByFloor, updateTask } from "@/services/manager.service";
@@ -21,7 +21,8 @@ interface DialogCreateTaskProps{
     onClose: () => void;
     handleLoadList?:(data: any) => void;
     taskId?: string | number;
-    from?:string
+    from?:string, 
+    setReloadKey?: React.Dispatch<React.SetStateAction<number>>
 }
 
 interface DataFloors{
@@ -98,7 +99,7 @@ const MenuProps = {
 };
 
 const DialogCreateTask: React.FC<DialogCreateTaskProps> = (props) => {
-    const {open, title, onClose, handleLoadList, taskId, from} = props;
+    const {open, title, onClose, handleLoadList, taskId, from, setReloadKey} = props;
     const [formData, setFormData] = useState<TaskFormData>({
         name: 'Dọn dẹp phòng', notes: '', quantity: 0, status: TaskStatus.PENDING, assigned_by_id: '', room_id: '', floor_id: ''
     })
@@ -123,23 +124,33 @@ const DialogCreateTask: React.FC<DialogCreateTaskProps> = (props) => {
 
     useEffect(() => {
         if(from && open && taskId){
-            const getDetail = async(id: string | number) =>{
-                const res = await getDetailTask(id);
-                setFormData(res)
-                if(res.groupTask && res.groupTask.length === 0){
-                    setTaskSlots([
-                        {
-                            'title': '',
-                            'order_in_process': 1,
-                            'status': TaskStatus.PENDING,
-                        }
-                    ])
-                }else{
-                    res.groupTask && setTaskSlots(res.groupTask)
-                }
+            setLoading(true)
+            try {
+                const getDetail = async(id: string | number) =>{
+                    const res = await getDetailTask(id);
+                    setFormData(res)
+                    if(res.groupTask && res.groupTask.length === 0){
+                        setTaskSlots([
+                            {
+                                'title': '',
+                                'order_in_process': 1,
+                                'status': TaskStatus.PENDING,
+                            }
+                        ])
+                    }else{
+                        res.groupTask && setTaskSlots(res.groupTask)
+                    }
+                }   
+                
+            getDetail(taskId)
+            } catch (error) {
+                
+            }finally{
+                setLoading(false)
             }
 
-            getDetail(taskId)
+
+            
         }
     },[open, taskId, from])
 
@@ -321,9 +332,13 @@ const DialogCreateTask: React.FC<DialogCreateTaskProps> = (props) => {
                 message:res.message,
                 severity:"success"
             })
-            if(handleLoadList && res.data){
-                const data = res.data as any as DataTask
-                handleLoadList(data.task)
+            // if(handleLoadList && res.data){
+            //     const data = res.data as any as DataTask
+            //     handleLoadList(data.task)
+            // }
+            // Load lại danh sách sau khi tạo hoặc cập nhật
+            if(setReloadKey){
+                setReloadKey(prev => prev + 1);
             }
             handleClose()
         } catch (error:any) {
@@ -348,204 +363,211 @@ const DialogCreateTask: React.FC<DialogCreateTaskProps> = (props) => {
                 </ActionButton>
             }
         >
-            <Box id="create-task-form" component='form' onSubmit={handleSubmit}>
-                <Grid container spacing={1}>
-                    <Grid item xs={12}>
-                        <Grid container spacing={1}>
-                            <Grid item xs={12} md={6}>
-                                <Typography variant="body2" fontWeight={600} gutterBottom>Số tầng</Typography>
-                                <InputSelect
-                                    name="floor_id"
-                                    label=""
-                                    value={formData.floor_id}
-                                    onChange={handleCustomInputChange}
-                                    options={listFloors}
-                                    transformOptions={(data) =>
-                                        data.map((item) => ({
-                                          value: item.id,
-                                          label: item.name,
-                                          icon: item.icon
-                                        }))
-                                    }
-                                    placeholder="Số tầng"
-                                    error={!!errors.floor_id}
-                                    helperText={errors.floor_id}
-                               />
-
-                            </Grid>
-                            <Grid item xs={12} md={6}>
-                                <Typography id="rooms-select-label" variant="body2" fontWeight={600} gutterBottom>Số phòng</Typography>
-                                <InputSelect
-                                    disabled={from ? false : !formData.floor_id}
-                                    loading={loading}
-                                    label=""
-                                    name="room_id"
-                                    value={formData.room_id}
-                                    onChange={handleCustomInputChange}
-                                    options={listRooms}
-                                    MenuProps={MenuProps}
-                                    transformOptions={(data) =>
-                                        data.map((item) => ({
+            {loading && (
+                <Box sx={{ display: 'flex', justifyContent: 'center', my: 3 }}>
+                    <CircularProgress />
+                </Box>
+            )}
+            {!loading && (
+                <Box id="create-task-form" component='form' onSubmit={handleSubmit}>
+                    <Grid container spacing={1}>
+                        <Grid item xs={12}>
+                            <Grid container spacing={1}>
+                                <Grid item xs={12} md={6}>
+                                    <Typography variant="body2" fontWeight={600} gutterBottom>Số tầng</Typography>
+                                    <InputSelect
+                                        name="floor_id"
+                                        label=""
+                                        value={formData.floor_id}
+                                        onChange={handleCustomInputChange}
+                                        options={listFloors}
+                                        transformOptions={(data) =>
+                                            data.map((item) => ({
                                             value: item.id,
-                                            label: `Phòng ${item.room_number}`,
+                                            label: item.name,
                                             icon: item.icon
-                                        }))
-                                    }
-                                    placeholder="Số phòng"
-                                    error={!!errors.room_id}
-                                    helperText={errors.room_id}
+                                            }))
+                                        }
+                                        placeholder="Số tầng"
+                                        error={!!errors.floor_id}
+                                        helperText={errors.floor_id}
                                 />
-                            </Grid>
-                        </Grid>
-                    </Grid>
-                    <Grid item xs={12}>
-                        <Typography variant="body2" fontWeight={600} gutterBottom>Công việc chính</Typography>
-                        <InputText
-                            label=""
-                            type="text"
-                            name="name"
-                            value={formData.name}
-                            onChange={handleCustomInputChange}
-                            placeholder="Công việc chính"
-                            sx={{ mt: 0 }}
-                            error={!!errors.name}
-                            helperText={errors.name}
-                            margin="dense"
-                            disabled
-                        />
-                    </Grid>
-                    <Grid item xs={12}>
-                        <Grid container spacing={1}>
-                            <Grid item xs={12} md={6}>
-                                <Typography variant="body2" fontWeight={600} gutterBottom>Yêu cầu</Typography>
-                                <InputText
-                                    label=""
-                                    type="text"
-                                    name="notes"
-                                    value={formData.notes}
-                                    onChange={handleCustomInputChange}
-                                    placeholder="Yêu cầu"
-                                    sx={{ mt: 0 }}
-                                    error={!!errors.notes}
-                                    helperText={errors.notes}
-                                    margin="dense"
-                                />
-                            </Grid>
-                            <Grid item xs={12} md={6}>
-                                <Typography variant="body2" fontWeight={600} gutterBottom>Số lượng</Typography>
-                                <InputText
-                                    label=""
-                                    type="text"
-                                    name="quantity"
-                                    value={formData.quantity}
-                                    onChange={handleCustomInputChange}
-                                    placeholder="Số lượng"
-                                    sx={{ mt: 0 }}
-                                    onlyPositiveNumber
-                                    error={!!errors.quantity}
-                                    helperText={errors.quantity}
-                                    margin="dense"
-                                    disabled
-                                />
-                            </Grid>
-                        </Grid>
-                    </Grid>
-                    <Grid item xs={12}>
-                        <Grid container spacing={1}>
-                            <Grid item xs={7}>
-                                <Typography variant="body2" fontWeight={600} gutterBottom>Các công việc nhỏ bên trong</Typography>
-                            </Grid>
-                            <Grid item xs={3}>
-                                <Typography variant="body2" fontWeight={600} gutterBottom>Thứ tự</Typography>
-                            </Grid>
-                            <Grid item xs={2}>
-                                <Typography variant="body2" fontWeight={600} gutterBottom>Tác vụ</Typography>
-                            </Grid>
-                            {taskSlots.map((slot, index) => {
-                                return (
-                                    <React.Fragment key={index}>
-                                        <Grid item xs={7}>
-                                            <TextField
-                                                label=""
-                                                type="text"
-                                                name="title"
-                                                value={slot.title}
-                                                onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-                                                    const val = event.target.value;
-                                                    handleTaskSlotChange(index,'title', val); // truyền giá trị, không truyền event
-                                                }}
-                                                placeholder="Tên"
-                                                InputProps={{
-                                                    sx:{
-                                                        "& .MuiOutlinedInput-notchedOutline":{
-                                                            border:"1px solid rgb(82, 81, 81)",
-                                                            borderRadius:"8px",
-                                                        },
-                                                        "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                                                            border:"1px solid rgb(82, 81, 81)"
-                                                        }, 
-                                                    }
-                                                }}
-                                                error={!!taskSlotErrors[index]?.title}
-                                                helperText={taskSlotErrors[index]?.title}
-                                            />
-                                        </Grid>
-                                        <Grid item xs={3}>
-                                            <TextField
-                                                label=""
-                                                type="text"
-                                                name="order_in_process"
-                                                value={slot.order_in_process}
-                                                onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-                                                    const val = event.target.value;
-                                                    handleTaskSlotChange(index,'order_in_process', val); // truyền giá trị, không truyền event
-                                                }}
-                                                placeholder="Thứ tự"
-                                                InputProps={{
-                                                    sx:{
-                                                        "& .MuiOutlinedInput-notchedOutline":{
-                                                            border:"1px solid rgb(82, 81, 81)",
-                                                            borderRadius:"8px",
-                                                        },
-                                                        "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                                                            border:"1px solid rgb(82, 81, 81)"
-                                                        }, 
-                                                    }
-                                                }}
-                                                error={!!taskSlotErrors[index]?.order_in_process}
-                                                helperText={taskSlotErrors[index]?.order_in_process}
-                                            />
-                                        </Grid>
-                                        <Grid item xs={2}>
-                                            <IconButton
-                                                aria-label={`Add slot ${index + 1}`}
-                                                handleFunt={() => handleAddTaskSlot(index + 1)}
-                                                icon={<AddCircleOutline sx={{color: 'white', width: "28px", height:"28px"}}/>}
-                                                backgroundColor="#00C7BE"
-                                                borderRadius={1}
-                                                tooltip="Thêm hạng mục"
-                                                sx={{ mt: 0, mr: 1}}
-                                            />
-                                            <IconButton
-                                                aria-label={`Remove slot ${index + 1}`}
-                                                handleFunt={() => handleRemoveTaskSlot(index)}
-                                                icon={<RemoveCircleOutline sx={{color: 'white', width: "28px", height:"28px"}}/>}
-                                                backgroundColor="red"
-                                                borderRadius={1}
-                                                tooltip="Xóa hạng mục"
-                                                sx={{ mt: 0}}
-                                                disabled={taskSlots.length == 1}
-                                            />
-                                        </Grid>
-                                    </React.Fragment>
-                                )
-                            })}
 
+                                </Grid>
+                                <Grid item xs={12} md={6}>
+                                    <Typography id="rooms-select-label" variant="body2" fontWeight={600} gutterBottom>Số phòng</Typography>
+                                    <InputSelect
+                                        disabled={from ? false : !formData.floor_id}
+                                        // loading={loading}
+                                        label=""
+                                        name="room_id"
+                                        value={formData.room_id}
+                                        onChange={handleCustomInputChange}
+                                        options={listRooms}
+                                        MenuProps={MenuProps}
+                                        transformOptions={(data) =>
+                                            data.map((item) => ({
+                                                value: item.id,
+                                                label: `Phòng ${item.room_number}`,
+                                                icon: item.icon
+                                            }))
+                                        }
+                                        placeholder="Số phòng"
+                                        error={!!errors.room_id}
+                                        helperText={errors.room_id}
+                                    />
+                                </Grid>
+                            </Grid>
+                        </Grid>
+                        <Grid item xs={12}>
+                            <Typography variant="body2" fontWeight={600} gutterBottom>Công việc chính</Typography>
+                            <InputText
+                                label=""
+                                type="text"
+                                name="name"
+                                value={formData.name}
+                                onChange={handleCustomInputChange}
+                                placeholder="Công việc chính"
+                                sx={{ mt: 0 }}
+                                error={!!errors.name}
+                                helperText={errors.name}
+                                margin="dense"
+                                disabled
+                            />
+                        </Grid>
+                        <Grid item xs={12}>
+                            <Grid container spacing={1}>
+                                <Grid item xs={12} md={6}>
+                                    <Typography variant="body2" fontWeight={600} gutterBottom>Yêu cầu</Typography>
+                                    <InputText
+                                        label=""
+                                        type="text"
+                                        name="notes"
+                                        value={formData.notes}
+                                        onChange={handleCustomInputChange}
+                                        placeholder="Yêu cầu"
+                                        sx={{ mt: 0 }}
+                                        error={!!errors.notes}
+                                        helperText={errors.notes}
+                                        margin="dense"
+                                    />
+                                </Grid>
+                                <Grid item xs={12} md={6}>
+                                    <Typography variant="body2" fontWeight={600} gutterBottom>Số lượng</Typography>
+                                    <InputText
+                                        label=""
+                                        type="text"
+                                        name="quantity"
+                                        value={formData.quantity}
+                                        onChange={handleCustomInputChange}
+                                        placeholder="Số lượng"
+                                        sx={{ mt: 0 }}
+                                        onlyPositiveNumber
+                                        error={!!errors.quantity}
+                                        helperText={errors.quantity}
+                                        margin="dense"
+                                        disabled
+                                    />
+                                </Grid>
+                            </Grid>
+                        </Grid>
+                        <Grid item xs={12}>
+                            <Grid container spacing={1}>
+                                <Grid item xs={7}>
+                                    <Typography variant="body2" fontWeight={600} gutterBottom>Các công việc nhỏ bên trong</Typography>
+                                </Grid>
+                                <Grid item xs={3}>
+                                    <Typography variant="body2" fontWeight={600} gutterBottom>Thứ tự</Typography>
+                                </Grid>
+                                <Grid item xs={2}>
+                                    <Typography variant="body2" fontWeight={600} gutterBottom>Tác vụ</Typography>
+                                </Grid>
+                                {taskSlots.map((slot, index) => {
+                                    return (
+                                        <React.Fragment key={index}>
+                                            <Grid item xs={7}>
+                                                <TextField
+                                                    label=""
+                                                    type="text"
+                                                    name="title"
+                                                    value={slot.title}
+                                                    onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                                                        const val = event.target.value;
+                                                        handleTaskSlotChange(index,'title', val); // truyền giá trị, không truyền event
+                                                    }}
+                                                    placeholder="Tên"
+                                                    InputProps={{
+                                                        sx:{
+                                                            "& .MuiOutlinedInput-notchedOutline":{
+                                                                border:"1px solid rgb(82, 81, 81)",
+                                                                borderRadius:"8px",
+                                                            },
+                                                            "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                                                                border:"1px solid rgb(82, 81, 81)"
+                                                            }, 
+                                                        }
+                                                    }}
+                                                    error={!!taskSlotErrors[index]?.title}
+                                                    helperText={taskSlotErrors[index]?.title}
+                                                />
+                                            </Grid>
+                                            <Grid item xs={3}>
+                                                <TextField
+                                                    label=""
+                                                    type="text"
+                                                    name="order_in_process"
+                                                    value={slot.order_in_process}
+                                                    onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                                                        const val = event.target.value;
+                                                        handleTaskSlotChange(index,'order_in_process', val); // truyền giá trị, không truyền event
+                                                    }}
+                                                    placeholder="Thứ tự"
+                                                    InputProps={{
+                                                        sx:{
+                                                            "& .MuiOutlinedInput-notchedOutline":{
+                                                                border:"1px solid rgb(82, 81, 81)",
+                                                                borderRadius:"8px",
+                                                            },
+                                                            "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                                                                border:"1px solid rgb(82, 81, 81)"
+                                                            }, 
+                                                        }
+                                                    }}
+                                                    error={!!taskSlotErrors[index]?.order_in_process}
+                                                    helperText={taskSlotErrors[index]?.order_in_process}
+                                                />
+                                            </Grid>
+                                            <Grid item xs={2}>
+                                                <IconButton
+                                                    aria-label={`Add slot ${index + 1}`}
+                                                    handleFunt={() => handleAddTaskSlot(index + 1)}
+                                                    icon={<AddCircleOutline sx={{color: 'white', width: "28px", height:"28px"}}/>}
+                                                    backgroundColor="#00C7BE"
+                                                    borderRadius={1}
+                                                    tooltip="Thêm hạng mục"
+                                                    sx={{ mt: 0, mr: 1}}
+                                                />
+                                                <IconButton
+                                                    aria-label={`Remove slot ${index + 1}`}
+                                                    handleFunt={() => handleRemoveTaskSlot(index)}
+                                                    icon={<RemoveCircleOutline sx={{color: 'white', width: "28px", height:"28px"}}/>}
+                                                    backgroundColor="red"
+                                                    borderRadius={1}
+                                                    tooltip="Xóa hạng mục"
+                                                    sx={{ mt: 0}}
+                                                    disabled={taskSlots.length == 1}
+                                                />
+                                            </Grid>
+                                        </React.Fragment>
+                                    )
+                                })}
+
+                            </Grid>
                         </Grid>
                     </Grid>
-                </Grid>
 
-            </Box>
+                </Box>
+            )}
 
         </DialogComponent>
     )

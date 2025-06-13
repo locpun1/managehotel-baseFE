@@ -1,30 +1,14 @@
-import IconButtonBtn from "@/components/IconButton/IconButton";
 import CustomPagination from "@/components/Pagination/CustomPagination";
-import { STATUS_LABELS, TaskStatus } from "@/constants/taskStatus";
 import { DataTaskProps, getTaskByGroupTask } from "@/services/manager.service";
-import { GroupTasks, Tasks } from "@/types/manager";
+import { Tasks } from "@/types/manager";
 import DateTime from "@/utils/DateTime";
-import { Delete, Edit} from "@mui/icons-material";
-import { Alert, Box, Chip, CircularProgress, Collapse, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from "@mui/material";
+import { getStatusChipColor, getStatusLabel } from "@/utils/status";
+import { Alert, Box, Chip, CircularProgress, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from "@mui/material";
 import dayjs, { Dayjs } from "dayjs";
 import React, { useEffect, useState } from "react";
 
 interface TableTaskByGroupTaskProps{
     id: string| number,
-}
-export const getStatusLabel = (status: TaskStatus | null | undefined): string => {
-    if(!status) return "Chưa xác định";
-    return STATUS_LABELS[status] || status;
-}
-
-export const getStatusChipColor = (status: TaskStatus | null | undefined): "default" | "primary" | "secondary" | "error" | "info" | "success" | "warning" => {
-    switch(status){
-        case TaskStatus.PENDING: return "primary";
-        case TaskStatus.PROGRESS: return "warning";
-        case TaskStatus.COMPLETED: return "success";
-        case TaskStatus.CANCELLED: return "error";
-        default: return "default";
-    }
 }
 
 export const checkDay = (today:Dayjs |string, dueDate: Dayjs | string) : boolean => {
