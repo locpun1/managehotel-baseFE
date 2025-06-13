@@ -4,25 +4,8 @@ import { useCallback, useEffect, useState } from "react";
 import DialogCreateTask from "../components/DialogCreateTask";
 import { GroupTasks } from "@/types/manager";
 import { DataGroupTaskProps, getListGroupTask } from "@/services/manager.service";
-import { STATUS_LABELS, TaskStatus } from "@/constants/taskStatus";
 import TableTask from "../components/TableTask";
-import { getStorageToken } from "@/utils/AuthHelper";
-import axios from "axios";
 
-export const getStatusLabel = (status: TaskStatus | null | undefined): string => {
-    if(!status) return "Chưa xác định";
-    return STATUS_LABELS[status] || status;
-}
-
-export const getStatusChipColor = (status: TaskStatus | null | undefined): "default" | "primary" | "secondary" | "error" | "info" | "success" | "warning" => {
-    switch(status){
-        case TaskStatus.PENDING: return "primary";
-        case TaskStatus.PROGRESS: return "warning";
-        case TaskStatus.COMPLETED: return "success";
-        case TaskStatus.CANCELLED: return "error";
-        default: return "default";
-    }
-}
 function ManagementWork (){
     const [searchTerm, setSearchTerm] = useState<string>('');
     const [openCreateDialog, setOpenCreateDialog] = useState<boolean>(false);
@@ -34,6 +17,7 @@ function ManagementWork (){
     const [rowPerPgae, setRowPerPage] = useState<number>(10)
     const [total, setTotal] = useState(0)
     const [taskId, setTaskId] = useState<string | number>('');
+    const [reloadKey, setReloadKey] = useState(0);
 
     const fetchListTask = useCallback(async (currentPage: number, currentLimit: number) => {
         setLoading(true)
@@ -56,6 +40,10 @@ function ManagementWork (){
         fetchListTask(page,rowPerPgae)
     },[page, rowPerPgae])
 
+    useEffect(() => {
+        fetchListTask(page,rowPerPgae)
+    }, [reloadKey, page, rowPerPgae]);
+
     const handlePageChange = (newPage: number) => {
         setPage(newPage)
     }
@@ -66,17 +54,18 @@ function ManagementWork (){
         setOpenCreateDialog(true)
     }
 
-    const handleLoadList = (newTask: GroupTasks) => {
-        setListGroupTask(prev => {
-            const index = prev.findIndex(task => task.id === newTask.id);
-            if (index !== -1) {
-                const updated = [...prev];
-                updated[index] = newTask;
-                return updated;
-            }
-            return [newTask, ...prev]
-        })
-    } 
+    const handleLoadList = useCallback((newTask: GroupTasks) => {
+    setListGroupTask(prev => {
+        const index = prev.findIndex(task => task.id === newTask.id);
+        if (index !== -1) {
+        const updated = [...prev];
+        updated[index] = newTask;
+        return updated;
+        }
+        return [newTask, ...prev];
+    });
+    }, []);
+ 
 
     const handleOpenEditTask = (id: string | number) => {
         setTaskId(id)
@@ -118,7 +107,8 @@ function ManagementWork (){
                         setOpenCreateDialog(false)
                     }}
                     title="Tạo công việc mới"
-                    handleLoadList={handleLoadList}
+                    // handleLoadList={handleLoadList}
+                    setReloadKey={setReloadKey}
                 />
             }
             {openUpdateDialog &&
@@ -130,6 +120,7 @@ function ManagementWork (){
                     title="Chỉnh sửa công việc"
                     taskId={taskId}
                     from="updateTask"
+                    setReloadKey={setReloadKey}
                 />
             }
         </Box>

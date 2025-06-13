@@ -59,6 +59,7 @@ export default function Login() {
 
   const redirectPath = searchParams.get('redirect') || '/staff/home';
   
+  
   localStorage.setItem(PATH_STAFF_WITH_ROOM, redirectPath);
 
   useEffect(() => {
