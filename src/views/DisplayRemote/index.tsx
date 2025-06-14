@@ -12,6 +12,7 @@ import { DetailedTasksApiResponse, getRoomDetailedDailyTasks, getRoomProcessStep
 import useNotification from '@/hooks/useNotification';
 import { QRCodeCanvas } from 'qrcode.react';
 import { v4 as uuidv4 } from 'uuid';
+import noDataImage from '@/assets/images/no-data.png';
 
 const LOCAL_STORAGE_DEVICE_ID_KEY = 'hotel_display_device_id_v1';
 
@@ -61,12 +62,12 @@ const RoomDisplayPageStatic = () => {
       if (responseData) {
         setStepperData(prevData => {
           if (prevData && responseData && JSON.stringify(prevData) === JSON.stringify(responseData)) {
-              console.warn("[TV_STEPPER_FETCH] New stepper data is identical to current state. Returning previous data.");
-              return prevData; 
+            console.warn("[TV_STEPPER_FETCH] New stepper data is identical to current state. Returning previous data.");
+            return prevData;
           }
           console.log("[TV_STEPPER_FETCH] New stepper data is different or no previous data. Updating state.");
           return responseData;
-      });
+        });
       } else {
         throw new Error("Dữ liệu quy trình không hợp lệ từ API.");
       }
@@ -106,7 +107,7 @@ const RoomDisplayPageStatic = () => {
     if (!roomId || !deviceId) {
       console.warn("[WebSocket] Room ID or Device ID is missing, WebSocket connection not started.");
       return;
-    }   
+    }
 
     const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     let wsHost = window.location.hostname;
@@ -201,21 +202,6 @@ const RoomDisplayPageStatic = () => {
   return (
     <Container sx={{ py: { xs: 2, md: 3 }, backgroundColor: '#f9f9f9', minHeight: '100vh' }}>
       <Box>
-        {isSocketConnected && !error && (
-          <Paper elevation={1} sx={{ p: 3, textAlign: 'center', borderRadius: '12px', mt: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <Typography color="text.secondary" sx={{ mb: 2 }}>
-              Quét mã này để tải hoặc làm mới danh sách công việc chi tiết.
-            </Typography>
-            <QRCodeCanvas value={staffRoomLink} size={180} level="H" />
-          </Paper>
-        )}
-        {!isSocketConnected && !error && (
-          <Typography color="text.secondary" sx={{ textAlign: 'center', mt: 2 }}>
-            Đang chờ kết nối tới máy chủ để có thể làm mới công việc qua QR...
-          </Typography>
-        )}
-      </Box>
-      <Box>
         {stepperData ? (
           <Box sx={{ mb: { xs: 3, md: 4 } }}>
             <TaskProgressStepper
@@ -229,21 +215,76 @@ const RoomDisplayPageStatic = () => {
         ) : (
           <Typography sx={{ mb: 4 }}>Không có thông tin quy trình cho phòng này.</Typography>
         )}
-
-        <Typography variant="h6" component="h2" gutterBottom sx={{ fontWeight: 'bold', mb: 2 }}>
-          Danh sách công việc
-        </Typography>
-        {detailedTasksResponse && detailedTasksResponse.tasks.length > 0 ? (
-          <>
-            <TaskList
-              tasks={detailedTasksResponse.tasks}
-            />
-          </>
-        ) : (
-          !loadingTaskList && <Paper elevation={1} sx={{ p: 2, textAlign: 'center', borderRadius: '12px' }}>
-            <Typography color="text.secondary">Không có công việc chi tiết nào được tìm thấy.</Typography>
-          </Paper>
-        )}
+        <Box sx={{ display: 'flex', width: '100%', gap: '10px' }}>
+          <Box sx={{
+            flex: '1',
+            p: 3,
+            boxShadow: '0px 1px 3px 1px rgba(0, 0, 0, 0.15), 0px 1px 2px 0px rgba(0, 0, 0, 0.3)',
+            borderRadius: '8px'
+          }}>
+            <Typography sx={{ fontSize: '22px', fontWeight: '500', fontFamily: 'Static/Title Large/Font', textAlign: 'center' }}>
+              Mã QR của bạn
+            </Typography>
+            {isSocketConnected && !error && (
+              <Paper elevation={1} sx={{ p: 3, textAlign: 'center', borderRadius: '12px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <Typography color="text.secondary" sx={{ mb: 2, fontWeight: '400', fontSize: '12px', fontFamily: 'Roboto' }}>
+                  Quét mã QR code để nhận danh sách công việc ngày hôm nay.
+                </Typography>
+                <QRCodeCanvas value={staffRoomLink} size={180} level="H" />
+                <Typography sx={{ mt: 2, fontWeight: '500', fontSize: '12px', fontFamily: 'Roboto', color: '#007AFF' }}>
+                  Bạn cần hoàn thành 5/5 công việc để quét mã QR điểm danh ngày hôm nay
+                </Typography>
+              </Paper>
+            )}
+            {!isSocketConnected && !error && (
+              <Typography color="text.secondary" sx={{ textAlign: 'center', mt: 2 }}>
+                Đang chờ kết nối tới máy chủ để có thể làm mới công việc qua QR...
+              </Typography>
+            )}
+          </Box>
+          <Box sx={{
+            flex: '2', p: 3,
+            boxShadow: '0px 1px 3px 1px rgba(0, 0, 0, 0.15), 0px 1px 2px 0px rgba(0, 0, 0, 0.3)',
+            borderRadius: '8px'
+          }}>
+            <Typography variant="h6" component="h2" gutterBottom sx={{ fontWeight: '500', fontSize: '22px', fontFamily: 'Static/Title Large/Font' }}>
+              Danh sách công việc
+            </Typography>
+            {detailedTasksResponse && detailedTasksResponse.tasks.length > 0 ? (
+              <>
+                <TaskList
+                  tasks={detailedTasksResponse.tasks}
+                />
+              </>
+            ) : (
+              <Paper elevation={0} sx={{ textAlign: 'center', borderRadius: '12px', backgroundColor: 'transparent', width: '100%' }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Box
+                    component="img"
+                    src={noDataImage}
+                    alt="Không có dữ liệu"
+                    sx={{
+                      width: '100%',
+                      maxWidth: { xs: '273px', md: '273px' },
+                      height: 'auto',
+                      opacity: 0.7,
+                    }}
+                  />
+                  <Typography color="text.secondary" sx={{ fontWeight: 500 }}>
+                    Chưa có dữ liệu công việc!
+                  </Typography>
+                </Box>
+              </Paper>
+            )}
+          </Box>
+        </Box>
       </Box>
       <Box>
         {/* <CardInfoManager
