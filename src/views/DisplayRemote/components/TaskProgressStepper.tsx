@@ -38,7 +38,10 @@ const TaskProgressStepper: React.FC<TaskProgressStepperProps> = ({
   const currentStepGlowColor = 'rgba(255,160,0,0.5)';
 
   return (
-    <Paper elevation={2} sx={{ p: { xs: 2, md: 2.5 }, borderRadius: '12px', overflow: 'hidden' }}>
+    <Paper elevation={2} sx={{
+      p: { xs: 2, md: 2.5 }, borderRadius: '8px', overflow: 'hidden',
+      boxShadow: '0px 1px 3px 1px rgba(0, 0, 0, 0.15), 0px 1px 2px 0px rgba(0, 0, 0, 0.3)',
+    }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2.5 }}>
         <Typography variant="h6" component="h1" sx={{ fontWeight: 'bold', flex: '1' }}>
           {fullTaskTitle}
@@ -58,7 +61,7 @@ const TaskProgressStepper: React.FC<TaskProgressStepperProps> = ({
               }}
             />
           </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px'}}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
             <Typography variant="body2" color="text.secondary">
               Thời gian:
             </Typography>
@@ -70,7 +73,7 @@ const TaskProgressStepper: React.FC<TaskProgressStepperProps> = ({
       </Box>
 
       <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', mt: 1, overflowX: 'auto', pb: 1, px: 0.5 }}>
-        {(!steps || steps.length === 0) ? ( 
+        {(!steps || steps.length === 0) ? (
           <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', py: 2 }}>
             <Typography color="text.secondary" variant="body2">
               Chưa có quy trình công việc nào được tải.
