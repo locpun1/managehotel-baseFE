@@ -311,6 +311,7 @@ const StaffHome = () => {
                       <>
                         <TaskList
                           tasks={detailedTasksResponse.tasks}
+                          onTaskAction={handleTaskAction} 
                         />
                       </>
                     ) : (
