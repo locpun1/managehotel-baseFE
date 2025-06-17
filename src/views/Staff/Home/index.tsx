@@ -6,7 +6,7 @@ import useAuth from '@/hooks/useAuth';
 import CardInfoManager from '@/components/CardInfo/CardInfoManager';
 import CardInfoStaff from '@/components/CardInfo/CardInfoStaff';
 import TaskProgressStepper, { StepProps } from '@/views/DisplayRemote/components/TaskProgressStepper';
-import { DetailedTasksApiResponse, getRoomDetailedDailyTasks, getRoomProcessSteps, StepperDataPayload, UpdateTaskPayload, updateTaskStatusAPI } from '@/services/task-service';
+import { DetailedTasksApiResponse, getRoomDetailedDailyTasks, getRoomProcessSteps, UpdateTaskPayload, updateTaskStatusAPI } from '@/services/task-service';
 import TaskList, { TaskListAction } from '@/views/DisplayRemote/components/TaskList';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { TaskListDataItem } from '@/types/task-types';
@@ -15,6 +15,7 @@ import useNotification from '@/hooks/useNotification';
 import { getProfileUserCreateTaskAttachedRoom } from '@/services/user-service';
 import { UserProfile } from '@/types/users';
 import HttpClient from '@/utils/HttpClient';
+import noDataImage from '@/assets/images/no-data.png';
 
 export interface StepperData {
   roomNumber: string;
@@ -23,7 +24,7 @@ export interface StepperData {
   currentDate: string;
   steps?: StepProps[];
   groupTaskName?: string;
-  assignedTo?: string; 
+  assignedTo?: string;
 }
 
 export const ID_ROOM = 'id_room';
@@ -56,14 +57,13 @@ const StaffHome = () => {
     }
     if (showLoading) setLoading(true);
     setError(null);
-    setErrorProfile(null); // Reset lỗi profile nữa
+    setErrorProfile(null);
     try {
       const todayForAPI = new Date().toISOString().split('T')[0];
-      // Chạy song song để tăng tốc độ
       const [stepperResp, tasksResp, profileResp] = await Promise.all([
         getRoomProcessSteps(roomId, todayForAPI),
         getRoomDetailedDailyTasks(roomId, todayForAPI),
-        getProfileUserCreateTaskAttachedRoom(roomId) // Fetch profile người tạo/giao task cho phòng này
+        getProfileUserCreateTaskAttachedRoom(roomId)
       ]);
 
       setStepperData(stepperResp || null);
@@ -182,13 +182,13 @@ const StaffHome = () => {
 
           if (action === 'start' && newStatusForOptimisticUpdate === TASK_STATUS_API.IN_PROGRESS) {
             newCompletedTime = null;
-            newIsCurrent = true; 
+            newIsCurrent = true;
           } else if (action === 'completed' && newStatusForOptimisticUpdate === TASK_STATUS_API.COMPLETED) {
             newCompletedTime = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', hour12: false });
-            newIsCurrent = false; 
+            newIsCurrent = false;
           } else if (action === 'cancel' && newStatusForOptimisticUpdate === TASK_STATUS_API.PENDING) {
             newCompletedTime = null;
-            newIsCurrent = false; 
+            newIsCurrent = false;
           }
           return { ...step, completedTime: newCompletedTime, isCurrent: newIsCurrent };
         }
@@ -231,22 +231,21 @@ const StaffHome = () => {
     const payload: UpdateTaskPayload = { action, userId: profile.id };
     try {
       const response = await updateTaskStatusAPI(taskId, payload);
-      console.log(response)
       if (response && response.success && response.data) {
         notify({ message: `Công việc ${response.data.title} (đã được ${action})`, severity: 'success' });
-        await fetchTasksForStaff(false); 
+        await fetchTasksForStaff(false);
 
         // Trigger TV refresh
         if (triggeringDeviceId && roomId) {
           const triggerUrl = `${backendHttpUrl}/api/v1/room-actions/trigger-task-refresh?deviceId=${triggeringDeviceId}&roomId=${roomId}`;
           HttpClient.post(triggerUrl, {})
-              .then(() => {
-                  console.log(`[StaffPage] Tín hiệu làm mới đã được gửi đến TV device ${triggeringDeviceId} sau khi cập nhật task.`);
-              })
-              .catch((triggerError: any) => {
-                  console.error("[StaffPage] Không thể gửi tín hiệu làm mới đến TV sau khi cập nhật task:", triggerError);
-              });
-      }
+            .then(() => {
+              console.log(`[StaffPage] Tín hiệu làm mới đã được gửi đến TV device ${triggeringDeviceId} sau khi cập nhật task.`);
+            })
+            .catch((triggerError: any) => {
+              console.error("[StaffPage] Không thể gửi tín hiệu làm mới đến TV sau khi cập nhật task:", triggerError);
+            });
+        }
       } else {
         throw new Error(response?.message || `Cập nhật task #${taskId} thất bại.`);
       }
@@ -259,7 +258,21 @@ const StaffHome = () => {
     }
   };
 
+  useEffect(() => {
+    // Chỉ chạy khi có roomId và profile của nhân viên
+    if (roomId && profile) {
+      const checkInUrl = `${backendHttpUrl}/api/v1/room-actions/staff-checked-in`;
 
+      // Gửi thông tin check-in lên backend
+      HttpClient.post(checkInUrl, { roomId }) // Backend sẽ lấy profile từ token qua middleware auth
+        .then(() => {
+          console.log(`[StaffHome] Successfully checked in for room ${roomId}.`);
+        })
+        .catch(err => {
+          console.error(`[StaffHome] Failed to check in for room ${roomId}:`, err);
+        });
+    }
+  }, [roomId, profile, backendHttpUrl]);
 
   return (
     <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
@@ -288,27 +301,44 @@ const StaffHome = () => {
                   )}
                 </>
               </Grid>
-              <Grid size={{ xs: 12, md: 4 }}>
+              <Grid size={{ xs: 12, md: 12 }}>
                 <Box>
-                  <Paper elevation={2} sx={{ padding: 1, borderRadius: '8px', border: '1px solid #e0e0e0' }}>
-                    Mã QR của bạn
-                  </Paper>
-                </Box>
-              </Grid>
-              <Grid size={{ xs: 12, md: 8 }}>
-                <Box>
-                  <Paper elevation={2} sx={{ padding: 1, borderRadius: '8px', border: '1px solid #e0e0e0' }}>
+                  <Paper sx={{ padding: 1, borderRadius: '8px', border: '1px solid #e0e0e0' }}>
                     <Typography variant="h6" component="h2" gutterBottom sx={{ fontWeight: 'bold', mb: 2 }}>
                       Danh sách công việc
                     </Typography>
                     {detailedTasksResponse && detailedTasksResponse.tasks.length > 0 ? (
-                      <TaskList
-                        tasks={detailedTasksResponse.tasks}
-                        onTaskAction={handleTaskAction}
-                        onCompleteAll={handleCompleteAll}
-                      />
+                      <>
+                        <TaskList
+                          tasks={detailedTasksResponse.tasks}
+                        />
+                      </>
                     ) : (
-                      !loadingTaskList && <Typography color="text.secondary">Không có công việc chi tiết nào được tìm thấy.</Typography>
+                      <Paper elevation={0} sx={{ textAlign: 'center', borderRadius: '12px', backgroundColor: 'transparent', width: '100%' }}>
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          <Box
+                            component="img"
+                            src={noDataImage}
+                            alt="Không có dữ liệu"
+                            sx={{
+                              width: '100%',
+                              maxWidth: { xs: '273px', md: '273px' },
+                              height: 'auto',
+                              opacity: 0.7,
+                            }}
+                          />
+                          <Typography color="text.secondary" sx={{ fontWeight: 500 }}>
+                            Chưa có dữ liệu công việc!
+                          </Typography>
+                        </Box>
+                      </Paper>
                     )}
                   </Paper>
                 </Box>

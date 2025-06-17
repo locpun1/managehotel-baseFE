@@ -13,6 +13,10 @@ import useNotification from '@/hooks/useNotification';
 import { QRCodeCanvas } from 'qrcode.react';
 import { v4 as uuidv4 } from 'uuid';
 import noDataImage from '@/assets/images/no-data.png';
+import CardInfoManager from '@/components/CardInfo/CardInfoManager';
+import { UserProfile } from '@/types/users';
+import { getProfileUserCreateTaskAttachedRoom } from '@/services/user-service';
+import CardInfoStaff from '@/components/CardInfo/CardInfoStaff';
 
 const LOCAL_STORAGE_DEVICE_ID_KEY = 'hotel_display_device_id_v1';
 
@@ -44,7 +48,8 @@ const RoomDisplayPageStatic = () => {
   const [loadingStepper, setLoadingStepper] = useState<boolean>(true);
   const [loadingTaskList, setLoadingTaskList] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const notify = useNotification();
+  const [profileAdmin, setProfileAdmin] = useState<UserProfile | null>(null);
+  const [profileUser, setProfileUser] = useState<UserProfile | null>(null);
 
   const staffRoomLink = `${window.location.origin}/staff/home/${roomId}?triggeringDeviceId=${deviceId}`;
 
@@ -62,12 +67,16 @@ const RoomDisplayPageStatic = () => {
       if (responseData) {
         setStepperData(prevData => {
           if (prevData && responseData && JSON.stringify(prevData) === JSON.stringify(responseData)) {
-            console.warn("[TV_STEPPER_FETCH] New stepper data is identical to current state. Returning previous data.");
             return prevData;
           }
-          console.log("[TV_STEPPER_FETCH] New stepper data is different or no previous data. Updating state.");
           return responseData;
         });
+        try {
+          const profileResp = await getProfileUserCreateTaskAttachedRoom(roomId);
+          setProfileAdmin(profileResp || null);
+        } catch (profileErr: any) {
+          console.error("Error fetching profile user:", profileErr);
+        }
       } else {
         throw new Error("Dữ liệu quy trình không hợp lệ từ API.");
       }
@@ -146,7 +155,6 @@ const RoomDisplayPageStatic = () => {
 
       currentSocket.onopen = () => {
         if (!isComponentMounted || currentSocket !== socket) return;
-        console.log(`[WebSocket] Connected: ${deviceId}, room: ${roomId}`);
         setIsSocketConnected(true);
         if (reconnectIntervalId) clearTimeout(reconnectIntervalId);
       };
@@ -162,6 +170,10 @@ const RoomDisplayPageStatic = () => {
           if (messageData.action === 'REFRESH_DETAILED_TASKS' && messageData.targetRoomId === roomId) {
             fetchDetailedTaskData(true);
             fetchStepperData(false);
+          }
+          if (messageData.action === 'STAFF_INFO_UPDATE' && messageData.targetRoomId === roomId) {
+            const staffProfile: UserProfile = messageData.payload; 
+            setProfileUser(staffProfile);
           }
         } catch (e) {
           console.error("[WebSocket] Error parsing message or invalid message format:", e);
@@ -200,7 +212,7 @@ const RoomDisplayPageStatic = () => {
   }, [roomId, deviceId, fetchDetailedTaskData]);
 
   return (
-    <Container sx={{ py: { xs: 2, md: 3 }, backgroundColor: '#f9f9f9', minHeight: '100vh' }}>
+    <Container sx={{ py: { xs: 2, md: 3 }, backgroundColor: '#f9f9f9', minHeight: '100vh', display: 'flex', gap: '10px' }}>
       <Box>
         {stepperData ? (
           <Box sx={{ mb: { xs: 3, md: 4 } }}>
@@ -287,9 +299,17 @@ const RoomDisplayPageStatic = () => {
         </Box>
       </Box>
       <Box>
-        {/* <CardInfoManager
-          data={profile}
-        /> */}
+        {profileAdmin && (
+          <CardInfoManager
+            data={profileAdmin}
+          />
+        )}
+        {profileUser && stepperData &&
+              <CardInfoStaff
+                data={profileUser}
+                stepperData={stepperData}
+              />
+            }
       </Box>
     </Container>
   );
