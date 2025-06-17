@@ -75,7 +75,7 @@ const Header = (props: Props) => {
           <Typography display='flex' justifyContent="center" alignItems='center'>{title}</Typography>
         </Stack>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <SelectLanguage />
+          {/* <SelectLanguage /> */}
           <Profile />
         </Box>
       </Toolbar>
