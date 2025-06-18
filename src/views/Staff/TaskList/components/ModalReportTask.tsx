@@ -11,7 +11,7 @@ import InputText from "@/views/Manager/components/InputText";
 import { ReportStatus } from "@/constants/taskStatus";
 import useNotification from "@/hooks/useNotification";
 import { sendReportTask } from "@/services/report-service";
-import { Dayjs } from "dayjs";
+import dayjs, { Dayjs } from "dayjs";
 
 interface ModalReportTaskProps{
     open: boolean, 
@@ -28,6 +28,7 @@ interface ReportFormData{
     description: string;
     image_url: File | null;
     status: ReportStatus;
+    date_today: string
 }
 
 const MAX_IMAGE_SIZE = 800; // px
@@ -42,11 +43,11 @@ const ModalReportTask = (props: ModalReportTaskProps) => {
     const notify = useNotification();
     const fileInputRef = useRef<HTMLInputElement | null>(null);
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-    const [errors, setErrors] = useState<Partial<Record<'description', string>>>({});
+    const [errors, setErrors] = useState<Partial<Record<'description' | 'image_url', string>>>({});
     
     const [formData, setFormData] = useState<ReportFormData>({
         reported_by_id: profile.id, room_id: detailTask.room_id , task_id: detailTask.id, title: detailTask.title, description: '',
-        image_url: null, status: ReportStatus.NEW
+        image_url: null, status: ReportStatus.NEW, date_today: dayjs().toISOString()
     })
 
     const fetchProfileUserCreatedTask = useCallback(async() => {
@@ -73,7 +74,7 @@ const ModalReportTask = (props: ModalReportTaskProps) => {
         onClose()
         setFormData({
             reported_by_id: profile.id, room_id: detailTask.room_id , task_id: detailTask.id, title: detailTask.title, description: '',
-            image_url: null, status: ReportStatus.NEW
+            image_url: null, status: ReportStatus.NEW, date_today: dayjs().toISOString()
         })
         setImagePreview(null)
     }
@@ -87,8 +88,8 @@ const ModalReportTask = (props: ModalReportTaskProps) => {
             [validName]: value, 
         }));
 
-        if (validName === 'description') {
-            if (errors[validName as 'description']) {
+        if (validName === 'description' || validName === 'image_url') {
+            if (errors[validName as 'description' || validName as 'image_url']) {
                 setErrors(prev => {
                     const newErrors = { ...prev };
                     delete newErrors[validName as 'description'];
@@ -205,8 +206,9 @@ const ModalReportTask = (props: ModalReportTaskProps) => {
     // }
 
     const validateForm = (): boolean => {
-        const newErrors: Partial<Record<'description', string>> = {};
+        const newErrors: Partial<Record<'description' | 'image_url', string>> = {};
         if(!formData.description.trim()) newErrors.description = 'Vấn đề báo cáo không được bỏ trống';
+        if(!formData.image_url) newErrors.image_url = "Hình ảnh bắt buộc phải chụp"
         setErrors(newErrors)
         return Object.keys(newErrors).length === 0;
     }
@@ -215,7 +217,6 @@ const ModalReportTask = (props: ModalReportTaskProps) => {
         if(!validateForm()){
             return;
         }
-
         setIsSubmitting(true)
         const data = new FormData();
         data.append('reported_by_id', String(formData.reported_by_id));
@@ -224,15 +225,15 @@ const ModalReportTask = (props: ModalReportTaskProps) => {
         data.append('title', formData.title);
         if(formData.description) data.append('description', formData.description)
         if(formData.image_url) data.append('image_url', formData.image_url);
+        if(formData.date_today) data.append('date_today', formData.date_today);
 
         try {
-            const res = await sendReportTask(data);
-            console.log("res: ", res);
-            setFormData({
-                reported_by_id: profile.id, room_id: detailTask.room_id , task_id: detailTask.id, title: detailTask.title, description: '',
-                image_url: null, status: ReportStatus.NEW
+            await sendReportTask(data);
+            handleClose()
+            notify({
+                message: "Gửi báo cáo công việc thành công",
+                severity: 'success'
             })
-            setImagePreview(null)
         } catch (error) {
             notify({
                 message: "Gửi báo cáo công việc thất bại",
@@ -242,7 +243,6 @@ const ModalReportTask = (props: ModalReportTaskProps) => {
             setIsSubmitting(false)
         }
     }
-    
     
     return(
         <Dialog 
@@ -316,6 +316,8 @@ const ModalReportTask = (props: ModalReportTaskProps) => {
                                 margin="dense"
                                 error={!!errors.description}
                                 helperText={errors.description}
+                                multiline={true}
+                                rows={4}
                             />
                         </Grid>
                         <Grid size={{ xs: 12}}>
@@ -336,6 +338,9 @@ const ModalReportTask = (props: ModalReportTaskProps) => {
                                     onChange={handleImageChange}
                                 />
                             </Button>
+                            {errors.image_url && !finalDisplayAvatarSrc && (
+                                <Typography color="error" sx={{ mt: 1}} variant="body2">{errors.image_url}</Typography>
+                            )}
                             {finalDisplayAvatarSrc && (
                                 <Card sx={{ position:'relative', maxWidth: 300, margin: '10px auto'}}>
                                     <IconButton

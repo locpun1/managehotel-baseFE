@@ -1,9 +1,9 @@
 import { yupResolver } from '@hookform/resolvers/yup';
 import _ from 'lodash';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
-import { Link as RouterLink, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link as RouterLink, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 import { AccountCircle, Lock, Visibility, VisibilityOff } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
@@ -30,6 +30,8 @@ import { setProfile } from '@/slices/user';
 import { useAppDispatch } from '@/store';
 import { setStorageToken } from '@/utils/AuthHelper';
 import Logger from '@/utils/Logger';
+import { LOCAL_STORAGE_DEVICE_ID_KEY } from '../DisplayRemote';
+import { ID_ROOM } from '../Staff/Home';
 
 interface LoginFormInputs {
   identifier: string;
@@ -55,16 +57,19 @@ export default function Login() {
   const [_error, setError] = useState('');
   const [showPassword, setShowPassword] = useBoolean(false);
   const [remember, setRemember] = useState(true);
-  const [searchParams] = useSearchParams();
 
-  const redirectPath = searchParams.get('redirect') || '/staff/home';
-  
-  
+  const params = new URLSearchParams(location.search);
+  const redirectPath = params.get("redirect") || "/staff/home";
+  const triggeringDeviceId = params.get("triggeringDeviceId");
+  const { roomId } = useParams<{ roomId: string }>();
+  roomId && localStorage.setItem(ID_ROOM, roomId);
+
   localStorage.setItem(PATH_STAFF_WITH_ROOM, redirectPath);
+  if (triggeringDeviceId) localStorage.setItem(LOCAL_STORAGE_DEVICE_ID_KEY, triggeringDeviceId);
 
   useEffect(() => {
     setFocus('identifier');
-  }, [setFocus]);
+  }, [setFocus,]);
 
   const onSubmit = async (values: LoginFormInputs) => {
     setLoading.on();
@@ -92,7 +97,7 @@ export default function Login() {
                 ROUTE_PATH.HOME;
                 
                 if (!_.isNull(location.state) && location.state !== ROUTE_PATH.LOGIN) {
-                  route = location.state;
+                  route = location.search ?  `${redirectPath}` : location.state ;
                 }
                 console.log("route: ",route);
                 

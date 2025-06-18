@@ -72,6 +72,7 @@ const CardInfo: React.FC<InfoProps> = (props) => {
                 return 'primary';
         }
     }
+
     return (
         <ObjectCardStyled variant="outlined">
             <Grid container spacing={1}>
@@ -87,14 +88,15 @@ const CardInfo: React.FC<InfoProps> = (props) => {
                         }}
                         alt="Avatar"
                         sx={{
-                            objectFit: 'cover',
+                            objectFit: 'fit',
                             backgroundColor: '#f5f5f5',
                             height: "200px",
                             width:"100%",
                         }}
                     />
+                    {data?.staffName && <Typography sx={{ mt: { md: -2}, mb: { md: 1}}} variant="body1" align="center">{data?.staffName}</Typography>}
                 </Grid>
-                <Grid sx={{ mt: 2}} item xs={12} md={7}>
+                <Grid sx={{ mt: 2, ml: {xs: 2, md: 0 }}} item xs={12} md={7}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
                         <Box onClick={() => data !== undefined && handleOpenTable(data.id, data.idGroupTask)}>
                             <Typography variant="body2" component="span">Số phòng: </Typography>
@@ -140,7 +142,7 @@ const CardInfo: React.FC<InfoProps> = (props) => {
                     <Box sx={{ mb:1}} onClick={() => data !== undefined && handleOpenTable(data.id, data.idGroupTask)}>
                         <Typography variant="body2">{`Thời gian: ${date}`}</Typography>
                     </Box>
-                    <Box onClick={() => data !== undefined && handleOpenTable(data.id, data.idGroupTask)}>
+                    <Box sx={{ display: 'flex', justifyContent: {xs: 'center', md: 'flex-start'} }} onClick={() => data !== undefined && handleOpenTable(data.id, data.idGroupTask)}>
                         {status && <Chip sx={{ width: 150, my:1.5 }} label={status} color={getStatusColor(status)}/>}
                     </Box>
                 </Grid>

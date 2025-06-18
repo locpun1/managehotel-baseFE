@@ -76,3 +76,4 @@ export function getAgeFromDateOfBirth(dob: string | Date | Dayjs |null): number 
   }
   return age;
 }
+

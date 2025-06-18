@@ -186,7 +186,7 @@ const ManagementHome = () => {
                 return (
                   <React.Fragment key={room.id}>
                     <Grid item xs={12} sm={6} lg={4} key={room.id}>
-                      <CardInfo handleOpenTable={handleOpenTable} data={room} handleGenerate={handleOpenGenerateCode} />
+                      <CardInfo personalPhoto={room.avatarUrlStaff} handleOpenTable={handleOpenTable} data={room} handleGenerate={handleOpenGenerateCode} />
                     </Grid>
                     {isEndOfRow && shouldShowCollapse && (
                       <>
@@ -240,7 +240,7 @@ const ManagementHome = () => {
                   return (
                     <React.Fragment key={room.id}>
                       <Grid key={room.id} item xs={12} sm={6} lg={4}>
-                        <CardInfo handleOpenTable={handleOpenTable} handleGenerate={handleOpenGenerateCode} data={room} />
+                        <CardInfo personalPhoto={room.avatarUrlStaff} handleOpenTable={handleOpenTable} handleGenerate={handleOpenGenerateCode} data={room} />
                       </Grid>
                     </React.Fragment>
                   )

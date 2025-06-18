@@ -23,7 +23,8 @@ function ManagementWork (){
         setLoading(true)
         setError(null)
         try {
-            const res = await getListGroupTask(currentPage, currentLimit)
+            const date = new Date().toISOString().split('T')[0];
+            const res = await getListGroupTask(currentPage, currentLimit, date)
             const data = res.data as any as DataGroupTaskProps
             setListGroupTask(data.result.data)
             setTotal(data.result.totalCount)

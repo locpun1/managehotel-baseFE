@@ -23,7 +23,9 @@ export interface Rooms{
     started_at: string,
     completed_at: string,
     statusTask: TaskStatus,
-    idGroupTask: string | number
+    idGroupTask: string | number, 
+    staffName?: string,
+    avatarUrlStaff?: string
 }
 
 interface TaskItemData {
@@ -87,4 +89,5 @@ export interface GroupTasks {
     floorName?:string,
     groupTask: Tasks[],
     floor_id: number,
+    staffName?: string,
 }

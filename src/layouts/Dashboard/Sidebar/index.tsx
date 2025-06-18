@@ -35,6 +35,7 @@ import type { MouseEvent } from '@/types/react';
 import { useSidebarTitle } from '@/contexts/SidebarTitleContext';
 import useAuth from '@/hooks/useAuth';
 import { ROLE } from '@/constants/roles';
+import { PATH_STAFF_WITH_ROOM } from '@/views/Auth/Login';
 
 export const CollapseContext = createContext<boolean | null>(null);
 export const SidebarContext = createContext<boolean | null>(null);
@@ -47,7 +48,7 @@ interface Props {
 }
 const Sidebar = (props: Props) => {
   const { openSidebar, collapsed, onCloseSidebar, onToggleCollapsed } = props;
-  const { pathname } = useLocation();
+  const location = useLocation();
   const { profile } = useAuth()
   const sections = useMemo(() => {
   return profile?.role === ROLE.MANAGER
@@ -55,6 +56,10 @@ const Sidebar = (props: Props) => {
     : UserSection();
   },[profile?.role]);
 
+  const path = localStorage.getItem(PATH_STAFF_WITH_ROOM);
+
+  const pathname = path && location.search ? path : location.pathname;
+  
   const theme = useTheme();
   const prevPathName = usePrevious(pathname);
 
@@ -181,7 +186,10 @@ const MenuItems = (props: MenuItemsProps) => {
     <List disablePadding>
       {items.reduce<ReactNode[]>((acc, item, i) => {
         const { title, path, children, info, icon } = item;
+        
         const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+        // console.log("normalizedPath", normalizedPath);
+        
         const key = `${title}-${level}-${i}`;
         // const partialMatch = pathname.startsWith(path);
         const exactMatch = pathname === normalizedPath || pathname.startsWith(`${normalizedPath}/`);
@@ -340,9 +348,9 @@ const MenuItem: FC<MenuItemProps> = (props) => {
         sx={{
           display: 'flex',
           flexDirection: 'column',
-          ...(level === 0 && {
-            px: 1.5,
-          }),
+          // ...(level === 0 && {
+          //   px: 1.5,
+          // }),
         }}
         {...other}
       >
@@ -358,9 +366,9 @@ const MenuItem: FC<MenuItemProps> = (props) => {
             p: 1.25,
             pl: `${paddingLeft}px`,
             textAlign: 'left',
-            '&:hover': {
-              bgcolor: alpha('#FFFFFF', 0.5),
-            },
+            // '&:hover': {
+            //   bgcolor: alpha('#FFFFFF', 0.5),
+            // },
             ...(active && {
               color: 'info.contrastText',
               bgcolor: alpha('#00C7BE', 1),
@@ -375,6 +383,7 @@ const MenuItem: FC<MenuItemProps> = (props) => {
               '& .MuiTypography-root': {
                 fontSize: '14px',
               },
+             
             }}
           />
           {Info && <Info />}
@@ -434,6 +443,7 @@ const MenuItem: FC<MenuItemProps> = (props) => {
               whiteSpace: 'nowrap',
               fontSize: '14px',
               fontWeight: active ? 'bold' : 'normal',
+              ml: level > 0 ? '-60px' : 0
             },
           }}
         />

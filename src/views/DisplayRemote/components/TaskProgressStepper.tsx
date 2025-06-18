@@ -1,6 +1,8 @@
 import React from 'react';
-import { Box, Typography, Chip, Divider, Paper } from '@mui/material';
+import { Box, Typography, Chip, Divider, Paper, useTheme, useMediaQuery, Stack } from '@mui/material';
 import CheckIcon from '@mui/icons-material/Check';
+import useAuth from '@/hooks/useAuth';
+import { ROLE } from '@/constants/roles';
 
 export interface StepProps {
   name: string;
@@ -37,40 +39,81 @@ const TaskProgressStepper: React.FC<TaskProgressStepperProps> = ({
   const currentStepRingColor = '#FFA000';
   const currentStepGlowColor = 'rgba(255,160,0,0.5)';
 
+  const theme = useTheme();
+  
+  const mdDown = useMediaQuery(theme.breakpoints.down('md'));
+  
+
   return (
     <Paper elevation={2} sx={{
       p: { xs: 2, md: 2.5 }, borderRadius: '8px', overflow: 'hidden',
       boxShadow: '0px 1px 3px 1px rgba(0, 0, 0, 0.15), 0px 1px 2px 0px rgba(0, 0, 0, 0.3)',
     }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2.5 }}>
-        <Typography variant="h6" component="h1" sx={{ fontWeight: 'bold', flex: '1' }}>
-          {fullTaskTitle}
-        </Typography>
-        <Box sx={{ whiteSpace: 'nowrap', display: 'flex', flex: '1', gap: '10px', justifyContent: 'flex-end' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', borderRight: '1px solid #B2B2B2' }}>
-            <Typography variant="body2" color="text.secondary" sx={{ mr: 1 }}>
-              Trạng thái:
-            </Typography>
-            <Chip
-              label={status}
-              size="small"
-              sx={{
-                fontWeight: 'bold',
-                backgroundColor: status === 'Chưa làm' ? '#FEECEB' : (status === 'Hoạt động' ? '#FFF9C4' : '#E8F5E9'),
-                color: status === 'Chưa làm' ? '#D32F2F' : (status === 'Hoạt động' ? '#F57F17' : '#2E7D32'),
-              }}
-            />
-          </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-            <Typography variant="body2" color="text.secondary">
-              Thời gian:
-            </Typography>
-            <Typography variant="body2" sx={{ color: '#171717', fontWeight: '600' }}>
-              {currentDate}
+      {mdDown ? (
+        <Box sx={{ display: 'flex', mb: 2.5, flexDirection:"column" }}>
+          <Box sx={{ whiteSpace: 'nowrap', display: 'flex', flex: '1', gap: '10px'}}>
+            <Typography variant="h6" component="h1" sx={{ fontWeight: 'bold', flex: '1' }}>
+              {fullTaskTitle}
             </Typography>
           </Box>
+          <Box sx={{ whiteSpace: 'nowrap', display: 'flex', flex: '1', gap: '10px'}}>
+            <Box sx={{ display: 'flex', alignItems: 'center', borderRight: '1px solid #B2B2B2' }}>
+              <Typography variant="body2" color="text.secondary" sx={{ mr: 1 }}>
+                Trạng thái:
+              </Typography>
+              <Chip
+                label={status}
+                size="small"
+                sx={{
+                  fontWeight: 'bold',
+                  backgroundColor: status === 'Chưa làm' ? '#FEECEB' : (status === 'Hoạt động' ? '#FFF9C4' : '#E8F5E9'),
+                  color: status === 'Chưa làm' ? '#D32F2F' : (status === 'Hoạt động' ? '#F57F17' : '#2E7D32'),
+                }}
+              />
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <Typography variant="body2" color="text.secondary">
+                Thời gian:
+              </Typography>
+              <Typography variant="body2" sx={{ color: '#171717', fontWeight: '600' }}>
+                {currentDate}
+              </Typography>
+            </Box>
+          </Box>
+          
         </Box>
-      </Box>
+      ) : (
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2.5 }}>
+          <Typography variant="h6" component="h1" sx={{ fontWeight: 'bold', flex: '1' }}>
+            {fullTaskTitle}
+          </Typography>
+          <Box sx={{ whiteSpace: 'nowrap', display: 'flex', flex: '1', gap: '10px', justifyContent: 'flex-end' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', borderRight: '1px solid #B2B2B2' }}>
+              <Typography variant="body2" color="text.secondary" sx={{ mr: 1 }}>
+                Trạng thái:
+              </Typography>
+              <Chip
+                label={status}
+                size="small"
+                sx={{
+                  fontWeight: 'bold',
+                  backgroundColor: status === 'Chưa làm' ? '#FEECEB' : (status === 'Hoạt động' ? '#FFF9C4' : '#E8F5E9'),
+                  color: status === 'Chưa làm' ? '#D32F2F' : (status === 'Hoạt động' ? '#F57F17' : '#2E7D32'),
+                }}
+              />
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <Typography variant="body2" color="text.secondary">
+                Thời gian:
+              </Typography>
+              <Typography variant="body2" sx={{ color: '#171717', fontWeight: '600' }}>
+                {currentDate}
+              </Typography>
+            </Box>
+          </Box>
+      </Box> 
+      )}
+
 
       <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', mt: 1, overflowX: 'auto', pb: 1, px: 0.5 }}>
         {(!steps || steps.length === 0) ? (
