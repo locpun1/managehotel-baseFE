@@ -89,21 +89,17 @@ const StaffHome = () => {
   }, [roomId, fetchTasksForStaff]);
 
   useEffect(() => {
-    if (triggeringDeviceId && roomId) {
-      const triggerUrl = `${backendHttpUrl}/api/v1/room-actions/trigger-task-refresh?deviceId=${triggeringDeviceId}&roomId=${roomId}`;
-      HttpClient.post(triggerUrl, {})
+    if (roomId && profile) {
+      const checkInUrl = `${backendHttpUrl}/api/v1/room-actions/staff-checked-in`;
+      HttpClient.post(checkInUrl, { roomId })
         .then(() => {
-          console.log(`[StaffPage] Refresh trigger sent to TV device ${triggeringDeviceId}.`);
+          console.log(`[StaffHome] Successfully checked in for room ${roomId}.`);
         })
-        .catch((triggerError: any) => {
-          console.error("[StaffPage] Failed to send initial refresh trigger to TV:", triggerError);
+        .catch(err => {
+          console.error(`[StaffHome] Failed to check in for room ${roomId}:`, err);
         });
     }
-  }, [triggeringDeviceId, roomId, backendHttpUrl]);
-
-  const handleCompleteAll = () => {
-    console.log("Complete all tasks");
-  };
+  }, [roomId, profile, backendHttpUrl]);
 
   const handleTaskAction = async (taskId: string | number, action: TaskListAction) => {
     if (!roomId || !profile?.id) {
@@ -234,18 +230,6 @@ const StaffHome = () => {
       if (response && response.success && response.data) {
         notify({ message: `Công việc ${response.data.title} (đã được ${action})`, severity: 'success' });
         await fetchTasksForStaff(false);
-
-        // Trigger TV refresh
-        if (triggeringDeviceId && roomId) {
-          const triggerUrl = `${backendHttpUrl}/api/v1/room-actions/trigger-task-refresh?deviceId=${triggeringDeviceId}&roomId=${roomId}`;
-          HttpClient.post(triggerUrl, {})
-            .then(() => {
-              console.log(`[StaffPage] Tín hiệu làm mới đã được gửi đến TV device ${triggeringDeviceId} sau khi cập nhật task.`);
-            })
-            .catch((triggerError: any) => {
-              console.error("[StaffPage] Không thể gửi tín hiệu làm mới đến TV sau khi cập nhật task:", triggerError);
-            });
-        }
       } else {
         throw new Error(response?.message || `Cập nhật task #${taskId} thất bại.`);
       }
