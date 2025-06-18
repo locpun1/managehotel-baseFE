@@ -44,13 +44,11 @@ const RoomDisplayPageStatic = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [detailedTasksResponse, setDetailedTasksResponse] = useState<DetailedTasksApiResponse | null>(null);
   const [isSocketConnected, setIsSocketConnected] = useState(false);
-  const [loadingStepper, setLoadingStepper] = useState<boolean>(true);
-  const [loadingTaskList, setLoadingTaskList] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [profileManager, setProfileManager] = useState<UserProfile | null>(null);
   const [profileStaff, setProfileStaff] = useState<UserProfile | null>(null);
 
-  const staffRoomLink = `${window.location.origin}/staff/home/${roomId}?triggeringDeviceId=${deviceId}`;
+  const staffRoomLink = `${window.location.origin}/staff/home/${roomId}`;
 
   const fetchInitialData = useCallback(async () => {
     if (!roomId) {
@@ -104,22 +102,41 @@ const RoomDisplayPageStatic = () => {
     if (!roomId || !deviceId) return;
 
     const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsHost = import.meta.env.VITE_WS_HOST || window.location.hostname;
-    const wsPort = import.meta.env.VITE_WS_PORT || window.location.port;
+    let wsHost = window.location.hostname;
+    let wsPort = window.location.port;
+
+    if (import.meta.env.VITE_API_BASE_URL && import.meta.env.VITE_API_BASE_URL !== window.location.origin) {
+      try {
+        const backendUrl = new URL(import.meta.env.VITE_API_BASE_URL);
+        wsHost = backendUrl.hostname;
+        wsPort = backendUrl.port || (backendUrl.protocol === 'https:' ? '443' : '80');
+      } catch (e) {
+        console.error("Invalid VITE_API_BASE_URL for WebSocket:", import.meta.env.VITE_API_BASE_URL);
+      }
+    } else if (import.meta.env.VITE_BACKEND_PORT) {
+      wsPort = import.meta.env.VITE_BACKEND_PORT;
+    }
     const wsUrl = `${wsProtocol}//${wsHost}:${wsPort}/ws?deviceId=${deviceId}&roomId=${roomId}`;
 
     let socket: WebSocket | null = null;
-    let reconnectInterval: NodeJS.Timeout | null = null;
+    let reconnectTimeout: NodeJS.Timeout | null = null;
+    let isComponentMounted = true;
 
     const connect = () => {
+      if (!isComponentMounted) return;
       socket = new WebSocket(wsUrl);
 
       socket.onopen = () => {
+        if (!isComponentMounted) return;
         setIsSocketConnected(true);
-        if (reconnectInterval) clearInterval(reconnectInterval);
+        if (reconnectTimeout) {
+          clearTimeout(reconnectTimeout);
+          reconnectTimeout = null;
+        }
       };
 
       socket.onmessage = (event) => {
+        if (!isComponentMounted) return;
         try {
           const messageData = JSON.parse(event.data as string);
           if (messageData.targetRoomId !== roomId) return;
@@ -141,10 +158,11 @@ const RoomDisplayPageStatic = () => {
         }
       };
 
-      socket.onclose = () => {
+      socket.onclose = (event) => {
+        if (!isComponentMounted) return;
         setIsSocketConnected(false);
-        if (!reconnectInterval) {
-          reconnectInterval = setInterval(connect, 5000);
+        if (event.code !== 1000 && !reconnectTimeout) {
+          reconnectTimeout = setTimeout(connect, 5000);
         }
       };
 
@@ -157,8 +175,15 @@ const RoomDisplayPageStatic = () => {
     connect();
 
     return () => {
-      if (reconnectInterval) clearInterval(reconnectInterval);
-      socket?.close();
+      isComponentMounted = false;
+      if (reconnectTimeout) clearTimeout(reconnectTimeout);
+      if (socket) {
+        socket.onopen = null;
+        socket.onmessage = null;
+        socket.onclose = null;
+        socket.onerror = null;
+        socket.close(1000, "Component unmounting");
+      }
     };
   }, [roomId, deviceId, fetchDetailedTaskData, refreshStepperData]);
 
@@ -188,7 +213,7 @@ const RoomDisplayPageStatic = () => {
             <Typography sx={{ fontSize: '22px', fontWeight: '500', fontFamily: 'Static/Title Large/Font', textAlign: 'center' }}>
               Mã QR của bạn
             </Typography>
-            {isSocketConnected && !error && (
+            {isSocketConnected && (
               <Paper elevation={1} sx={{ p: 3, textAlign: 'center', borderRadius: '12px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                 <Typography color="text.secondary" sx={{ mb: 2, fontWeight: '400', fontSize: '12px', fontFamily: 'Roboto' }}>
                   Quét mã QR code để nhận danh sách công việc ngày hôm nay.
@@ -199,7 +224,7 @@ const RoomDisplayPageStatic = () => {
                 </Typography>
               </Paper>
             )}
-            {!isSocketConnected && !error && (
+            {!isSocketConnected && (
               <Typography color="text.secondary" sx={{ textAlign: 'center', mt: 2 }}>
                 Đang chờ kết nối tới máy chủ để có thể làm mới công việc qua QR...
               </Typography>
