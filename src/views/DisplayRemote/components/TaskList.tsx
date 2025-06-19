@@ -4,6 +4,7 @@ import { TaskListDataItem } from '@/types/task-types';
 import { ApiTaskStatus, TASK_ACTIONS, TASK_STATUS_API, TASK_STATUS_LABEL } from '@/constants/task';
 import { CheckCircle, Close, PlayCircleOutline, RadioButtonUnchecked } from '@mui/icons-material';
 import { Tasks } from '@/types/manager';
+import { formatIsoToLocalTime } from '@/utils/formatters';
 
 export const translateTaskStatus = (apiStatus: ApiTaskStatus | string): string => {
   return TASK_STATUS_LABEL[apiStatus as ApiTaskStatus] || apiStatus;
@@ -23,24 +24,24 @@ const getTaskStatusPresentation = (status: TaskListDataItem['status'], theme: Th
   switch (status.toLowerCase()) {
     case 'completed':
       return {
-        borderColor: theme.palette.success.main, // Xanh lá
+        borderColor: theme.palette.success.main, 
         statusColor: theme.palette.success.main,
         ActionIcon: CheckCircle,
-        actionIconColor: theme.palette.primary.main, // Màu xanh dương cho icon tick
+        actionIconColor: theme.palette.primary.main, 
       };
     case 'in_progress':
       return {
-        borderColor: theme.palette.warning.main, // Vàng
+        borderColor: theme.palette.warning.main, 
         statusColor: theme.palette.warning.main,
         ActionIcon: RadioButtonUnchecked,
-        actionIconColor: theme.palette.primary.main, // Vòng tròn xanh dương viền ngoài
+        actionIconColor: theme.palette.primary.main, 
       };
     case 'pending':
       return {
-        borderColor: theme.palette.error.main, // Màu đỏ cho thanh bên trái
-        statusColor: theme.palette.error.main, // Màu chữ trạng thái có thể là xám
+        borderColor: theme.palette.error.main,
+        statusColor: theme.palette.error.main,
         ActionIcon: PlayCircleOutline,
-        actionIconColor: theme.palette.warning.light, // Màu vàng cho icon play
+        actionIconColor: theme.palette.warning.light,
       };
     case 'chưa làm':
     default:
@@ -83,6 +84,21 @@ const lastStatus = tasks[tasks.length - 1].status === 'completed';
           const isNotStartedOrPending = task.status.toLowerCase() === 'chưa làm' || task.status.toLowerCase() === 'đang chờ';
           const translatedStatus = translateTaskStatus(task.status as ApiTaskStatus);
           const presentation = getTaskStatusPresentation(task.status as ApiTaskStatus, theme);
+          const startTimeDisplay = formatIsoToLocalTime(task.started_at);
+          let durationTextDisplay = `~15 phút`;
+          if (task.status === 'completed' && task.started_at && task.completed_at) {
+            try {
+              const start = new Date(task.started_at).getTime();
+              const end = new Date(task.completed_at).getTime();
+              if (!isNaN(start) && !isNaN(end) && end >= start) {
+                const diffMins = Math.round((end - start) / 60000);
+                durationTextDisplay = `Trong ${diffMins} phút`;
+              }
+            } catch (e) {
+              console.error("Error calculating duration:", e);
+              durationTextDisplay = "N/A";
+            }
+          }
 
           return (
             <Paper
@@ -112,10 +128,10 @@ const lastStatus = tasks[tasks.length - 1].status === 'completed';
             >
               <Box sx={{ textAlign: 'center', minWidth: '80px', mr: 2, borderRight: '1px solid #E0E0E0', pr: 2, width: '10%' }}>
                 <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: task.startTime === "00:00" ? theme.palette.text.disabled : 'text.primary' }}>
-                  {task.startTime || "00:00"}
+                  {startTimeDisplay || "00:00"}
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
-                  {task.durationText}
+                  {durationTextDisplay}
                 </Typography>
               </Box>
 

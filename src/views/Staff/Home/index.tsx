@@ -175,7 +175,7 @@ const StaffHome = () => {
 
       tempStepperSteps = tempStepperSteps.map((step, index) => {
         if (step.name === taskToUpdateInList.title && taskToUpdateInList.order_in_process === step.order_in_process) {
-          let newCompletedTime: string | null = step.completedTime ?? null;
+          let newCompletedTime: string | null = step.completed_at ?? null;
           let newIsCurrent = step.isCurrent;
 
           if (action === 'start' && newStatusForOptimisticUpdate === TASK_STATUS_API.IN_PROGRESS) {
@@ -199,7 +199,7 @@ const StaffHome = () => {
       if (action === 'completed' || (action === 'cancel' && newStatusForOptimisticUpdate === TASK_STATUS_API.PENDING)) {
         let foundNextCurrent = false;
         for (let i = 0; i < tempStepperSteps.length; i++) {
-          if (!tempStepperSteps[i].completedTime) {
+          if (!tempStepperSteps[i].completed_at) {
             if (!foundNextCurrent) {
               tempStepperSteps[i].isCurrent = true;
               foundNextCurrent = true;
@@ -215,7 +215,7 @@ const StaffHome = () => {
         }
       }
 
-      const completedCount = tempStepperSteps.filter(s => !!s.completedTime && s.completedTime !== "Hoàn thành").length;
+      const completedCount = tempStepperSteps.filter(s => !!s.completed_at && s.completed_at !== "Hoàn thành").length;
       const inProgressActive = tempStepperSteps.some(s => s.isCurrent);
 
       if (inProgressActive) newOverallStatus = "Hoạt động";
