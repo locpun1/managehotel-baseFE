@@ -38,7 +38,7 @@ const getTaskStatusPresentation = (status: TaskListDataItem['status'], theme: Th
     case 'pending':
       return {
         borderColor: theme.palette.error.main, // Màu đỏ cho thanh bên trái
-        statusColor: theme.palette.text.secondary, // Màu chữ trạng thái có thể là xám
+        statusColor: theme.palette.error.main, // Màu chữ trạng thái có thể là xám
         ActionIcon: PlayCircleOutline,
         actionIconColor: theme.palette.warning.light, // Màu vàng cho icon play
       };
@@ -70,7 +70,7 @@ const TaskList: React.FC<TaskListProps> = ({
       </Paper>
     );
   }
-const lastStatus = tasks[tasks.length - 1].status;
+const lastStatus = tasks[tasks.length - 1].status === 'completed';
 
   return (
     <Paper elevation={0} sx={{ p: { xs: 1.5, sm: 2 }, borderRadius: '12px', backgroundColor: '#fff', border: '1px solid #e0e0e0' }}>
@@ -172,7 +172,7 @@ const lastStatus = tasks[tasks.length - 1].status;
           );
         })}
       </Box>
-      {onCompleteAll && tasks.length > 0 && lastStatus && (
+      {onCompleteAll && lastStatus && (
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2.5, px: 1 }}>
           <Button
             variant="outlined"

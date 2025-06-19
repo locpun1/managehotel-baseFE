@@ -36,14 +36,11 @@ export const ID_ROOM = 'id_room';
 const StaffHome = () => {
   const { roomId } = useParams<{ roomId: string }>();
   roomId && localStorage.setItem(ID_ROOM, roomId);
-  const [searchParams] = useSearchParams();
-  const triggeringDeviceId = searchParams.get('triggeringDeviceId');
   const [searchTerm, setSearchTerm] = useState<string>('')
   const handleSearch = () => { }
   const { profile } = useAuth();
   const [stepperData, setStepperData] = useState<StepperData | null>(null);
   const [detailedTasksResponse, setDetailedTasksResponse] = useState<DetailedTasksApiResponse | null>(null);
-  const [loadingTaskList, setLoadingTaskList] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const notify = useNotification();
@@ -71,7 +68,6 @@ const StaffHome = () => {
         getRoomDetailedDailyTasks(roomId, todayForAPI),
         getProfileUserCreateTaskAttachedRoom(roomId)
       ]);
-
       setStepperData(stepperResp || null);
       setDetailedTasksResponse(tasksResp || null);
       setProfileUser(profileResp || null);
@@ -249,12 +245,10 @@ const StaffHome = () => {
   };
 
   useEffect(() => {
-    // Chỉ chạy khi có roomId và profile của nhân viên
     if (roomId && profile) {
       const checkInUrl = `${backendHttpUrl}/api/v1/room-actions/staff-checked-in`;
 
-      // Gửi thông tin check-in lên backend
-      HttpClient.post(checkInUrl, { roomId }) // Backend sẽ lấy profile từ token qua middleware auth
+      HttpClient.post(checkInUrl, { roomId })
         .then(() => {
           console.log(`[StaffHome] Successfully checked in for room ${roomId}.`);
         })
@@ -323,7 +317,7 @@ const StaffHome = () => {
                     <Typography variant="h6" component="h2" gutterBottom sx={{ fontWeight: 'bold', mb: 2 }}>
                       Danh sách công việc
                     </Typography>
-                    {stepperData && stepperData.isCheckout && detailedTasksResponse && detailedTasksResponse.tasks.length > 0 ? (
+                    {stepperData && detailedTasksResponse && detailedTasksResponse.tasks.length > 0 ? (
                       <>
                         <TaskList
                           tasks={detailedTasksResponse.tasks}
