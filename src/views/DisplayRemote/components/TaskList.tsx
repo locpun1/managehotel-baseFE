@@ -16,7 +16,7 @@ interface TaskListProps {
   onTaskAction?: (taskId: string | number, action: TaskListAction) => void;
   onCompleteAll?: () => void;
   title?: string;
-  isCheckout: number;
+  isCheckout?: number;
 }
 
 const getTaskStatusPresentation = (status: TaskListDataItem['status'], theme: Theme) => {
