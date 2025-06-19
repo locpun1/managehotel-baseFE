@@ -64,11 +64,13 @@ export const generateLink =  (params: LinkRequest) => {
 export const getListGroupTask = (
     page: number,
     size: number,
+    dueDate?: string,
 ): Promise<HttpResponse<GroupTasks>> => {
     const endpoint = `${prefix}/tasks/list-group-task`;
     const params: Record<string, any> = {
         page: page,
         size: size,
+        dueDate:dueDate
     }
     return HttpClient.get<HttpResponse<GroupTasks>>(endpoint,{params})
 }

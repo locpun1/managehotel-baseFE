@@ -17,7 +17,7 @@ import { UserProfile } from '@/types/users';
 import { getProfileUserCreateTaskAttachedRoom } from '@/services/user-service';
 import CardInfoStaff from '@/components/CardInfo/CardInfoStaff';
 
-const LOCAL_STORAGE_DEVICE_ID_KEY = 'hotel_display_device_id_v1';
+export const LOCAL_STORAGE_DEVICE_ID_KEY = 'hotel_display_device_id_v1';
 
 interface StepperData {
   roomNumber: string;
@@ -102,6 +102,7 @@ const RoomDisplayPageStatic = () => {
     if (!roomId || !deviceId) return;
 
     const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    
     let wsHost = window.location.hostname;
     let wsPort = window.location.port;
 

@@ -8,6 +8,9 @@ export const ROUTE_PATH = {
   MANAGE_WORK:'work',
   MANAGE_DISPLAY:'display-remote',
   MANAGE_PROFILE:'profile',
+  MANAGE_REPORT:'report',
+  MANAGE_TIMEKEEPINGS:'room-cleaned',
+
 
   STAFF:"staff",
   STAFF_HOME:'home',

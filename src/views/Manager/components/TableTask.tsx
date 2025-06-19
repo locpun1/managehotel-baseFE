@@ -82,7 +82,7 @@ const TableTask: React.FC<TableTaskProps> = (props) => {
                 <Table stickyHeader aria-label="group-task">
                     <TableHead>
                         <TableRow sx={{ height: "50px"}}>
-                            {[ 'Tầng', 'Phòng', 'Công việc', 'Số lượng',' Tiến độ','Thời hạn dọn phòng',' Bắt đầu', 'Kết thúc'].map((header) => (
+                            {[ 'Tầng', 'Phòng', 'Công việc', 'Số lượng',' Tiến độ','Thời hạn dọn phòng', 'Người dọn dẹp',' Bắt đầu', 'Kết thúc'].map((header) => (
                                 <TableCell key={header} align="center" sx={{ fontWeight: 'bold', backgroundColor: '#00C7BE'}}>
                                     {header}
                                 </TableCell>
@@ -113,6 +113,7 @@ const TableTask: React.FC<TableTaskProps> = (props) => {
                                                 <Chip label={statusLabel} size="small" color={statusColor}/>
                                             </TableCell>
                                             <TableCell align="center">{DateTime.FormatDate(task.due_date) || " "}</TableCell>
+                                            <TableCell align="center">{task.staffName || " "}</TableCell>
                                             <TableCell align="center">{DateTime.Format(task.started_at) || " "}</TableCell>
                                             <TableCell align="center">{DateTime.Format(task.completed_at) || " "}</TableCell>
                                             <TableCell align="center">

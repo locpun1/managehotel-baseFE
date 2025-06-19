@@ -17,12 +17,12 @@ const ProtectedRoute = ({ children, requiredRoles, requiredPermissions }: Props)
   // const permissions = profile?.permissions;
 
   const location = useLocation();
-  const path = localStorage.getItem(PATH_STAFF_WITH_ROOM)
-
+  
   if (!isAuthenticated) {
-    if(location.pathname === '/staff/home'){
+    const redirectUrl = `${location.pathname}`;
+    if(redirectUrl === "/staff/home/11"){
         return (
-        <Navigate to={`/${ROUTE_PATH.AUTH}/${ROUTE_PATH.LOGIN}?redirect=${encodeURIComponent(location.pathname)}`} state={location.pathname} replace />
+        <Navigate to={`/${ROUTE_PATH.AUTH}/${ROUTE_PATH.LOGIN}?redirect=${encodeURIComponent(redirectUrl)}`} state={{ from: location.pathname }} replace />
       );
     }else{
       return (
@@ -40,7 +40,8 @@ const ProtectedRoute = ({ children, requiredRoles, requiredPermissions }: Props)
       return <Navigate to={`/${ROUTE_PATH.MANAGE}/${ROUTE_PATH.MANAGE_HOME}`} replace />;
     } 
     if (role === 'staff') {
-      return <Navigate to={`${path}`} replace />;
+      const savedPath = localStorage.getItem(PATH_STAFF_WITH_ROOM);
+      return <Navigate to={savedPath || `/${ROUTE_PATH.STAFF}/${ROUTE_PATH.STAFF_HOME}`} replace />;
     } 
   }
 

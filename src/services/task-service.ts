@@ -113,10 +113,11 @@ export const getRoomDetailedDailyTasks = async (
 export const getTasksPerformedStaff = async (
   page: number = 0,
   size: number = 10, // Số lượng task mỗi trang, có thể điều chỉnh
-  roomId: string | number,
   date?: string, // YYYY-MM-DD
+  staffId?: string | number,
+  roomId?: string | number,
 ): Promise<TasksApiResponse> => { // Hàm này trả về trực tiếp object data từ response API
-  let url = `${prefix}/${roomId}/list-task-performed-staff?page=${page}&size=${size}`;
+  let url = `${prefix}/list-task-performed-staff?page=${page}&size=${size}&staffId=${staffId}&roomId=${roomId}`;
   if (date) {
     url += `&date=${date}`;
   }
