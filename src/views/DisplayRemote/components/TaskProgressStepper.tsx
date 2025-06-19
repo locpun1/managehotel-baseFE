@@ -3,10 +3,11 @@ import { Box, Typography, Chip, Divider, Paper, useTheme, useMediaQuery, Stack }
 import CheckIcon from '@mui/icons-material/Check';
 import useAuth from '@/hooks/useAuth';
 import { ROLE } from '@/constants/roles';
+import { formatIsoToLocalTime } from '@/utils/formatters';
 
 export interface StepProps {
   name: string;
-  completedTime?: string | null;
+  completed_at?: string | null;
   isCurrent?: boolean;
   order_in_process: number;
 }
@@ -124,11 +125,15 @@ const TaskProgressStepper: React.FC<TaskProgressStepperProps> = ({
           </Box>
         ) : (
           steps.map((step, index) => {
-            const isCompleted = !!step.completedTime;
-            const displayTime = step.completedTime || "00:00";
-            const dividerColor = isCompleted ? completedDividerColor : defaultDividerColor;
+            const formattedCompletedTime = formatIsoToLocalTime(step.completed_at);
+            
+            const isCompleted = !!formattedCompletedTime;
 
+            const displayTime = formattedCompletedTime || "00:00"; 
+            
+            const dividerColor = isCompleted ? completedDividerColor : defaultDividerColor;
             const showOuterRing = isCompleted || step.isCurrent;
+
 
             return (
               <React.Fragment key={step.name + index}>
