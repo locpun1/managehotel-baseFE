@@ -349,7 +349,7 @@ const ModalReportTask = (props: ModalReportTaskProps) => {
                                             setFormData(prev => ({ ...prev, image_url: null }));
                                         }}
                                         icon={<Close sx={{ color: (theme) => theme.palette.grey[800]}}/>}
-                                        sx={{ position: 'absolute', right: 4, top: 4 }}
+                                        sx={{ position: 'absolute', right: -10, top: -5 }}
                                     />
                                     <CardMedia
                                         component='img'

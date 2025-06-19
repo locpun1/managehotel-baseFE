@@ -7,6 +7,10 @@ const ManagementHome = Loadable(lazy(() => import('@/views/Manager/ManagementHom
 const ManagementWork = Loadable(lazy(() => import('@/views/Manager/ManagementWork/index')));
 const ManagementDisplayRemote = Loadable(lazy(() => import('@/views/Manager/ManagementDisplayRemote/index')));
 const ManagementProfile= Loadable(lazy(() => import('@/views/Manager/Profile/index')));
+const ManagementReport= Loadable(lazy(() => import('@/views/Manager/ManagementReport/index')));
+const ManagementTimekeeping= Loadable(lazy(() => import('@/views/Manager/ManagementTimekeepings/index')));
+
+
 
 
 
@@ -18,6 +22,8 @@ const Manager: RouteObject = {
         { path: ROUTE_PATH.MANAGE_HOME, element:<ManagementHome />},
         { path: ROUTE_PATH.MANAGE_WORK, element:<ManagementWork />},
         { path: ROUTE_PATH.MANAGE_DISPLAY, element:<ManagementDisplayRemote />},
+        { path: ROUTE_PATH.MANAGE_REPORT, element:<ManagementReport />},
+        { path: ROUTE_PATH.MANAGE_TIMEKEEPINGS, element:<ManagementTimekeeping />},
         { path: ROUTE_PATH.MANAGE_PROFILE, element:<ManagementProfile />}
     ]
 }

@@ -19,9 +19,8 @@ const ProtectedRoute = ({ children, requiredRoles, requiredPermissions }: Props)
   const location = useLocation();
   
   if (!isAuthenticated) {
-    const redirectUrl = `${location.pathname}${location.search}`;
-    
-    if(location.search){
+    const redirectUrl = `${location.pathname}`;
+    if(redirectUrl === "/staff/home/11"){
         return (
         <Navigate to={`/${ROUTE_PATH.AUTH}/${ROUTE_PATH.LOGIN}?redirect=${encodeURIComponent(redirectUrl)}`} state={{ from: location.pathname }} replace />
       );
@@ -42,7 +41,7 @@ const ProtectedRoute = ({ children, requiredRoles, requiredPermissions }: Props)
     } 
     if (role === 'staff') {
       const savedPath = localStorage.getItem(PATH_STAFF_WITH_ROOM);
-      return <Navigate to={savedPath || `/${ROUTE_PATH.STAFF}/${ROUTE_PATH.STAFF_WORK}`} replace />;
+      return <Navigate to={savedPath || `/${ROUTE_PATH.STAFF}/${ROUTE_PATH.STAFF_HOME}`} replace />;
     } 
   }
 

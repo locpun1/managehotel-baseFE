@@ -186,9 +186,7 @@ const MenuItems = (props: MenuItemsProps) => {
     <List disablePadding>
       {items.reduce<ReactNode[]>((acc, item, i) => {
         const { title, path, children, info, icon } = item;
-        
         const normalizedPath = path.startsWith('/') ? path : `/${path}`;
-        // console.log("normalizedPath", normalizedPath);
         
         const key = `${title}-${level}-${i}`;
         // const partialMatch = pathname.startsWith(path);

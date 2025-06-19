@@ -59,13 +59,13 @@ export default function Login() {
   const [remember, setRemember] = useState(true);
 
   const params = new URLSearchParams(location.search);
+  
   const redirectPath = params.get("redirect") || "/staff/home";
-  const triggeringDeviceId = params.get("triggeringDeviceId");
+
   const { roomId } = useParams<{ roomId: string }>();
   roomId && localStorage.setItem(ID_ROOM, roomId);
 
   localStorage.setItem(PATH_STAFF_WITH_ROOM, redirectPath);
-  if (triggeringDeviceId) localStorage.setItem(LOCAL_STORAGE_DEVICE_ID_KEY, triggeringDeviceId);
 
   useEffect(() => {
     setFocus('identifier');
@@ -99,7 +99,6 @@ export default function Login() {
                 if (!_.isNull(location.state) && location.state !== ROUTE_PATH.LOGIN) {
                   route = location.search ?  `${redirectPath}` : location.state ;
                 }
-                console.log("route: ",route);
                 
                 navigate(route);
               } 

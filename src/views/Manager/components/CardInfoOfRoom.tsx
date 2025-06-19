@@ -7,6 +7,7 @@ import IconButton from "@/components/IconButton/IconButton";
 import { Delete, Edit, InsertLink, QrCodeScanner } from "@mui/icons-material";
 import DateTime from "@/utils/DateTime";
 import { TaskStatus } from "@/constants/taskStatus";
+import { getMinutesDiff } from "@/utils/date";
 
 interface InfoProps{
     data?: Rooms,
@@ -142,8 +143,11 @@ const CardInfo: React.FC<InfoProps> = (props) => {
                     <Box sx={{ mb:1}} onClick={() => data !== undefined && handleOpenTable(data.id, data.idGroupTask)}>
                         <Typography variant="body2">{`Thời gian: ${date}`}</Typography>
                     </Box>
+                    <Box sx={{ mb:1}} onClick={() => data !== undefined && handleOpenTable(data.id, data.idGroupTask)}>
+                        <Typography variant="body2">{`Tổng: ${data?.started_at && data?.completed_at && getMinutesDiff(data?.started_at, data?.completed_at) || 0} phút`}</Typography>
+                    </Box>
                     <Box sx={{ display: 'flex', justifyContent: {xs: 'center', md: 'flex-start'} }} onClick={() => data !== undefined && handleOpenTable(data.id, data.idGroupTask)}>
-                        {status && <Chip sx={{ width: 150, my:1.5 }} label={status} color={getStatusColor(status)}/>}
+                        {status && <Chip sx={{ width: 150, mb:1.5 }} label={status} color={getStatusColor(status)}/>}
                     </Box>
                 </Grid>
             </Grid>

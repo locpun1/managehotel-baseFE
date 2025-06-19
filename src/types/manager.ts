@@ -67,7 +67,9 @@ export interface Tasks {
     order_in_process: number
     startTime?: string;    
     durationText?: string;
-    is_reported:number
+    is_reported:number,
+    createdPeople?: string,
+    createdPeopleRole?: string,
 }
 
 export interface GroupTasks {
@@ -90,4 +92,5 @@ export interface GroupTasks {
     groupTask: Tasks[],
     floor_id: number,
     staffName?: string,
+    is_checkout: number,
 }

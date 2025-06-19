@@ -30,7 +30,7 @@ const StaffTaskList = () => {
   const [listTasks, setListTask] = useState<TasksApiResponse | null>(null);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(0);
-  const [rowPerPgae, setRowPerPage] = useState(10);
+  const [rowPerPgae, setRowPerPage] = useState(6);
   const [openReportTask, setOpenReportTask] = useState<boolean>(false)
   const [detailTask, setDetailTask] = useState<Tasks | null>(null)
   const [profileUser, setProfileUser] = useState<UserProfile | null>(null);
@@ -38,16 +38,12 @@ const StaffTaskList = () => {
 
   const { userId, profile } = useAuth();
 
-  const fetchListTask = useCallback(async() => {
+  const fetchListTask = useCallback(async(currentPage: number, currentRow: number,id: string | number, idRoom?: string | number) => {
       setLoading(true)
       setError(null)
       try {
         const todayForAPI = new Date().toISOString().split('T')[0];
-        if(!roomId){
-          setListTask(null);
-          return;
-        }
-        const res = await getTasksPerformedStaff(page, rowPerPgae, roomId, todayForAPI);
+        const res = await getTasksPerformedStaff(currentPage, currentRow,todayForAPI, id, idRoom);
         setListTask(res)
         setTotal(res.totalCount)
       } catch (error: any) {
@@ -58,6 +54,7 @@ const StaffTaskList = () => {
         setLoading(false)
       }
   },[])
+
   const fetchProfileUserCreatedTask = useCallback(async() => {
     if (!roomId) {
       setProfileUser(null)
@@ -74,11 +71,16 @@ const StaffTaskList = () => {
     }, [])
 
   useEffect(() => {
-    if(roomId){
-      fetchListTask(),
-      fetchProfileUserCreatedTask()
+    if(profile){
+      if(roomId){
+        fetchListTask(page, rowPerPgae,profile.id, roomId),
+        fetchProfileUserCreatedTask()
+      }else{
+        fetchListTask(page, rowPerPgae,profile.id)
+      }
     }
-  }, [roomId])
+
+  }, [roomId, profile,page, rowPerPgae])
 
   const handleSearch = () => {
   }
@@ -159,11 +161,11 @@ const StaffTaskList = () => {
                                       <Chip sx={{ ml: 1, mb: 0.5}} label={statusLabel} color={statusColor}></Chip>
                                     </Box>
                                     <Typography sx={{ mt:0.2}} variant="body2">
-                                        {`Trạng thái báo cáo: ${taskReportStatusLabel}`}
+                                        {`Trạng thái báo cáo: `}<b>{taskReportStatusLabel}</b>
                                     </Typography>
                                   </Box>
                                 </Stack>
-                                {(task.status === TaskStatus.COMPLETED && task.is_reported === 0) && (
+                                {(task.status === TaskStatus.COMPLETED && task.is_reported === 0 && roomId) && (
                                   <IconButton
                                     handleFunt={() => handleOpenReportTask(task)}
                                     icon={<Description color='primary'/>}
@@ -191,10 +193,10 @@ const StaffTaskList = () => {
                                 </Grid>
                                 <Grid size={{ xs: 6}}>
                                   <Typography sx={{ mb: 0.5}} variant='body2'>
-                                    {`Người tạo: ${profileUser?.full_name}`}
+                                    {`Người tạo: ${task.createdPeople}`}
                                   </Typography>
                                   <Typography sx={{ mb: 0.5}} variant='body2'>
-                                    {`Chức vụ: ${getRoleLabel(profileUser?.role)}`}
+                                    {`Chức vụ: ${getRoleLabel(task.createdPeopleRole)}`}
                                   </Typography>
                                   <Typography sx={{ mb: 0.5}} variant='body2'>
                                     {`Công việc: Kiểm tra vệ sinh`}
@@ -224,12 +226,12 @@ const StaffTaskList = () => {
           </Box>
         )}
       </Box>
-      {profile && detailTask && openReportTask &&  (
+      {profile && detailTask && openReportTask && roomId &&  (
         <ModalReportTask
           open={openReportTask}
           onClose={() => {
             setOpenReportTask(false);
-            fetchListTask()
+            fetchListTask(page, rowPerPgae,profile.id,roomId)
           }}
           profile={profile}
           detailTask={detailTask}

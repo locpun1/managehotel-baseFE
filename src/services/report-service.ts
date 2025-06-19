@@ -23,8 +23,8 @@ export const sendReportTask = (
 export const getListReports = async(
     page: number = 0,
     size: number = 10,
-    staffId?: string | number,
     dueDate?: string,
+    staffId?: string | number,
     roomId?: string | number,
 ): Promise<ReportsApiResponse> => {
     let url = `${prefix}/reports/get-list-reports?page=${page}&size=${size}&staffId=${staffId}&dueDate=${dueDate}`;

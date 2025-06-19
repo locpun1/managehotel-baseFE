@@ -16,6 +16,7 @@ interface TaskListProps {
   onTaskAction?: (taskId: string | number, action: TaskListAction) => void;
   onCompleteAll?: () => void;
   title?: string;
+  isCheckout: number;
 }
 
 const getTaskStatusPresentation = (status: TaskListDataItem['status'], theme: Theme) => {
@@ -57,7 +58,8 @@ const TaskList: React.FC<TaskListProps> = ({
   tasks,
   onTaskAction,
   onCompleteAll,
-  title = ""
+  title = "", 
+  isCheckout
 }) => {
   const theme = useTheme();
 
@@ -68,6 +70,7 @@ const TaskList: React.FC<TaskListProps> = ({
       </Paper>
     );
   }
+const lastStatus = tasks[tasks.length - 1].status;
 
   return (
     <Paper elevation={0} sx={{ p: { xs: 1.5, sm: 2 }, borderRadius: '12px', backgroundColor: '#fff', border: '1px solid #e0e0e0' }}>
@@ -169,7 +172,7 @@ const TaskList: React.FC<TaskListProps> = ({
           );
         })}
       </Box>
-      {onCompleteAll && tasks.length > 0 && (
+      {onCompleteAll && tasks.length > 0 && lastStatus && (
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2.5, px: 1 }}>
           <Button
             variant="outlined"
@@ -184,6 +187,7 @@ const TaskList: React.FC<TaskListProps> = ({
                 backgroundColor: theme.palette.action.hover,
               }
             }}
+            disabled={isCheckout === 1}
           >
             Hoàn thành
           </Button>

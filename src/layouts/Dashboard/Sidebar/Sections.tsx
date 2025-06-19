@@ -1,5 +1,5 @@
 import type { SvgIconComponent } from '@mui/icons-material';
-import { Assignment, Badge, ConnectedTv, EventNote, HomeOutlined, ManageHistory } from '@mui/icons-material';
+import { Assignment, Badge, ConnectedTv, Description, EventNote, HomeOutlined, ManageHistory, Schedule } from '@mui/icons-material';
 
 import { ROUTE_PATH } from '@/constants/routes';
 import { ID_ROOM } from '@/views/Staff/Home';
@@ -57,6 +57,26 @@ export const AdminSections = () : Section[] => [
     section: null,
     items: [
       {
+        title: 'Quản lý báo cáo',
+        path: `${ROUTE_PATH.MANAGE}/${ROUTE_PATH.MANAGE_REPORT}`,
+        icon: Description,
+      },
+    ],
+  },
+  {
+    section: null,
+    items: [
+      {
+        title: 'Quản lý phòng được dọn dẹp',
+        path: `${ROUTE_PATH.MANAGE}/${ROUTE_PATH.MANAGE_TIMEKEEPINGS}`,
+        icon: Schedule,
+      },
+    ],
+  },
+  {
+    section: null,
+    items: [
+      {
         title: 'Hồ sơ người dùng',
         path: `${ROUTE_PATH.MANAGE}/${ROUTE_PATH.MANAGE_PROFILE}`,
         icon: Badge,
@@ -81,9 +101,9 @@ export const AdminSections = () : Section[] => [
     ],
   },
 ]
-const path = localStorage.getItem(PATH_STAFF_WITH_ROOM);
+const idRoom = localStorage.getItem(ID_ROOM);
 
-const directPath = path && location.search ? path : `${ROUTE_PATH.STAFF}/${ROUTE_PATH.STAFF_HOME}`
+const directPath = idRoom ? `${ROUTE_PATH.STAFF}/${ROUTE_PATH.STAFF_HOME}/${idRoom}` : `${ROUTE_PATH.STAFF}/${ROUTE_PATH.STAFF_HOME}`
 
 export const UserSection = (): Section[] => [
   {

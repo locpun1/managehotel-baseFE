@@ -6,6 +6,7 @@ import { getRoleLabel } from "@/utils/labelEnToVni";
 import { getAgeFromDateOfBirth } from "@/utils/DateTime";
 import Grid from '@mui/material/Grid2';
 import { StepperData } from "@/views/Staff/Home";
+import { getTime } from "@/utils/date";
 
 interface CardInfoStaffProps{
     data: UserProfile,
@@ -14,7 +15,7 @@ interface CardInfoStaffProps{
 
 const CardInfoStaff = ({ data, stepperData }: CardInfoStaffProps) => {
     const floor = stepperData?.roomNumber.charAt(0);
-    
+    const date = stepperData?.startedAt && stepperData?.completedAt &&  getTime(stepperData?.startedAt, stepperData?.completedAt)
     return (
         <Card sx={{ border: '1px solid #e0e0e0'}}>
             <CardContent>
@@ -59,7 +60,7 @@ const CardInfoStaff = ({ data, stepperData }: CardInfoStaffProps) => {
                         <Typography variant="body2" component="span">Thời gian: </Typography>
                         </Grid>
                         <Grid size={{ xs: 7.5}}>
-                        <Typography sx={{ display:'flex', justifyContent:'start'}} variant="body2" component="span"> - </Typography>
+                        <Typography sx={{ display:'flex', justifyContent:'start'}} variant="body2" component="span"> {date || '-'} </Typography>
                         </Grid>
                     </Grid>
             </CardContent>

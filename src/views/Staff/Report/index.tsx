@@ -1,4 +1,4 @@
-import { Alert, Avatar, Box, Card, CardContent, CircularProgress, Stack, Typography } from '@mui/material';
+import { Alert, Box, Card, CardContent, CircularProgress, Stack, Typography } from '@mui/material';
 import SearchBar from '@/components/SearchBar';
 import React, { useCallback, useEffect, useState } from 'react';
 import { getListReports, ReportsApiResponse } from '@/services/report-service';
@@ -6,11 +6,11 @@ import { ID_ROOM } from '../Home';
 import useAuth from '@/hooks/useAuth';
 import Grid from '@mui/material/Grid2';
 import { getPathImage } from '@/utils/url';
-import avatar from "@/assets/images/users/default-avatar.jpg";
 import { getMinutesDiff, getTime } from '@/utils/date';
 import { getReportStatusLabel } from '@/utils/status';
 import CommonImage from '@/components/Image/index';
 import DialogOpenImage from '../components/DialogOpenImage';
+import CustomPagination from '@/components/Pagination/CustomPagination';
 
 const StaffReport = () => {
   const roomId = localStorage.getItem(ID_ROOM);
@@ -20,23 +20,19 @@ const StaffReport = () => {
   const [listReports, setListReports] = useState<ReportsApiResponse | null>(null);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(0);
-  const [rowPerPgae, setRowPerPage] = useState(10);
+  const [rowPerPgae, setRowPerPage] = useState(6);
   const { profile } = useAuth();
   const [openImage, setOpenImage] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(null)
   const handleSearch = () => {
   }
 
-  const fetchListReports = useCallback(async(id: string | number) => {
+  const fetchListReports = useCallback(async(currentPage: number, currentRow: number,id?: string | number, idRoom?: string | number) => {
     setLoading(true)
     setError(null)
     try {
       const todayForApi = new Date().toISOString().split('T')[0];
-      if(!roomId){
-        setListReports(null);
-        return
-      }
-      const res = await getListReports(page, rowPerPgae, id, todayForApi, roomId)
+      const res = await getListReports(currentPage, currentRow, todayForApi, id, idRoom)
       setListReports(res);
       setTotal(res.totalCount)
     } catch (error: any) {
@@ -50,13 +46,21 @@ const StaffReport = () => {
 
   useEffect(() => {
     if(profile){
-      fetchListReports(profile.id)
+      if(roomId){
+        fetchListReports(page, rowPerPgae, profile.id, roomId)
+      }else{
+        fetchListReports(page, rowPerPgae, profile.id)
+      }
+      
     }
   },[page, rowPerPgae, roomId, profile])
 
   const handleOpenImage = (image: string) => {
     setImageUrl(image)
     setOpenImage(true)
+  }
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage)
   }
   return (
     <Box>
@@ -89,12 +93,11 @@ const StaffReport = () => {
                         <Card key={report.id} sx={{ borderRadius: 2, boxShadow: 2}}>
                           <CardContent>
                             <Stack direction='row' spacing={2} sx={{ mb: 2}} alignItems='center'>
-                              <Box sx={{ cursor: 'pointer'}} onClick={() => report?.image_url && handleOpenImage(report?.image_url)}>
+                              <Box width={200} height={200} sx={{ cursor: 'pointer'}} onClick={() => report?.image_url && handleOpenImage(report?.image_url)}>
                                 <CommonImage
                                   src={report?.image_url && getPathImage(report?.image_url)}
                                   alt='Image issue'
-                                  width={200}
-                                  height={200}
+                                  sx={{ mt: 2.5}}
                                 />
                               </Box>
                               <Box sx={{ flexGrow: 1}}>
@@ -126,6 +129,15 @@ const StaffReport = () => {
                 })
               )}
             </Grid>
+            <Box display='flex' justifyContent='center' alignItems='center'>
+              <CustomPagination
+                count={total}
+                page={page}
+                rowsPerPage={rowPerPgae}
+                onPageChange={handlePageChange}
+                sx={{ mt: 2}}
+              />
+            </Box>
           </Box>
         )}
       </Box>
