@@ -12,10 +12,11 @@ import { useParams, useSearchParams } from 'react-router-dom';
 import { TaskListDataItem } from '@/types/task-types';
 import { ApiTaskStatus, TASK_STATUS_API } from '@/constants/task';
 import useNotification from '@/hooks/useNotification';
-import { getProfileUserCreateTaskAttachedRoom } from '@/services/user-service';
+import { checkout, CheckoutApiResponse, getProfileUserCreateTaskAttachedRoom } from '@/services/user-service';
 import { UserProfile } from '@/types/users';
 import HttpClient from '@/utils/HttpClient';
 import noDataImage from '@/assets/images/no-data.png';
+import DialogConfirmCheckout from '../components/DialogConfirmCheckout';
 
 export interface StepperData {
   roomNumber: string;
@@ -25,6 +26,9 @@ export interface StepperData {
   steps?: StepProps[];
   groupTaskName?: string;
   assignedTo?: string;
+  isCheckout?:number,
+  startedAt?: string,
+  completedAt?: string,
 }
 
 export const ID_ROOM = 'id_room';
@@ -46,7 +50,9 @@ const StaffHome = () => {
   const [profileUser, setProfileUser] = useState<UserProfile | null>(null);
   const [errorProfile, setErrorProfile] = useState<string | null>(null)
   const [updatingTaskId, setUpdatingTaskId] = useState<string | number | null>(null);
-
+  const [openConfirmCheckoutDialog, setOpenConfirmCheckoutDialog] = useState(false);
+  const [isCheckout, setIsCheckout] = useState(0);
+  
   const backendHttpUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002';
 
   const fetchTasksForStaff = useCallback(async (showLoading = true) => {
@@ -258,6 +264,32 @@ const StaffHome = () => {
     }
   }, [roomId, profile, backendHttpUrl]);
 
+  const handleComplete = async() => {
+    try {
+      if(!roomId){
+        setError("Room ID không hợp lệ.");
+        return;
+      }
+      const todayForAPI = new Date().toISOString().split('T')[0];
+      const res = await checkout(roomId, todayForAPI);
+      const data = res as any as CheckoutApiResponse;
+      setIsCheckout(data.data.is_checkout);
+      setOpenConfirmCheckoutDialog(true)
+    } catch (error) {
+      notify({
+        message:'Chấm công thất bại',
+        severity:'error'
+      })
+    }
+    
+  }
+
+  const totalMinutes = detailedTasksResponse && detailedTasksResponse.tasks.reduce((sum, task) => {
+    const minutes = parseInt(task.durationText?.match(/\d+/)?.[0] || "0", 10);
+    return sum + minutes;
+  },0);
+
+
   return (
     <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <SearchBar
@@ -291,11 +323,13 @@ const StaffHome = () => {
                     <Typography variant="h6" component="h2" gutterBottom sx={{ fontWeight: 'bold', mb: 2 }}>
                       Danh sách công việc
                     </Typography>
-                    {detailedTasksResponse && detailedTasksResponse.tasks.length > 0 ? (
+                    {stepperData && stepperData.isCheckout && detailedTasksResponse && detailedTasksResponse.tasks.length > 0 ? (
                       <>
                         <TaskList
                           tasks={detailedTasksResponse.tasks}
                           onTaskAction={handleTaskAction} 
+                          onCompleteAll={handleComplete}
+                          isCheckout={isCheckout || stepperData.isCheckout}
                         />
                       </>
                     ) : (
@@ -348,6 +382,16 @@ const StaffHome = () => {
           </Grid>
         </Grid>
       </Box>
+      {openConfirmCheckoutDialog && totalMinutes && stepperData && (
+        <DialogConfirmCheckout
+          open={openConfirmCheckoutDialog}
+          total={totalMinutes}
+          roomName={stepperData.roomNumber}
+          handleClose={() => {
+            setOpenConfirmCheckoutDialog(false)
+          }}
+        />
+      )}
     </Box>
   );
 };

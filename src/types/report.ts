@@ -11,4 +11,10 @@ export interface ReportTask{
     createdAt:string,
     updatedAt: string,
     status: ReportStatus,
+    floorName?: string,
+    roomName?: string,
+    dueDate?: string,
+    startedAt?: string,
+    completedAt?: string,
+    reporter?: string
 }
