@@ -9,11 +9,7 @@ const ManagementDisplayRemote = Loadable(lazy(() => import('@/views/Manager/Mana
 const ManagementProfile= Loadable(lazy(() => import('@/views/Manager/Profile/index')));
 const ManagementReport= Loadable(lazy(() => import('@/views/Manager/ManagementReport/index')));
 const ManagementTimekeeping= Loadable(lazy(() => import('@/views/Manager/ManagementTimekeepings/index')));
-
-
-
-
-
+const ManagementHistoryCreateTask= Loadable(lazy(() => import('@/views/History/CreateTask/index')));
 
 const Manager: RouteObject = {
     path:ROUTE_PATH.MANAGE,
@@ -24,7 +20,8 @@ const Manager: RouteObject = {
         { path: ROUTE_PATH.MANAGE_DISPLAY, element:<ManagementDisplayRemote />},
         { path: ROUTE_PATH.MANAGE_REPORT, element:<ManagementReport />},
         { path: ROUTE_PATH.MANAGE_TIMEKEEPINGS, element:<ManagementTimekeeping />},
-        { path: ROUTE_PATH.MANAGE_PROFILE, element:<ManagementProfile />}
+        { path: ROUTE_PATH.MANAGE_PROFILE, element:<ManagementProfile />},
+        { path: ROUTE_PATH.MANAGE_HISTORY_CREATE_TASK, element:<ManagementHistoryCreateTask />},
     ]
 }
 

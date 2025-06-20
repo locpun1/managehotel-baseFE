@@ -43,3 +43,9 @@ export const getListReports = async(
         throw new Error(response?.message || 'Failed to fetch list reports')
     }
 }
+
+export const approveReport = (reportId: string | number) => {
+    return HttpClient.patch<any, HttpResponse<ReportTask | null>>(
+        `${prefix}/reports/approve-report?id=${reportId}`
+    )
+}

@@ -376,10 +376,10 @@ const StaffHome = () => {
           </Grid>
         </Grid>
       </Box>
-      {openConfirmCheckoutDialog && totalMinutes && stepperData && (
+      {openConfirmCheckoutDialog && stepperData && (
         <DialogConfirmCheckout
           open={openConfirmCheckoutDialog}
-          total={totalMinutes}
+          total={totalMinutes ? totalMinutes : 0}
           roomName={stepperData.roomNumber}
           handleClose={() => {
             setOpenConfirmCheckoutDialog(false)

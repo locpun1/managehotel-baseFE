@@ -74,7 +74,6 @@ const TableTask: React.FC<TableTaskProps> = (props) => {
         setPageTask(newPage)
     }
     
-
     return (
         <Box sx={{ m: from ? 2 : 0}}>
             <Typography fontWeight={500}>Danh sách nhóm công việc theo phòng</Typography>
@@ -87,7 +86,7 @@ const TableTask: React.FC<TableTaskProps> = (props) => {
                                     {header}
                                 </TableCell>
                             ))}
-                            <TableCell align="center" sx={{ fontWeight: 'bolid', backgroundColor: '#00C7BE'}}>Hành động</TableCell>
+                            {from === "from-history-create-task" ? "" : <TableCell align="center" sx={{ fontWeight: 'bolid', backgroundColor: '#00C7BE'}}>Hành động</TableCell>}
                         </TableRow>
                     </TableHead>
                     <TableBody>
@@ -116,6 +115,9 @@ const TableTask: React.FC<TableTaskProps> = (props) => {
                                             <TableCell align="center">{task.staffName || " "}</TableCell>
                                             <TableCell align="center">{DateTime.Format(task.started_at) || " "}</TableCell>
                                             <TableCell align="center">{DateTime.Format(task.completed_at) || " "}</TableCell>
+                                            {from === "from-history-create-task" ?
+                                                ""
+                                                :
                                             <TableCell align="center">
                                                 {!isDay && (
                                                     <IconButtonBtn
@@ -138,6 +140,7 @@ const TableTask: React.FC<TableTaskProps> = (props) => {
                                                     width={22}
                                                 />  
                                             </TableCell>
+                                            }
                                         </TableRow>
                                     </React.Fragment>
                                 )
@@ -150,7 +153,7 @@ const TableTask: React.FC<TableTaskProps> = (props) => {
                 count={total}
                 page={page}
                 rowsPerPage={rowsPerPage}
-                sx={{ mt: 2, mb: 1}}
+                sx={{ mt: 1}}
                 onPageChange={handlePageChange}
             />
             {loading && (
@@ -163,7 +166,7 @@ const TableTask: React.FC<TableTaskProps> = (props) => {
             )}
             {!loading && !error && selectedGroupTask && (
                 <Collapse in={selectedGroupTask.id === listGroupTask?.find(el => el.id === selectedGroupTask.id)?.id} timeout='auto' unmountOnExit>
-                    <Typography fontWeight={500} sx={{ mt:3}}>{`Danh sách chi tiết theo nhóm công việc: ${listGroupTask?.find(el => el.id === selectedGroupTask.id)?.name}, ${listGroupTask?.find(el => el.id === selectedGroupTask.id)?.roomName}`} </Typography>
+                    <Typography fontWeight={500} sx={{ mt: listGroupTask.length < 10 ? 3 : 0}}>{`Danh sách chi tiết theo nhóm công việc: ${listGroupTask?.find(el => el.id === selectedGroupTask.id)?.name}, ${listGroupTask?.find(el => el.id === selectedGroupTask.id)?.roomName}`} </Typography>
                     <TableContainer component={Paper}>
                         <Table>
                             <TableHead>
