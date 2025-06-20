@@ -10,7 +10,7 @@ export const ROUTE_PATH = {
   MANAGE_PROFILE:'profile',
   MANAGE_REPORT:'report',
   MANAGE_TIMEKEEPINGS:'room-cleaned',
-
+  MANAGE_HISTORY_CREATE_TASK:'history-create-task',
 
   STAFF:"staff",
   STAFF_HOME:'home',

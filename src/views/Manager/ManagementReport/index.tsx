@@ -1,5 +1,5 @@
 import SearchBar from "@/components/SearchBar"
-import { getListReports, ReportsApiResponse } from "@/services/report-service";
+import { approveReport, getListReports, ReportsApiResponse } from "@/services/report-service";
 import { Alert, Box, Card, CardContent, CircularProgress, Stack, Typography } from "@mui/material"
 import React, { useCallback, useEffect, useState } from "react";
 import Grid from '@mui/material/Grid2';
@@ -10,6 +10,8 @@ import { getReportStatusLabel } from "@/utils/status";
 import CustomPagination from "@/components/Pagination/CustomPagination";
 import DialogOpenImage from "@/views/Staff/components/DialogOpenImage";
 import Button from "@/components/Button/Button";
+import { ReportStatus } from "@/constants/taskStatus";
+import useNotification from "@/hooks/useNotification";
 
 const ManagementReport = () => {
     const [searchTerm, setSearchTerm] = useState<string>('');
@@ -20,7 +22,8 @@ const ManagementReport = () => {
     const [page, setPage] = useState(0);
     const [rowPerPgae, setRowPerPage] = useState(6);
     const [openImage, setOpenImage] = useState(false);
-    const [imageUrl, setImageUrl] = useState<string | null>(null)
+    const [imageUrl, setImageUrl] = useState<string | null>(null);
+    const notify = useNotification()
     const handleSearch = () => {
     }
 
@@ -51,6 +54,31 @@ const ManagementReport = () => {
     const handleOpenImage = (image: string) => {
         setImageUrl(image)
         setOpenImage(true)
+    }
+
+    const handleApprove = async(idReport: string | number) => {
+        try {
+            const res = await approveReport(idReport);
+            notify({
+                message:res.message,
+                severity: 'success'
+            })
+            setListReports((currentReport) => {
+                if(!currentReport) return null;
+                return {
+                    ...currentReport,
+                    reports: currentReport.reports.map((report) =>
+                        report.id === idReport ? {...report, status: res.data?.status as ReportStatus}
+                        : report
+                ),
+                }
+            });
+        } catch (error: any) {
+            notify({
+                message:error.message,
+                severity: 'error'
+            })
+        }
     }
 
     return (
@@ -99,7 +127,7 @@ const ManagementReport = () => {
                                                                 {`${report.roomName}, ${report.floorName}`}
                                                                 </Typography>
                                                                 <Typography sx={{ mb: 0.5}} variant='body2'>
-                                                                {`${report.dueDate} | ${time} | ${totalMin} phút `}
+                                                                {`${report.dueDate} | ${time || "-"} | ${totalMin || 0} phút `}
                                                                 </Typography>
                                                                 <Typography sx={{ mb: 0.5}} variant='body2'>
                                                                 {`Người dọn dẹp: ${report.reporter}`}
@@ -112,8 +140,15 @@ const ManagementReport = () => {
                                                                 </Typography>
                                                             </Box>
                                                         </Stack>
-                                                        <Box display='flex' justifyContent='center' sx={{ mt:2}}>
-                                                            <Button handleFunt={() => {}} backgroundColor="#00C7BE" width='80px' height="30px" borderRadius="6px">
+                                                        <Box display='flex' justifyContent='center' sx={{ mt:4}}>
+                                                            <Button 
+                                                                disabled={report.status === ReportStatus.RESOLVED} 
+                                                                type="submit" 
+                                                                handleFunt={() => report.id && handleApprove(report.id)} 
+                                                                backgroundColor={report.status === ReportStatus.RESOLVED ? "grey" : "#00C7BE"} 
+                                                                width='80px' height="30px" borderRadius="6px"
+                                                                fontColor='white'
+                                                            >
                                                                 Duyệt
                                                             </Button>
                                                         </Box>

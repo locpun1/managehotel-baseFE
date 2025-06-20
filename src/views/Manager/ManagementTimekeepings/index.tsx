@@ -125,7 +125,7 @@ const ManagementTimekeeping: React.FC = () => {
                                 <TableBody>
                                     {userAttachedRoom.length === 0 ? (
                                         <TableRow>
-                                            <TableCell align="center" colSpan={listRooms.length + 1}>Không tồn tại bản ghi nào cả</TableCell>
+                                            <TableCell colSpan={listRooms.length + 1}>Không tồn tại bản ghi nào cả</TableCell>
                                         </TableRow>
                                     ) : (
                                         userAttachedRoom.map((staff) => (

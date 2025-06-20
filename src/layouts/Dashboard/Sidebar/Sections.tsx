@@ -94,7 +94,7 @@ export const AdminSections = () : Section[] => [
           {
             title: "Lịch sử tạo công việc",
             icon: Assignment,
-            path: ""
+            path: `${ROUTE_PATH.MANAGE}/${ROUTE_PATH.MANAGE_HISTORY_CREATE_TASK}`,
           }
         ]
       },
