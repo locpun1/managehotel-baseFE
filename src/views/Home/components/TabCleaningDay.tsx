@@ -57,12 +57,12 @@ const CleaningDaysCardMobile: React.FC<HomeStaffProps> = (props) => {
           {`🧹 Tháng ${month + 1}/${year} - 🕒 Tổng thời gian dọn: ${totalMinutes} phút -  🏨 ${totalRooms} phòng `}
       </Typography>
       <Grid container spacing={2}>
-        {data.map((cleaningItem) => {
+        {data.map((cleaningItem, index) => {
           const isToday = cleaningItem.date === todayStr
           return(
             <Grid size={{ xs: 12, md:3}}>
               <Card 
-                key={cleaningItem.date}
+                key={index}
                 sx={{ 
                   borderRadius: 3, 
                   boxShadow: 3, 

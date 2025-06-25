@@ -15,7 +15,7 @@ const Staff: RouteObject = {
     path:ROUTE_PATH.STAFF,
     element:<Outlet/>,
     children: [
-        { path: `${ROUTE_PATH.STAFF_HOME}`, element:<StaffHomeNoWithRoomId />},
+        { path: ROUTE_PATH.STAFF_HOME, element:<StaffHomeNoWithRoomId />},
         { path: `${ROUTE_PATH.STAFF_HOME}/:roomId`, element:<StaffHome />},
         { path: ROUTE_PATH.STAFF_WORK, element:<StaffWork />},
         { path: ROUTE_PATH.STAFF_REPORT, element:<StaffReport />},

@@ -20,7 +20,9 @@ const ProtectedRoute = ({ children, requiredRoles, requiredPermissions }: Props)
   
   if (!isAuthenticated) {
     const redirectUrl = `${location.pathname}`;
-    if(redirectUrl === "/staff/home/11"){
+    const url = redirectUrl.startsWith("/staff/home/");
+    
+    if(url){
         return (
         <Navigate to={`/${ROUTE_PATH.AUTH}/${ROUTE_PATH.LOGIN}?redirect=${encodeURIComponent(redirectUrl)}`} state={{ from: location.pathname }} replace />
       );
