@@ -28,7 +28,7 @@ export function convertRoomPathToDisplayRemoteUrl(path: string): string {
 
 
 //Get url image
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL_IMAGE
+const apiBaseUrl = 'http://localhost:3002/api/v1'
 export function getPathImage(path: string) : string {
   if(!path){
     return "";

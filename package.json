@@ -23,6 +23,7 @@
     "@tanstack/react-table": "^8.20.5",
     "axios": "^1.7.7",
     "click-to-react-component": "^1.1.0",
+    "date-fns": "^2.29.3",
     "dayjs": "^1.11.13",
     "deep-object-diff": "^1.1.9",
     "i18next": "^23.15.2",

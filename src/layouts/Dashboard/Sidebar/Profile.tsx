@@ -94,7 +94,7 @@ const Profile = () => {
           <ClickAwayListener onClickAway={handleClick}>
             <Card>
               <List component='nav' sx={{ p: 0, '& .MuiListItemIcon-root': { minWidth: 24 } }}>
-                <ListItemButton>
+                {/* <ListItemButton>
                   <ListItemIcon>
                     <EditOutlinedIcon />
                   </ListItemIcon>
@@ -107,7 +107,7 @@ const Profile = () => {
                       },
                     }}
                   />
-                </ListItemButton>
+                </ListItemButton> */}
                 <Divider />
                 <ListItemButton>
                   <ListItemIcon>

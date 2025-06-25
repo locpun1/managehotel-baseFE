@@ -36,6 +36,7 @@ import { useSidebarTitle } from '@/contexts/SidebarTitleContext';
 import useAuth from '@/hooks/useAuth';
 import { ROLE } from '@/constants/roles';
 import { PATH_STAFF_WITH_ROOM } from '@/views/Auth/Login';
+import sections from '../Navigation/sections';
 
 export const CollapseContext = createContext<boolean | null>(null);
 export const SidebarContext = createContext<boolean | null>(null);
@@ -193,16 +194,23 @@ const MenuItems = (props: MenuItemsProps) => {
         const exactMatch = pathname === normalizedPath || pathname.startsWith(`${normalizedPath}/`);
         
         if (children) {
+          const cleanPathname = pathname.split(/[?#]/)[0];
+          //Check if any child is active
+          const childMatch = children.some((child) => {
+            const childPath = child.path.startsWith('/') ? child.path : `/${child.path}`;
+            return cleanPathname === childPath || cleanPathname.startsWith(`${childPath}/`);
+          });
+          
           acc.push(
             <MenuItem
-              active={exactMatch}
+              active={false}
               level={level}
               icon={icon}
               info={info}
               key={key}
               path={path}
               title={title}
-              match={exactMatch}
+              match={childMatch}
             >
               <MenuItems items={children} pathname={pathname} level={level + 1} />
             </MenuItem>,
@@ -441,7 +449,7 @@ const MenuItem: FC<MenuItemProps> = (props) => {
               whiteSpace: 'nowrap',
               fontSize: '14px',
               fontWeight: active ? 'bold' : 'normal',
-              ml: level > 0 ? '-60px' : 0
+              ml: 0
             },
           }}
         />
