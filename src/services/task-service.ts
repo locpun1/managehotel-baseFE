@@ -37,6 +37,14 @@ export interface TasksApiResponse {
   tasks: Tasks[]; 
 }
 
+export interface TasksAndRoomApiResponse {
+  totalCount: number;
+  totalPages: number;
+  currentPage: number;
+  pageSize: number;
+  tasks: GroupTasks[]; 
+}
+
 interface ApiResponse {
   success: boolean;
   message: string;
@@ -152,4 +160,25 @@ export const updateTaskStatusAPI = async (
 ): Promise<HttpResponse<TaskListDataItem>> => {
   const url = `${prefix}/${taskId}/status`;
   return HttpClient.patch<TaskListDataItem>(url, payload as any);
+};
+
+export const getTasksAndRoomPerformedStaff = async (
+  page: number = 0,
+  size: number = 10, // Số lượng task mỗi trang, có thể điều chỉnh
+  date: string, // YYYY-MM-DD
+  staffId: string | number,
+): Promise<TasksAndRoomApiResponse> => { // Hàm này trả về trực tiếp object data từ response API
+  let url = `${prefix}/list-task-and-room-performed-staff?page=${page}&size=${size}&staffId=${staffId}&date=${date}`;
+
+  const response = await HttpClient.get<{ // Kiểu của toàn bộ body JSON từ backend
+      success: boolean;
+      message: string;
+      data: TasksAndRoomApiResponse; // data từ backend chính là DetailedTasksApiResponse
+  }>(url);
+
+  if (response.data && response.success && response.data) {
+      return response.data; 
+  } else {
+      throw new Error(response?.message || 'Failed to fetch detailed daily tasks');
+  }
 };

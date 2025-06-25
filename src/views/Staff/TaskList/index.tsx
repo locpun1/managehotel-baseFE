@@ -149,7 +149,7 @@ const StaffTaskList = () => {
                                       {`${task.roomName}, ${task.floorName}`}
                                     </Typography>
                                     <Typography sx={{ mb: 0.5}} variant="body2">
-                                      {task.due_date} | {time}
+                                      {task.due_date} | {time || "00:00 - 00:00"}
                                     </Typography>
                                     <Typography sx={{ mb: 0.5}} variant="body2">
                                       {`Tổng: ${total || 0} phút`}
