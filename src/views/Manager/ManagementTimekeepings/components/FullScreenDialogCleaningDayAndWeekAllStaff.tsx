@@ -6,6 +6,7 @@ import { getListUser, getTotalRoomAndMinutesDoneByStaff } from "@/services/user-
 import { UserProfile } from "@/types/users";
 import TabCleaningDayAllStaff from "./TabCleaningDayAllStaff";
 import TabCleaningWeekAllStaff from "./TabCleaningWeekAllStaff";
+import DialogOpenDetailRoomDoneByStaff from "./DialogOpenDetailRoomDoneByStaff";
 
 interface FullScreenDialogCleaningDayAndWeekAllStaffProps{
     open: boolean,
@@ -69,6 +70,15 @@ const FullScreenDialogCleaningDayAndWeekAllStaff = (props: FullScreenDialogClean
             <TabsViewSwitcher from={from} viewMode={viewMode} onChange={setViewMode} />
             {viewMode === 'daily' && <TabCleaningDayAllStaff from="day-of-month" monthTabMonth={month} listUsers={listUsers} cleaningStats={cleaningStats} handleCellClick={handleCellClick} />}
             {viewMode === 'weekly' && <TabCleaningWeekAllStaff from="week-of-month" monthTabMonth={month} listUsers={listUsers} cleaningStats={cleaningStats} handleCellClick={handleCellClick} />}
+        
+          <DialogOpenDetailRoomDoneByStaff
+            open={!!selectedDetail}
+            onClose={() => setSelectedDetail(null)}
+            title="Chi tiết công việc"
+            selectedDetail={selectedDetail}
+            selectedStaff={selectedStaff}
+            selectedDate={selectedDate}
+          /> 
         </FullScreenDialog>
     )
 }

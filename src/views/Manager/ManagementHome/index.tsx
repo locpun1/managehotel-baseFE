@@ -4,8 +4,8 @@ import { Alert, Box, CircularProgress, Collapse, Grid, Typography } from '@mui/m
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import CardInfo from '../components/CardInfoOfRoom';
-import { DataRoomsProps, generateLink, getListRoom } from '@/services/manager.service';
-import { Rooms } from '@/types/manager';
+import { DataGroupTaskProps, generateLink, getListGroupTask } from '@/services/manager.service';
+import { GroupTasks, Rooms } from '@/types/manager';
 import IconButton from '@/components/IconButton/IconButton';
 import { NavigateBefore, NavigateNext } from '@mui/icons-material';
 import CustomPagination from '@/components/Pagination/CustomPagination';
@@ -24,7 +24,7 @@ const ManagementHome = () => {
 
   const [error, setError] = useState(null);
 
-  const [listRooms, setListRooms] = useState<Rooms[]>([]);
+  const [listGroupTasks, setListGroupTasks] = useState<GroupTasks[]>([]);
 
   const [page, setPage] = useState(0)
 
@@ -33,17 +33,18 @@ const ManagementHome = () => {
   const [total, setTotal] = useState(0)
 
   const [showAll, setShowAll] = useState(false);
-  const [expandedRoomId, setExpandedRoomId] = useState<string | number>('');
+  const [expandedGroupTaskId, setExpandedGroupTaskId] = useState<string | number>('');
   const [groupTaskId, setGroupTaskId] = useState<string | number>('');
 
-  const bufferRooms: Rooms[] = [];
+  const bufferRooms: GroupTasks[] = [];
 
   const [open, setOpen] = useState(false);
   const [openDialogGenerate, setOpenDialogGenerate] = useState(false);
   const [openDialogCopy, setOpenDialogCopy] = useState(false);
 
   const [title, setTitle] = useState<string>('');
-  const [generateRoomId, setGenerateRoomId] = useState<string | number>('');
+  const [generateGroupTaskId, setGenerateGroupTaskId] = useState<string | number>('');
+  const [roomTask, setRoomTask] = useState<string>('');
   const [existLink, setExistLink] = useState<string>('');
   
 
@@ -55,13 +56,13 @@ const ManagementHome = () => {
     setError(null)
     try {
       const date = new Date().toISOString().split('T')[0];
-      const res = await getListRoom(currentPage, currentLimit, date);
-      const data = res.data as any as DataRoomsProps;
-      setListRooms(data.data)
-      setTotal(data.totalCount)
+      const res = await getListGroupTask(currentPage, currentLimit, date);
+      const data = res.data as any as DataGroupTaskProps;
+      setListGroupTasks(data.result.data)
+      setTotal(data.result.totalCount)
     } catch (error: any) {
       setError(error.message);
-      setListRooms([])
+      setListGroupTasks([])
     } finally {
       setLoading(false)
     }
@@ -72,26 +73,26 @@ const ManagementHome = () => {
   }, [page, rowPerPage])
 
   useEffect(() => {
-    if (!loading && listRooms.length > 0 && !showAll) {
-      setExpandedRoomId(prev => prev || listRooms[0].id)
-      setGroupTaskId(prev => prev || listRooms[0].idGroupTask)
+    if (!loading && listGroupTasks.length > 0 && !showAll) {
+      setExpandedGroupTaskId(prev => prev || listGroupTasks[0].id)
+      setGroupTaskId(prev => prev || listGroupTasks[0].id)
     }
-  }, [loading,listRooms, showAll])
+  }, [loading,listGroupTasks, showAll])
 
   // Tính toán danh sách hiển thị
   const displayedRooms = useMemo(() => {
-    if (listRooms.length === 0) return [];
-    return showAll ? listRooms : listRooms.slice(0, 3);
-  }, [listRooms, showAll]);
+    if (listGroupTasks.length === 0) return [];
+    return showAll ? listGroupTasks : listGroupTasks.slice(0, 3);
+  }, [listGroupTasks, showAll]);
 
-  const handleOpenTable = (id: string | number, idGroupTask: string | number) => {
-    setExpandedRoomId(prev => (prev === id ? '' : id))
-    setGroupTaskId(idGroupTask)
+  const handleOpenTable = (id: string | number) => {
+    setExpandedGroupTaskId(prev => (prev === id ? '' : id))
+    setGroupTaskId(id)
   }
 
   const handleShow = () => {
     setShowAll(prev => {
-      if (prev) setExpandedRoomId('');
+      if (prev) setExpandedGroupTaskId('');
       return !prev;
     });
   }
@@ -100,38 +101,29 @@ const ManagementHome = () => {
     setPage(newPage)
   }
 
-  const link = listRooms.find(r => r.id === generateRoomId)?.link_web;
-  
-
-  const handleOpenGenerateCode = (id: string | number) => {
-    const linkWeb = listRooms.find(r => r.id === id)?.link_web;
-    if(linkWeb){
-      setTitle("Bạn đã tạo link phòng này rồi")
-      setGenerateRoomId(id)
-      setExistLink(linkWeb)
-      setOpen(true)
-    }else{  
-      setGenerateRoomId(id)
+  const handleOpenGenerateCode = (id: string | number, room: string) => {
+      setGenerateGroupTaskId(id)
+      setRoomTask(room)
       setOpenDialogGenerate(true)
-    }
   }
   
 
   const handleGenerate = async () => {
     try {
       const data = {
-        roomId: generateRoomId
+        id: generateGroupTaskId,
+        room: roomTask
       }
       const res = await generateLink(data);
-      console.log(res)
-      const room = res.data as any as Rooms;
-      setListRooms(currentRooms =>
+      const room = res.data as any as GroupTasks;
+      room.link_url && setExistLink(room.link_url)
+      setListGroupTasks(currentRooms =>
         currentRooms.map(prev =>
             prev.id === room.id
-                ? { ...prev, link_web: room.link_web } 
+                ? { ...prev, link_web: room.link_url } 
                 : prev 
         )
-    );
+      );
       setOpen(true)
       setOpenDialogGenerate(false)
     } catch (error: any) {
@@ -139,10 +131,9 @@ const ManagementHome = () => {
     }
   }
   
-  
   const handleCopy = async() => {
-    if (link) {
-      const urlLink = convertRoomPathToDisplayRemoteUrl(link);
+    if (existLink) {
+      const urlLink = convertRoomPathToDisplayRemoteUrl(existLink);
       navigator.clipboard.writeText(urlLink)
       setOpenDialogCopy(true)
       setOpen(false)
@@ -182,17 +173,17 @@ const ManagementHome = () => {
               {displayedRooms?.map((room, index) => {
                 bufferRooms.push(room)
                 const isEndOfRow = (index + 1) % 3 === 0 || index === displayedRooms.length - 1;
-                const shouldShowCollapse = bufferRooms.some(r => r.id === expandedRoomId)
+                const shouldShowCollapse = bufferRooms.some(r => r.id === expandedGroupTaskId)
                 return (
                   <React.Fragment key={room.id}>
                     <Grid item xs={12} sm={6} lg={4} key={room.id}>
-                      <CardInfo personalPhoto={room.avatarUrlStaff} handleOpenTable={handleOpenTable} data={room} handleGenerate={handleOpenGenerateCode} />
+                      <CardInfo link_url={existLink} personalPhoto={room.avatarUrlStaff} handleOpenTable={handleOpenTable} data={room} handleGenerate={handleOpenGenerateCode} />
                     </Grid>
                     {isEndOfRow && shouldShowCollapse && (
                       <>
                         <Grid item xs={12} >
                           <Collapse in={true} timeout='auto' unmountOnExit>
-                            {!loading && expandedRoomId && (
+                            {!loading && expandedGroupTaskId && (
                               <TableTaskByGroupTask
                                 id={groupTaskId}
                               />
@@ -240,14 +231,14 @@ const ManagementHome = () => {
                   return (
                     <React.Fragment key={room.id}>
                       <Grid key={room.id} item xs={12} sm={6} lg={4}>
-                        <CardInfo personalPhoto={room.avatarUrlStaff} handleOpenTable={handleOpenTable} handleGenerate={handleOpenGenerateCode} data={room} />
+                        <CardInfo link_url={existLink} personalPhoto={room.avatarUrlStaff} handleOpenTable={handleOpenTable} handleGenerate={handleOpenGenerateCode} data={room} />
                       </Grid>
                     </React.Fragment>
                   )
                 })}
               </Grid>
             )}
-          {listRooms.length > 0 && (
+          {listGroupTasks.length > 0 && (
             <Box onClick={handleShow} sx={{ cursor: 'pointer' }} display='flex' justifyContent='end'>
               <Typography fontWeight={500} variant='h6'>Xem tất cả</Typography>
               <IconButton
@@ -256,9 +247,9 @@ const ManagementHome = () => {
               />
             </Box>
           )}
-          {!showAll && expandedRoomId && (
-            <Collapse in={!!expandedRoomId} timeout='auto' unmountOnExit>
-              {!loading && expandedRoomId && (
+          {!showAll && expandedGroupTaskId && (
+            <Collapse in={!!expandedGroupTaskId} timeout='auto' unmountOnExit>
+              {!loading && expandedGroupTaskId && (
                 <TableTaskByGroupTask
                   id={groupTaskId}
                 />
@@ -273,24 +264,13 @@ const ManagementHome = () => {
         handleClose={() => setOpenDialogGenerate(false)}
         handleGenerate={handleGenerate}
       />
-      {link  &&
-      <DialogConformLink
-        open={open}
-        handleClose={() => setOpen(false)}
-        title={title}
-        displayedRooms={displayedRooms}
-        generateRoomId={generateRoomId}
-        handleCopy={handleCopy}
-        link={link}
-      />
-      }
       {existLink  &&
       <DialogConformLink
         open={open}
         handleClose={() => setOpen(false)}
         title={title}
         displayedRooms={displayedRooms}
-        generateRoomId={generateRoomId}
+        generateGroupTaskId={generateGroupTaskId}
         handleCopy={handleCopy}
         link={existLink}
       />

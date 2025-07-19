@@ -71,7 +71,7 @@ const CleaningWeeklyCardMobile: React.FC<HomeStaffProps> = ({ cleaningHistory })
             {week.days.map((cleaningItem) => {
               const isToday = cleaningItem.date === todayStr
               return (
-                <Grid size={{ xs:12, md:3 }} key={cleaningItem.date}>
+                <Grid size={{ xs:12, md:2.4 }} key={cleaningItem.date}>
                   <Card 
                     sx={{ 
                       borderRadius: 3, 
@@ -98,7 +98,7 @@ const CleaningWeeklyCardMobile: React.FC<HomeStaffProps> = ({ cleaningHistory })
                       {cleaningItem.rooms.length > 0 ? (
                         <Grid container spacing={1}>
                           {cleaningItem.rooms.map((room) => (
-                            <Grid size={{ xs:12, md:6 }} key={room.id}>
+                            <Grid size={{ xs:6}} key={room.id}>
                               <Box
                                 display='flex'
                                 flexDirection='column'

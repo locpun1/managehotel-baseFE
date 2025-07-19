@@ -76,7 +76,7 @@ function ManagementWork (){
         <Box>
             <SearchBar
                 onSearch={handleSearch}
-                placeholder="Tìm kiếm"
+                placeholder="Tìm kiếm theo tầng, phòng, tiến độ, người dọn dẹp, tên công việc...."
                 initialValue={searchTerm}
                 onOpenDialogCreate={handleOpenCreateDialog}
             />

@@ -11,12 +11,14 @@ import { getReportStatusLabel } from '@/utils/status';
 import CommonImage from '@/components/Image/index';
 import DialogOpenImage from '../components/DialogOpenImage';
 import CustomPagination from '@/components/Pagination/CustomPagination';
+import { STATUS_CODE } from '@/constants/statusCode';
 
 const StaffReport = () => {
   const roomId = localStorage.getItem(ID_ROOM);
   const [searchTerm, setSearchTerm] = useState<string>('')
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [errorNotFound, setErrorNotFound] = useState(null);
   const [listReports, setListReports] = useState<ReportsApiResponse | null>(null);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(0);
@@ -36,7 +38,11 @@ const StaffReport = () => {
       setListReports(res);
       setTotal(res.totalCount)
     } catch (error: any) {
-      setError(error.message)
+      if(error.statusCode === STATUS_CODE.NOT_FOUND){
+        setErrorNotFound(error.message)
+      }else{
+        setError(error.message)
+      }
       setListReports(null)
       setTotal(0)
     }finally{
@@ -74,6 +80,9 @@ const StaffReport = () => {
           <Box sx={{ display: 'flex', justifyContent: 'center', my: 3}}>
             <CircularProgress/>
           </Box>
+        )}
+        {errorNotFound && !loading && (
+          <Typography p={2} fontWeight={600} variant="body1">{errorNotFound}</Typography>
         )}
         {error && !loading && (
           <Alert severity='error' sx={{ my: 2}}>{error}</Alert>

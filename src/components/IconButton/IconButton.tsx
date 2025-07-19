@@ -53,7 +53,7 @@ const IconButton: React.FC<IconButtonProps> = ({
                             backgroundColor: backgroundColor, // hoặc 'transparent' nếu không muốn nền
                         },
                         '&.Mui-disabled':{
-                            backgroundColor:"gray",
+                            backgroundColor:backgroundColor,
                             color: 'white',
                             opacity: 0.5, // hoặc giữ nguyên 1 nếu không muốn bị mờ
                         },

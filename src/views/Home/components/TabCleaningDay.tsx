@@ -60,7 +60,7 @@ const CleaningDaysCardMobile: React.FC<HomeStaffProps> = (props) => {
         {data.map((cleaningItem, index) => {
           const isToday = cleaningItem.date === todayStr
           return(
-            <Grid size={{ xs: 12, md:3}}>
+            <Grid size={{ xs: 12, md:2.4}}>
               <Card 
                 key={index}
                 sx={{ 
@@ -95,7 +95,7 @@ const CleaningDaysCardMobile: React.FC<HomeStaffProps> = (props) => {
                     <Grid container spacing={1}>
                       {cleaningItem.rooms.map((room) => {
                         return (
-                          <Grid size={{ xs: 12, md: 6}} key={room.id}>
+                          <Grid size={{ xs: 6}} key={room.id}>
                             <Box
                               display='flex'
                               justifyContent='start'
