@@ -104,8 +104,8 @@ const TableTask: React.FC<TableTaskProps> = (props) => {
                                 return( 
                                     <React.Fragment key={task.id}>
                                         <TableRow hover onClick={() => handleToggle(task.id, task.due_date)}>
-                                            <TableCell align="center">{task.floorName}</TableCell>
-                                            <TableCell align="center">{task.roomName}</TableCell>
+                                            <TableCell align="center">{task.floor}</TableCell>
+                                            <TableCell align="center">{task.room}</TableCell>
                                             <TableCell align="center">{task.name}</TableCell>
                                             <TableCell align="center">{task.quantity}</TableCell>
                                             <TableCell align="center">
@@ -166,7 +166,7 @@ const TableTask: React.FC<TableTaskProps> = (props) => {
             )}
             {!loading && !error && selectedGroupTask && (
                 <Collapse in={selectedGroupTask.id === listGroupTask?.find(el => el.id === selectedGroupTask.id)?.id} timeout='auto' unmountOnExit>
-                    <Typography fontWeight={500} sx={{ mt: listGroupTask.length < 10 ? 3 : 0}}>{`Danh sách chi tiết theo nhóm công việc: ${listGroupTask?.find(el => el.id === selectedGroupTask.id)?.name}, ${listGroupTask?.find(el => el.id === selectedGroupTask.id)?.roomName}`} </Typography>
+                    <Typography fontWeight={500} sx={{ mt: listGroupTask.length < 10 ? 3 : 0}}>{`Danh sách chi tiết theo nhóm công việc: ${listGroupTask?.find(el => el.id === selectedGroupTask.id)?.name}, ${listGroupTask?.find(el => el.id === selectedGroupTask.id)?.room}`} </Typography>
                     <TableContainer component={Paper}>
                         <Table>
                             <TableHead>

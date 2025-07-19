@@ -30,6 +30,7 @@ interface StepperData {
 const RoomDisplayPageStatic = () => {
 
   const { roomId } = useParams<{ roomId: string }>();
+  
   const [stepperData, setStepperData] = useState<StepperData | null>(null);
   const deviceId = useMemo(() => {
     let storedDeviceId = localStorage.getItem(LOCAL_STORAGE_DEVICE_ID_KEY);

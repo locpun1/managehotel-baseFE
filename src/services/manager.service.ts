@@ -32,7 +32,8 @@ export interface DataRoomsProps{
 }
 
 export type LinkRequest = {
-  roomId: string | number;
+  id: string | number;
+  room: string;
 };
 
 
@@ -58,7 +59,7 @@ export const updateTask = async (
 };
 
 export const generateLink =  (params: LinkRequest) => {
-  return HttpClient.post<typeof params, HttpResponse<Rooms>>(`${prefix}/rooms/generate-link`, params);
+  return HttpClient.post<typeof params, HttpResponse<Rooms>>(`${prefix}/tasks/generate-link`, params);
 }
 
 export const getListGroupTask = (

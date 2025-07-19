@@ -27,10 +27,13 @@ export const getListReports = async(
     staffId?: string | number,
     roomId?: string | number,
 ): Promise<ReportsApiResponse> => {
-    let url = `${prefix}/reports/get-list-reports?page=${page}&size=${size}&staffId=${staffId}&dueDate=${dueDate}`;
-    if(roomId){{
+    let url = `${prefix}/reports/get-list-reports?page=${page}&size=${size}&dueDate=${dueDate}`;
+    if(roomId){
         url += `&roomId=${roomId}`
-    }}
+    }
+    if(staffId){
+        url += `&staffId=${staffId}`
+    }
     const response = await HttpClient.get<{
         success: boolean;
         message: string;

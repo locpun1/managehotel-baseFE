@@ -1,5 +1,5 @@
 import { useCachedImage } from "@/hooks/useCachedImage";
-import { Rooms, Tasks } from "@/types/manager";
+import { GroupTasks, Rooms, Tasks } from "@/types/manager";
 import { Box, Card, CardMedia, Chip, Grid, styled, Typography } from "@mui/material";
 import React from "react";
 import defaultAvatar from '@/assets/images/users/default-avatar.jpg';
@@ -10,10 +10,11 @@ import { TaskStatus } from "@/constants/taskStatus";
 import { getMinutesDiff } from "@/utils/date";
 
 interface InfoProps{
-    data?: Rooms,
+    data?: GroupTasks,
     personalPhoto?: string | null,
-    handleOpenTable: (id: string | number, idGroupTask: string | number) => void,
-    handleGenerate: (id: string | number) => void,
+    handleOpenTable: (id: string | number) => void,
+    handleGenerate: (id: string | number, room: string) => void,
+    link_url: string
 }
 
 const ObjectCardStyled = styled(Card)(({theme}) => ({
@@ -29,7 +30,7 @@ const ObjectCardStyled = styled(Card)(({theme}) => ({
 }));
 
 const CardInfo: React.FC<InfoProps> = (props) => {
-    const { data, personalPhoto, handleOpenTable, handleGenerate } = props;
+    const { data, personalPhoto, handleOpenTable, handleGenerate, link_url } = props;
     
     const cachedImgSrc = useCachedImage(personalPhoto);
     const imgSrc = cachedImgSrc ?? defaultAvatar;
@@ -49,7 +50,7 @@ const CardInfo: React.FC<InfoProps> = (props) => {
     }
 
     
-    const getDateTime = (data: Rooms) : string => {
+    const getDateTime = (data: GroupTasks) : string => {
         const batDau = DateTime.FormatHour(data?.started_at) || ' 00:00 ';
         const ketThuc = DateTime.FormatHour(data?.completed_at) || ' 00:00 ';
         return `${batDau} - ${ketThuc}, ${DateTime.FormatDate(data.due_date)}`
@@ -59,7 +60,7 @@ const CardInfo: React.FC<InfoProps> = (props) => {
     
 
 
-    const status = data && getCardStatus(data.statusTask);
+    const status = data && getCardStatus(data.status);
     
     const getStatusColor = (status: string) => {
         switch(status){
@@ -77,7 +78,7 @@ const CardInfo: React.FC<InfoProps> = (props) => {
     return (
         <ObjectCardStyled variant="outlined">
             <Grid container spacing={1}>
-                <Grid item xs={12} md={5} onClick={() => data !== undefined && handleOpenTable(data.id, data.idGroupTask)}>
+                <Grid item xs={12} md={5} onClick={() => data !== undefined && handleOpenTable(data.id)}>
                     <CardMedia
                         component='img'
                         image={imgSrc}
@@ -99,17 +100,18 @@ const CardInfo: React.FC<InfoProps> = (props) => {
                 </Grid>
                 <Grid sx={{ mt: 2, ml: {xs: 2, md: 0 }}} item xs={12} md={7}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                        <Box onClick={() => data !== undefined && handleOpenTable(data.id, data.idGroupTask)}>
+                        <Box onClick={() => data !== undefined && handleOpenTable(data.id)}>
                             <Typography variant="body2" component="span">Số phòng: </Typography>
-                            <Typography variant="body2" component="span" fontWeight="bold">{data?.room_number}</Typography>
+                            <Typography variant="body2" component="span" fontWeight="bold">{data?.room}</Typography>
                         </Box>
                         <Box sx={{ mx:1}}>
                             <IconButton
-                                handleFunt={() => data !== undefined && handleGenerate(data.id)}
+                                handleFunt={() => data !== undefined && handleGenerate(data.id, data.room)}
                                 icon={<InsertLink color="primary" sx={{ width:"20px", height: "20px"}} />}
                                 height={22}
                                 width={22}
                                 tooltip="Tạo link"
+                                disabled={!!link_url || !!data?.link_url} 
                             />
                             <IconButton
                                 handleFunt={() => {}}
@@ -134,19 +136,19 @@ const CardInfo: React.FC<InfoProps> = (props) => {
                             />
                         </Box>
                     </Box>
-                    <Box sx={{ mb:1}} onClick={() => data !== undefined && handleOpenTable(data.id, data.idGroupTask)}>
-                        <Typography variant="body2">{`Số tầng: ${data?.floorName}`}</Typography>
+                    <Box sx={{ mb:1}} onClick={() => data !== undefined && handleOpenTable(data.id)}>
+                        <Typography variant="body2">{`Số tầng: ${data?.floor}`}</Typography>
                     </Box>
-                    <Box sx={{ mb:1}} onClick={() => data !== undefined && handleOpenTable(data.id, data.idGroupTask)}>
-                        <Typography variant="body2">{`Công việc: ${data?.taskName}`}</Typography>
+                    <Box sx={{ mb:1}} onClick={() => data !== undefined && handleOpenTable(data.id)}>
+                        <Typography variant="body2">{`Công việc: ${data?.name}`}</Typography>
                     </Box>
-                    <Box sx={{ mb:1}} onClick={() => data !== undefined && handleOpenTable(data.id, data.idGroupTask)}>
+                    <Box sx={{ mb:1}} onClick={() => data !== undefined && handleOpenTable(data.id)}>
                         <Typography variant="body2">{`Thời gian: ${date}`}</Typography>
                     </Box>
-                    <Box sx={{ mb:1}} onClick={() => data !== undefined && handleOpenTable(data.id, data.idGroupTask)}>
+                    <Box sx={{ mb:1}} onClick={() => data !== undefined && handleOpenTable(data.id)}>
                         <Typography variant="body2">{`Tổng: ${data?.started_at && data?.completed_at && getMinutesDiff(data?.started_at, data?.completed_at) || 0} phút`}</Typography>
                     </Box>
-                    <Box sx={{ display: 'flex', justifyContent: {xs: 'center', md: 'flex-start'} }} onClick={() => data !== undefined && handleOpenTable(data.id, data.idGroupTask)}>
+                    <Box sx={{ display: 'flex', justifyContent: {xs: 'center', md: 'flex-start'} }} onClick={() => data !== undefined && handleOpenTable(data.id)}>
                         {status && <Chip sx={{ width: 150, mb:1.5 }} label={status} color={getStatusColor(status)}/>}
                     </Box>
                 </Grid>

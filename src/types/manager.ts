@@ -41,14 +41,15 @@ export interface TaskData {
     quantity: number;
     status: string,
     assigned_by_id: number | string,
-    room_id: number | string,
+    room: string,
+    floor: string,
     due_date:string,
     groupTask: TaskItemData[]
 }
 
 export interface Tasks {
     id: string | number;
-    room_id: number;
+    room: string;
     assigned_by_id: number,
     assigned_to_id?: number,
     title: string,
@@ -74,7 +75,7 @@ export interface Tasks {
 
 export interface GroupTasks {
     id: string | number;
-    room_id: number;
+    room: string;
     assigned_by_id: number,
     assigned_to_id?: number,
     name: string,
@@ -87,10 +88,10 @@ export interface GroupTasks {
     completed_at?: string,
     createdAt?:string,
     updatedAt?:string,
-    roomName?:string,
-    floorName?:string,
     groupTask: Tasks[],
-    floor_id: number,
+    floor: string,
     staffName?: string,
     is_checkout: number,
+    link_url?: string,
+    avatarUrlStaff: string
 }
