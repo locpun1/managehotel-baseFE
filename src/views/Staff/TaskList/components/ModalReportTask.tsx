@@ -22,7 +22,7 @@ interface ModalReportTaskProps{
 
 interface ReportFormData{
     reported_by_id: number | string;
-    room_id: number | String;
+    room: number | String;
     task_id: number | string;
     title: string;
     description: string;
@@ -46,7 +46,7 @@ const ModalReportTask = (props: ModalReportTaskProps) => {
     const [errors, setErrors] = useState<Partial<Record<'description' | 'image_url', string>>>({});
     
     const [formData, setFormData] = useState<ReportFormData>({
-        reported_by_id: profile.id, room_id: detailTask.room_id , task_id: detailTask.id, title: detailTask.title, description: '',
+        reported_by_id: profile.id, room: detailTask.room , task_id: detailTask.id, title: detailTask.title, description: '',
         image_url: null, status: ReportStatus.NEW, date_today: dayjs().toISOString()
     })
 
@@ -73,7 +73,7 @@ const ModalReportTask = (props: ModalReportTaskProps) => {
     const handleClose = () => {
         onClose()
         setFormData({
-            reported_by_id: profile.id, room_id: detailTask.room_id , task_id: detailTask.id, title: detailTask.title, description: '',
+            reported_by_id: profile.id, room: detailTask.room , task_id: detailTask.id, title: detailTask.title, description: '',
             image_url: null, status: ReportStatus.NEW, date_today: dayjs().toISOString()
         })
         setImagePreview(null)
@@ -220,7 +220,7 @@ const ModalReportTask = (props: ModalReportTaskProps) => {
         setIsSubmitting(true)
         const data = new FormData();
         data.append('reported_by_id', String(formData.reported_by_id));
-        data.append('room_id', String(formData.room_id));
+        data.append('room', String(formData.room));
         data.append('task_id', String(formData.task_id));
         data.append('title', formData.title);
         if(formData.description) data.append('description', formData.description)

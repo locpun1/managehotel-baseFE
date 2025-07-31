@@ -1,15 +1,13 @@
 import DialogComponent from "@/components/DialogComponent";
 import ActionButton from "@/components/ProButton/ActionButton";
 import { Box, CircularProgress, Grid, TextField, Typography } from "@mui/material";
-import React, { useEffect, useState,FormEvent, useMemo } from "react";
+import React, { useEffect, useState,FormEvent } from "react";
 import InputText from "./InputText";
-import { createTask, DataTaskProps, getAllListFloor, getRoomByFloor, updateTask } from "@/services/manager.service";
-import { Floors, GroupTasks, Rooms, Tasks } from "@/types/manager";
+import { createTask, updateTask } from "@/services/manager.service";
 import dayjs, { Dayjs } from "dayjs";
 import useAuth from "@/hooks/useAuth";
 import { UserProfile } from "@/types/users";
-import { AddCircleOutline, Hotel, Layers, RemoveCircleOutline } from "@mui/icons-material";
-import InputSelect from "./InputSelect";
+import { AddCircleOutline, RemoveCircleOutline } from "@mui/icons-material";
 import useNotification from "@/hooks/useNotification";
 import { TaskStatus } from "@/constants/taskStatus";
 import IconButton from "@/components/IconButton/IconButton";
@@ -25,24 +23,10 @@ interface DialogCreateTaskProps{
     setReloadKey?: React.Dispatch<React.SetStateAction<number>>
 }
 
-interface DataFloors{
-    data: Floors[],
-}
-interface DataRooms{
-    data: Rooms[],
-}
-
-interface IconFloor extends Floors{
-    icon: React.ReactNode
-}
-
-interface IconRoom extends Rooms{
-    icon: React.ReactNode
-}
 
 interface TaskFormData {
-    floor_id: number | string,
-    room_id: number | string,
+    floor: string,
+    room: string,
     name: string;
     notes: string;
     quantity: number;
@@ -60,54 +44,14 @@ interface DateTask extends TaskItemData{
     due_date: string
 }
 
-
-interface DataTask{
-    task: GroupTasks
-}
-
-const ITEM_HEIGHT = 48;
-const ITEM_PADDING_TOP = 8;
-const MAX_VISIBLE_ITEMS = 5;
-
-const MenuProps = {
-  PaperProps: {
-   sx: {
-      maxHeight: ITEM_HEIGHT * MAX_VISIBLE_ITEMS + ITEM_PADDING_TOP,
-      width: 300,
-
-      /* Custom scrollbar cho Chrome, Edge, Safari */
-      '&::-webkit-scrollbar': {
-        width: '8px',
-      },
-      '&::-webkit-scrollbar-track': {
-        backgroundColor: '#f1f1f1',
-        borderRadius: '4px',
-      },
-      '&::-webkit-scrollbar-thumb': {
-        backgroundColor: '#888',
-        borderRadius: '4px',
-      },
-      '&::-webkit-scrollbar-thumb:hover': {
-        backgroundColor: '#555',
-      },
-
-      /* Custom scrollbar cho Firefox */
-      scrollbarWidth: 'thin',
-      scrollbarColor: '#888 #f1f1f1',
-    },
-  },
-};
-
 const DialogCreateTask: React.FC<DialogCreateTaskProps> = (props) => {
-    const {open, title, onClose, handleLoadList, taskId, from, setReloadKey} = props;
+    const {open, title, onClose, taskId, from, setReloadKey} = props;
     const [formData, setFormData] = useState<TaskFormData>({
-        name: 'Dọn dẹp phòng', notes: '', quantity: 0, status: TaskStatus.PENDING, assigned_by_id: '', room_id: '', floor_id: ''
+        name: 'Dọn dẹp phòng', notes: '', quantity: 0, status: TaskStatus.PENDING, assigned_by_id: '', room: '', floor: ''
     })
 
-    const [listFloors, setListFloors] = useState<IconFloor[]>([]);
-    const [listRooms, setListRooms] = useState<IconRoom[]>([])
     const [loading, setLoading] = useState(false);
-    const [errors, setErrors] = useState<Partial<Record<'name' | 'notes' | 'quantity' | 'floor_id' | 'room_id', string>>>({});
+    const [errors, setErrors] = useState<Partial<Record<'name' | 'notes' | 'quantity' | 'floor' | 'room', string>>>({});
     type TaskSlotError = Partial<Record<'title' | 'order_in_process', string>>;
     const [taskSlotErrors, setTaskSlotErrors] = useState<TaskSlotError[]>([]);
     const [infoCurrentUser, setInfoCurrentUser] = useState<UserProfile | null>(null)
@@ -157,7 +101,7 @@ const DialogCreateTask: React.FC<DialogCreateTaskProps> = (props) => {
     const handleClose = () => {
         onClose()
         setFormData({
-            name: 'Dọn dẹp phòng', notes: '', quantity: 0, status: TaskStatus.PENDING, assigned_by_id: '', room_id: '', floor_id: ""
+            name: 'Dọn dẹp phòng', notes: '', quantity: 0, status: TaskStatus.PENDING, assigned_by_id: '', room: '', floor: ""
         })
         setTaskSlots([])
         setErrors({})
@@ -167,46 +111,9 @@ const DialogCreateTask: React.FC<DialogCreateTaskProps> = (props) => {
     useEffect(() => {
         if(open && profile){
             setInfoCurrentUser(profile)
-            const getList = async() => {
-                const res = await getAllListFloor();
-                const data = res as any as DataFloors
-                const dataFloor: IconFloor[] = data.data.map(
-                    (floor) => ({
-                        ...floor,
-                        icon:<Layers/>
-                    })
-                )
-                setListFloors(dataFloor)     
-            }
-            getList()
         }
     }, [open, profile])
     
-    const selectedFloor = useMemo(() => formData.floor_id, [formData.floor_id]);
-    useEffect(() => {
-        if(selectedFloor){
-            const getRooms = async() => {
-                try {
-                    const resRoom = await getRoomByFloor(selectedFloor)
-                    const data = resRoom as any as DataRooms;
-                    const dataRoom: IconRoom[] = data.data.map(
-                        (room) => ({
-                            ...room,
-                            icon:<Hotel/>
-                        })
-                    )
-                    setListRooms(dataRoom)
-                } catch (error) {
-                    console.error('Lấy phòng thất bại:', error);
-                    setListRooms([])
-                }
-            }
-            getRooms()
-        }else{
-            // Nếu không chọn tầng thì clear danh sách phòng
-            setListRooms([]);
-        }
-    },[selectedFloor])
 
     useEffect(() => {
     const newQuantity = taskSlots.length;
@@ -226,11 +133,11 @@ const DialogCreateTask: React.FC<DialogCreateTaskProps> = (props) => {
                 [validName]: name === 'quantity' ? Number(value) : value, 
             }));
 
-            if (validName === 'name' || validName === 'notes' || validName === 'quantity' || validName === 'floor_id' || validName === 'room_id') {
-                if (errors[validName as 'notes' | 'quantity' | 'floor_id' | 'room_id'| 'name']) {
+            if (validName === 'name' || validName === 'notes' || validName === 'quantity' || validName === 'floor' || validName === 'room') {
+                if (errors[validName as 'notes' | 'quantity' | 'floor' | 'room'| 'name']) {
                     setErrors(prev => {
                         const newErrors = { ...prev };
-                        delete newErrors[validName as 'notes' | 'quantity' | 'floor_id' | 'room_id' | 'name'];
+                        delete newErrors[validName as 'notes' | 'quantity' | 'floor' | 'room' | 'name'];
                         return newErrors;
                     });
                 }
@@ -272,15 +179,15 @@ const DialogCreateTask: React.FC<DialogCreateTaskProps> = (props) => {
     
    
     const validateForm = (): boolean => {
-        const newErrors: Partial<Record<'name' | 'notes' | 'quantity' | 'floor_id' | 'room_id', string>> = {};
+        const newErrors: Partial<Record<'name' | 'notes' | 'quantity' | 'floor' | 'room', string>> = {};
         const newErrorsTaskItem: TaskSlotError[] = []; 
         if (!formData.name.trim()) newErrors.name = 'Công việc là bắt buộc';
         if (!formData.notes.trim()) {
             newErrors.notes = 'Yêu cầu là bắt buộc';
         }
         if (!formData.quantity) newErrors.quantity = 'Số lượng là bắt buộc';
-        if (!formData.floor_id) newErrors.floor_id = 'Số tầng là bắt buộc';
-        if (!formData.room_id) newErrors.room_id = 'Số phòng là bắt buộc';
+        if (!formData.floor) newErrors.floor = 'Số tầng là bắt buộc';
+        if (!formData.room) newErrors.room = 'Số phòng là bắt buộc';
         taskSlots.forEach((slot, index) => {
             const errors: TaskSlotError = {};
             if (!slot.title.trim()) {
@@ -317,15 +224,14 @@ const DialogCreateTask: React.FC<DialogCreateTaskProps> = (props) => {
             'due_date': dayjs().toISOString(),
             "groupTask": newtaskSlots 
         }
-        const { floor_id, ...payload} = data;
         try {
             let res;
             if(taskId){
                 //update GroupTask
-                res = await updateTask(taskId, payload)
+                res = await updateTask(taskId, data)
             }else{
                 //create GroupTask
-                res = await createTask(payload)
+                res = await createTask(data)
             }
 
             notify({
@@ -375,46 +281,34 @@ const DialogCreateTask: React.FC<DialogCreateTaskProps> = (props) => {
                             <Grid container spacing={1}>
                                 <Grid item xs={12} md={6}>
                                     <Typography variant="body2" fontWeight={600} gutterBottom>Số tầng</Typography>
-                                    <InputSelect
-                                        name="floor_id"
+                                    <InputText
                                         label=""
-                                        value={formData.floor_id}
+                                        type="text"
+                                        name="floor"
+                                        value={formData.floor}
                                         onChange={handleCustomInputChange}
-                                        options={listFloors}
-                                        transformOptions={(data) =>
-                                            data.map((item) => ({
-                                            value: item.id,
-                                            label: item.name,
-                                            icon: item.icon
-                                            }))
-                                        }
                                         placeholder="Số tầng"
-                                        error={!!errors.floor_id}
-                                        helperText={errors.floor_id}
-                                />
-
+                                        sx={{ mt: 0 }}
+                                        error={!!errors.floor}
+                                        helperText={errors.floor}
+                                        margin="dense"
+                                        onlyPositiveNumber
+                                    />
                                 </Grid>
                                 <Grid item xs={12} md={6}>
                                     <Typography id="rooms-select-label" variant="body2" fontWeight={600} gutterBottom>Số phòng</Typography>
-                                    <InputSelect
-                                        disabled={from ? false : !formData.floor_id}
-                                        // loading={loading}
+                                    <InputText
                                         label=""
-                                        name="room_id"
-                                        value={formData.room_id}
+                                        type="text"
+                                        name="room"
+                                        value={formData.room}
                                         onChange={handleCustomInputChange}
-                                        options={listRooms}
-                                        MenuProps={MenuProps}
-                                        transformOptions={(data) =>
-                                            data.map((item) => ({
-                                                value: item.id,
-                                                label: `Phòng ${item.room_number}`,
-                                                icon: item.icon
-                                            }))
-                                        }
                                         placeholder="Số phòng"
-                                        error={!!errors.room_id}
-                                        helperText={errors.room_id}
+                                        sx={{ mt: 0 }}
+                                        error={!!errors.room}
+                                        helperText={errors.room}
+                                        margin="dense"
+                                        onlyPositiveNumber
                                     />
                                 </Grid>
                             </Grid>

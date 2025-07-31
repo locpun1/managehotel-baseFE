@@ -12,11 +12,13 @@ import DialogOpenImage from "@/views/Staff/components/DialogOpenImage";
 import Button from "@/components/Button/Button";
 import { ReportStatus } from "@/constants/taskStatus";
 import useNotification from "@/hooks/useNotification";
+import { STATUS_CODE } from "@/constants/statusCode";
 
 const ManagementReport = () => {
     const [searchTerm, setSearchTerm] = useState<string>('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [errorNotFound, setErrorNotFound] = useState(null);
     const [listReports, setListReports] = useState<ReportsApiResponse | null>(null);
     const [total, setTotal] = useState(0);
     const [page, setPage] = useState(0);
@@ -31,16 +33,20 @@ const ManagementReport = () => {
         setLoading(true)
         setError(null)
         try {
-          const todayForApi = new Date().toISOString().split('T')[0];
-          const res = await getListReports(currentPage, currentRow, todayForApi)
-          setListReports(res);
-          setTotal(res.totalCount)
+            const todayForApi = new Date().toISOString().split('T')[0];
+            const res = await getListReports(currentPage, currentRow, todayForApi)
+            setListReports(res);
+            setTotal(res.totalCount)
         } catch (error: any) {
-          setError(error.message)
-          setListReports(null)
-          setTotal(0)
+            if(error.statusCode === STATUS_CODE.NOT_FOUND){
+                setErrorNotFound(error.message)
+            }else{
+                setError(error.message)
+            }
+            setListReports(null)
+            setTotal(0)
         }finally{
-          setLoading(false)
+            setLoading(false)
         }
     },[])
 
@@ -94,6 +100,9 @@ const ManagementReport = () => {
                         <CircularProgress/>
                     </Box>
                 )}
+                {errorNotFound && !loading && (
+                    <Typography p={2} fontWeight={600} variant="body1">{errorNotFound}</Typography>
+                )}
                 {error && !loading && (
                     <Alert severity="error" sx={{ my: 2}}>{error}</Alert>
                 )}
@@ -101,7 +110,7 @@ const ManagementReport = () => {
                     <Box sx={{ m: 2}}>
                         <Grid container spacing={2}>
                             {listReports?.reports.length === 0 ? (
-                                <Typography variant="body1">Không tồn tại bản ghi nào cả</Typography>
+                                <Typography p={2} fontWeight={600} variant="body1">Không tồn tại bản ghi nào cả</Typography>
                             ) : (
                                 listReports?.reports.map((report) => {
                                     const time = report.startedAt && report.completedAt && getTime(report.startedAt, report.completedAt);

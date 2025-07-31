@@ -1,5 +1,5 @@
 import DialogComponent from "@/components/DialogComponent";
-import { Rooms } from "@/types/manager";
+import { GroupTasks, Rooms } from "@/types/manager";
 import { convertRoomPathToDisplayRemoteUrl } from "@/utils/url";
 import { ContentCopy } from "@mui/icons-material";
 import { Box, Button, Typography } from "@mui/material";
@@ -8,13 +8,13 @@ interface DialogConformLinkProps{
     open: boolean,
     handleClose: () => void,
     title?: string
-    displayedRooms: Rooms[], 
-    generateRoomId: number | string,
+    displayedRooms: GroupTasks[], 
+    generateGroupTaskId: number | string,
     handleCopy: () => void,
     link: string
 }
 const DialogConformLink: React.FC<DialogConformLinkProps> = (props) => {
-    const { open, handleClose, title, displayedRooms, generateRoomId,link, handleCopy} = props;
+    const { open, handleClose, title, displayedRooms, generateGroupTaskId,link, handleCopy} = props;
     return(
         <DialogComponent
             dialogKey={open}
@@ -22,7 +22,7 @@ const DialogConformLink: React.FC<DialogConformLinkProps> = (props) => {
             isActiveFooter={false}
         >
             <Typography fontWeight={500}>
-                {title ? `Đường link Phòng: ${displayedRooms.find(r => r.id === generateRoomId)?.room_number}` : `Tạo đường link thành công, Phòng: ${displayedRooms.find(r => r.id === generateRoomId)?.room_number}`}
+                {title ? `Đường link Phòng ${displayedRooms.find(r => r.id === generateGroupTaskId)?.room}` : `Tạo đường link thành công, Phòng: ${displayedRooms.find(r => r.id === generateGroupTaskId)?.room}`}
             </Typography>
             <Box sx={{ border: "1px solid rgb(164, 165, 165)", borderRadius: "5px", padding: 2, mt: 2 }} >
                 <Typography variant="body2" sx={{ wordBreak: "break-all" }}>

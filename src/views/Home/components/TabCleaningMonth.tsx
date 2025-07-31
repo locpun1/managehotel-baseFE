@@ -43,16 +43,35 @@ interface Props {
 
 const CleaningByMonthCardMobile: React.FC<Props> = ({ data }) => {
   const stats = getMonthlyStats(data);
-
+  const year = new Date().getFullYear();
+  const monthCurrent = new Date().getMonth(); // từ 0 → 11
   return (
-    <Box sx={{ p: 2 }}>
+    <Box
+      sx={{ 
+        height: 'calc(100vh - 200px)', 
+        overflowY: 'auto', p: 2,
+        '&::-webkit-scrollbar': { width: '6px' },
+        '&::-webkit-scrollbar-thumb': { bgcolor: 'rgba(0,0,0,0.2)', borderRadius: 1 },
+        '&::-webkit-scrollbar-track': {
+          backgroundColor: '#f1f1f1',
+        }, 
+      }}
+    >
       <Typography variant="h6" fontWeight={600} mb={2}>
-        🧹 Thống kê dọn dẹp theo từng tháng
+        {`🧹 Thống kê dọn dẹp theo từng tháng ${year}`}
       </Typography>
       <Grid container spacing={2}>
-        {stats.map(({ month, roomCount, totalMinutes }) => (
+        {stats.map(({ month, roomCount, totalMinutes }) => {
+          const isMonth = month === monthCurrent
+          return (
           <Grid item xs={12} md={4} key={month}>
-            <Card sx={{ borderRadius: 3, boxShadow: 3, bgcolor: '#f9f9f9' }}>
+            <Card 
+              sx={{ 
+                borderRadius: 3, boxShadow: 3, 
+                backgroundColor: isMonth ? '#E3F2FD' : '#f8f9fa',
+                border: isMonth ? '2px solid #1976d2' : 'none',
+              }}  
+            >
               <CardContent>
                 <Box display="flex" alignItems="center" mb={1}>
                   <CalendarMonth sx={{ mr: 1, color: 'primary.main' }} />
@@ -71,7 +90,8 @@ const CleaningByMonthCardMobile: React.FC<Props> = ({ data }) => {
               </CardContent>
             </Card>
           </Grid>
-        ))}
+        )
+        })}
       </Grid>
     </Box>
   );
